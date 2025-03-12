@@ -8,19 +8,34 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: mydatabase
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
     ports:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+
   backend:
     build:
       context: .
+      dockerfile: Dockerfile
       target: backend
     container_name: backend
     restart: always
     environment:
-      - DATABASE_URL=mysql://root:password@mysql:3306/mydatabase
+      - DATABASE_URL=mysql://user:password@mysql:3306/mydatabase
     depends_on:
       - mysql
     ports:
@@ -28,8 +43,9 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: .
       dockerfile: Dockerfile
+      target: frontend
     container_name: frontend
     restart: always
     ports:
