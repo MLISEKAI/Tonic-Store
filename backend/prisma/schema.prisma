@@ -53,7 +53,7 @@ model Cart {
 model CartItem {
   id        Int      @id @default(autoincrement())
   cartId    Int
-  cart      Cart     @relation(fields: [cartId], references: [id])
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   productId Int
   product   Product  @relation(fields: [productId], references: [id])
   quantity  Int      @default(1)
