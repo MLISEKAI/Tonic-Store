@@ -1,25 +1,27 @@
-import { FastifyInstance } from "fastify";
+import express from "express";
 import { registerUser } from "../services/auth/registerService";
 import { loginUser } from "../services/auth/loginService";
 
-export default async function authRoutes(fastify: FastifyInstance) {
-  fastify.post("/register", async (request, reply) => {
-    try {
-      const { name, email, password } = request.body as any;
-      const user = await registerUser(name, email, password);
-      reply.send(user);
-    } catch (error) {
-      reply.status(500).send({ error: "Lỗi khi đăng ký" });
-    }
-  });
+const router = express.Router();
 
-  fastify.post("/login", async (request, reply) => {
-    try {
-      const { email, password } = request.body as any;
-      const { token, user } = await loginUser(email, password);
-      reply.send({ token, user });
-    } catch (error) {
-      reply.status(401).send({ error: "Sai email hoặc mật khẩu" });
-    }
-  });
-}
+router.post("/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const user = await registerUser(name, email, password);
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Lỗi khi đăng ký" });
+  }
+});
+
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const { token, user } = await loginUser(email, password);
+    res.json({ token, user });
+  } catch (error) {
+    res.status(401).json({ error: "Sai email hoặc mật khẩu" });
+  }
+});
+
+export default router;

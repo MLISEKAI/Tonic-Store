@@ -1,19 +1,28 @@
-import { FastifyInstance } from "fastify";
+import express, { Request, Response } from "express";
 import { getAllPayments, createPayment, updatePaymentStatus } from "../services/paymentService";
+import { authenticate } from "../middleware/auth";
 
-export default async function paymentRoutes(fastify: FastifyInstance) {
-  fastify.get("/payments", async (_, reply) => {
-    return reply.send(await getAllPayments());
-  });
+const router = express.Router();
 
-  fastify.post("/payments", async (request, reply) => {
-    const { orderId, method, transactionId } = request.body as any;
-    return reply.send(await createPayment(orderId, method, transactionId));
-  });
+router.get("/", authenticate, async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const payments = await getAllPayments();
+    res.json(payments);
+    return;
+  } catch (error) {
+    res.status(500).json({ error: "Lỗi khi lấy danh sách thanh toán" });
+  }
+});
 
-  fastify.put("/payments/:orderId", async (request, reply) => {
-    const { orderId } = request.params as any;
-    const { status } = request.body as any;
-    return reply.send(await updatePaymentStatus(Number(orderId), status));
-  });
-}
+router.post("/", authenticate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { orderId, method, transactionId } = req.body;
+    const payment = await createPayment(Number(orderId), method, transactionId);
+    res.json(payment);
+    return;
+  } catch (error) {
+    res.status(500).json({ error: "Lỗi khi tạo thanh toán" });
+  }
+});
+
+export default router;

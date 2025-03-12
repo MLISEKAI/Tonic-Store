@@ -1,31 +1,26 @@
-import Fastify from "fastify";
-import cors from "@fastify/cors";
+import express from "express";
+import cors from "cors";
 import dotenv from "dotenv";
+
+import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import productRoutes from "./routes/productRoutes";
-import cartRoutes from "./routes/cartRoutes";
 import orderRoutes from "./routes/orderRoutes";
+import cartRoutes from "./routes/cartRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
-import authRoutes from "./routes/authRoutes";
 
-// Load biến môi trường từ `.env`
 dotenv.config();
+const app = express();
 
-const fastify = Fastify({ logger: true });
+app.use(cors());
+app.use(express.json());
 
-// Kích hoạt CORS
-fastify.register(cors);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/payments", paymentRoutes);
 
-// Đăng ký routes
-fastify.register(userRoutes);
-fastify.register(productRoutes);
-fastify.register(cartRoutes);
-fastify.register(orderRoutes);
-fastify.register(paymentRoutes);
-fastify.register(authRoutes);
-
-// Khởi động server
 const PORT = process.env.PORT || 5000;
-fastify.listen({ port: Number(PORT), host: "0.0.0.0" }, () => {
-  console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server chạy tại http://localhost:${PORT}`));

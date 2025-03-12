@@ -7,11 +7,7 @@ export const getAllPayments = async () => {
   });
 };
 
-export const createPayment = async (
-  orderId: number,
-  method: string,
-  transactionId: string
-) => {
+export const createPayment = async (orderId: number, method: string, transactionId: string) => {
   return prisma.payment.create({
     data: {
       orderId,
