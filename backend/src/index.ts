@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes";
+import productRoutes from "./routes/productRoutes";
 
 // Load biến môi trường từ `.env`
 dotenv.config();
@@ -13,7 +14,7 @@ fastify.register(cors);
 
 // Đăng ký routes
 fastify.register(userRoutes);
-
+fastify.register(productRoutes);
 
 // Khởi động server
 const PORT = process.env.PORT || 5000;
