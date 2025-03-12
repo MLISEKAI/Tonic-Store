@@ -1,13 +1,35 @@
-import { FastifyInstance } from "fastify";
-import { getAllUsers, createUser } from "../services/userService";
+import express, { Request, Response } from "express";
+import { getAllUsers, deleteUser } from "../services/userService";
+import { authenticate } from "../middleware/auth";
 
-export default async function userRoutes(fastify: FastifyInstance) {
-  fastify.get("/users", async (_, reply) => {
-    return reply.send(await getAllUsers());
-  });
+const router = express.Router();
 
-  fastify.post("/users", async (request, reply) => {
-    const { name, email, password, role } = request.body as any;
-    return reply.send(await createUser(name, email, password, role));
-  });
-}
+router.get("/", authenticate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user || req.user.role !== "ADMIN") {
+      res.status(403).json({ error: "Không có quyền truy cập" });
+      return;
+    }
+    const users = await getAllUsers();
+    res.json(users);
+    return;
+  } catch (error) {
+    res.status(500).json({ error: "Lỗi khi lấy danh sách user" });
+  }
+});
+
+router.delete("/:id", authenticate, async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user || req.user.role !== "ADMIN") {
+      res.status(403).json({ error: "Không có quyền xóa user" });
+      return;
+    }
+    await deleteUser(Number(req.params.id));
+    res.json({ message: "User đã bị xóa" });
+    return;
+  } catch (error) {
+    res.status(500).json({ error: "Lỗi khi xóa user" });
+  }
+});
+
+export default router;

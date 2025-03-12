@@ -7,12 +7,7 @@ export const getAllOrders = async () => {
   });
 };
 
-export const createOrder = async (
-  userId: number,
-  totalPrice: number,
-  status: string,
-  items: any[]
-) => {
+export const createOrder = async (userId: number, totalPrice: number, status: string, items: any[]) => {
   return prisma.order.create({
     data: {
       userId,
