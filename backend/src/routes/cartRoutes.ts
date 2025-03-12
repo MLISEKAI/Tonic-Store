@@ -1,9 +1,10 @@
 import { FastifyInstance } from "fastify";
+import { authenticate } from "../middleware/auth";
 import { getCartByUserId, addToCart, updateCartItemQuantity, removeFromCart, clearCart } from "../services/cartService";
 
 export default async function cartRoutes(fastify: FastifyInstance) {
   // Lấy giỏ hàng của user
-  fastify.get("/cart/:userId", async (request, reply) => {
+  fastify.get("/cart/:userId",  { preHandler: authenticate }, async (request, reply) => {
     const { userId } = request.params as any;
     try {
       const cart = await getCartByUserId(Number(userId));
@@ -14,7 +15,7 @@ export default async function cartRoutes(fastify: FastifyInstance) {
   });
 
   // Thêm sản phẩm vào giỏ hàng
-  fastify.post("/cart", async (request, reply) => {
+  fastify.post("/cart",  { preHandler: authenticate }, async (request, reply) => {
     const { userId, productId, quantity } = request.body as any;
     try {
       const cartItem = await addToCart(Number(userId), Number(productId), Number(quantity));
@@ -25,7 +26,7 @@ export default async function cartRoutes(fastify: FastifyInstance) {
   });
 
   // Cập nhật số lượng sản phẩm trong giỏ hàng
-  fastify.put("/cart", async (request, reply) => {
+  fastify.put("/cart",  { preHandler: authenticate }, async (request, reply) => {
     const { userId, productId, quantity } = request.body as any;
     try {
       await updateCartItemQuantity(Number(userId), Number(productId), Number(quantity));
@@ -36,7 +37,7 @@ export default async function cartRoutes(fastify: FastifyInstance) {
   });
 
   // Xóa sản phẩm khỏi giỏ hàng
-  fastify.delete("/cart", async (request, reply) => {
+  fastify.delete("/cart",  { preHandler: authenticate }, async (request, reply) => {
     const { userId, productId } = request.body as any;
     try {
       await removeFromCart(Number(userId), Number(productId));
@@ -47,7 +48,7 @@ export default async function cartRoutes(fastify: FastifyInstance) {
   });
 
   // Xóa toàn bộ giỏ hàng
-  fastify.delete("/cart/clear", async (request, reply) => {
+  fastify.delete("/cart/clear",  { preHandler: authenticate }, async (request, reply) => {
     const { userId } = request.body as any;
     try {
       await clearCart(Number(userId));

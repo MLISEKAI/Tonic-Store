@@ -6,6 +6,7 @@ import productRoutes from "./routes/productRoutes";
 import cartRoutes from "./routes/cartRoutes";
 import orderRoutes from "./routes/orderRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
+import authRoutes from "./routes/authRoutes";
 
 // Load biến môi trường từ `.env`
 dotenv.config();
@@ -21,6 +22,7 @@ fastify.register(productRoutes);
 fastify.register(cartRoutes);
 fastify.register(orderRoutes);
 fastify.register(paymentRoutes);
+fastify.register(authRoutes);
 
 // Khởi động server
 const PORT = process.env.PORT || 5000;
