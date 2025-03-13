@@ -1,5 +1,5 @@
 # Use Node.js base image
-FROM node:18 AS base
+FROM node:20 AS base
 WORKDIR /app
 
 # Backend Stage
