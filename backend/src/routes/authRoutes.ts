@@ -10,6 +10,7 @@ router.post("/register", async (req, res) => {
     const user = await registerUser(name, email, password);
     res.json(user);
   } catch (error) {
+    console.error("Lỗi đăng ký:", error); 
     res.status(500).json({ error: "Lỗi khi đăng ký" });
   }
 });

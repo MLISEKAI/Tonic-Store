@@ -1,57 +1,67 @@
-version: "3.8"
-
 services:
-  mysql:
-    image: mysql:8
-    container_name: mysql
-    restart: always
+  server-fe:
+    build:
+      context: ./frontend
+      target: dev
+      dockerfile: Dockerfile
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: mydatabase
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      - PORT=8080
+    volumes:
+      - .:/app
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    restart: unless-stopped
+    ports:
+      - "8080:5173"
+    command: yarn run dev
+  server-be:
+    build:
+      context: ./backend
+      target: dev
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    restart: unless-stopped
+    ports:
+      - '8085:8080'
+    command: 'yarn run dev'
+  prisma-studio:
+    build:
+      context: .
+      target: dev
+      dockerfile: Dockerfile
+    volumes:
+      - ./server:/app
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "5553:5555"
+    command: npx prisma studio
+  db:
+    image: mysql
+    container_name: tonic-store
+    restart: always
     ports:
       - "3306:3306"
+    environment:
+      MYSQL_DATABASE: mydatabase
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      TZ: Asia/Vietnam
     volumes:
-      - mysql-data:/var/lib/mysql
-
+      - ./docker/db/data:/var/lib/mysql
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin
     restart: always
+    depends_on:
+      - db
+    ports:
+      - "9000:80"
     environment:
-      PMA_HOST: mysql
-      MYSQL_ROOT_PASSWORD: password
-    ports:
-      - "8080:80"
-    depends_on:
-      - mysql
-
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: backend
-    container_name: backend
-    restart: always
-    environment:
-      - DATABASE_URL=mysql://user:password@mysql:3306/mydatabase
-    depends_on:
-      - mysql
-    ports:
-      - "5000:5000"
-
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: frontend
-    container_name: frontend
-    restart: always
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-
-volumes:
-  mysql-data:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: root

@@ -1,19 +1,22 @@
-# Use Node.js base image
-FROM node:20 AS base
+FROM sitespeedio/node:ubuntu-22-04-nodejs-20.17.0.1 AS base
+
+FROM base AS dev
 WORKDIR /app
 
-# Backend Stage
-FROM base AS backend
-WORKDIR /app/backend
-COPY backend/package.json backend/yarn.lock ./
-RUN yarn install
-COPY backend ./
-CMD ["yarn", "dev"]
+ENV NODE_ENV=development
+RUN apt-get update && apt-get install -y openssl
+RUN npm install -g yarn
 
-# Frontend Stage
-FROM base AS frontend
-WORKDIR /app/frontend
-COPY frontend/package.json frontend/yarn.lock ./
-RUN yarn install
-COPY frontend ./
-CMD ["yarn", "dev"]
+FROM node:22-alpine AS production
+ENV NPM_CONFIG_PRODUCTION=false
+
+WORKDIR /app
+COPY . .
+
+ENV NODE_ENV=production
+RUN apt-get update && apt-get install -y openssl
+RUN yarn run in-package
+RUN yarn run build
+RUN yarn run build:back
+
+CMD ["yarn", "run", "prd:serve"]
