@@ -14,6 +14,8 @@ services:
     ports:
       - "8080:5173"
     command: yarn run dev
+    networks:
+      - app-network
   server-be:
     build:
       context: ./backend
@@ -27,6 +29,10 @@ services:
     ports:
       - '8085:8080'
     command: 'yarn run dev'
+    depends_on:
+      - db
+    networks:
+      - app-network
   prisma-studio:
     build:
       context: .
@@ -40,8 +46,10 @@ services:
     ports:
       - "5553:5555"
     command: npx prisma studio
+    networks:
+      - app-network
   db:
-    image: mysql
+    image: mysql:8.0
     container_name: tonic-store
     restart: always
     ports:
@@ -54,6 +62,8 @@ services:
       TZ: Asia/Vietnam
     volumes:
       - ./docker/db/data:/var/lib/mysql
+    networks:
+      - app-network
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin
@@ -65,3 +75,9 @@ services:
     environment:
       PMA_HOST: db
       MYSQL_ROOT_PASSWORD: root
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
