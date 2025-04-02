@@ -1,20 +1,20 @@
-FROM sitespeedio/node:ubuntu-22-04-nodejs-20.17.0.1 AS base
-
-FROM base AS dev
-WORKDIR /app
-
-ENV NODE_ENV=development
-RUN apt-get update && apt-get install -y openssl
-RUN npm install -g yarn
-
 FROM node:22-alpine AS production
+
+ENV NODE_ENV=production
 ENV NPM_CONFIG_PRODUCTION=false
 
 WORKDIR /app
+
+# Chỉ copy những file cần để install trước
+COPY package.json yarn.lock ./
+
+# Cài đặt dependencies
+RUN yarn install --frozen-lockfile
+
+# Sau đó mới copy toàn bộ source code
 COPY . .
 
-ENV NODE_ENV=production
-RUN apt-get update && apt-get install -y openssl
+# Tiến hành build
 RUN yarn run in-package
 RUN yarn run build
 RUN yarn run build:back
