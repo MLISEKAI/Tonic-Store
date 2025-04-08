@@ -2,24 +2,22 @@ services:
   server-fe:
     build:
       context: ./frontend
-      target: dev
       dockerfile: Dockerfile
     environment:
-      - PORT=8080
+      - PORT=5173
     volumes:
-      - .:/app
+      - ./frontend:/app
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     restart: unless-stopped
     ports:
-      - "8080:5173"
+      - "5173:5173"
     command: yarn run dev
     networks:
       - app-network
   server-be:
     build:
       context: ./backend
-      target: dev
       dockerfile: Dockerfile
     volumes:
       - ./backend:/app
@@ -33,21 +31,20 @@ services:
       - db
     networks:
       - app-network
-  prisma-studio:
-    build:
-      context: .
-      target: dev
-      dockerfile: Dockerfile
-    volumes:
-      - ./server:/app
-    restart: unless-stopped
-    depends_on:
-      - db
-    ports:
-      - "5553:5555"
-    command: npx prisma studio
-    networks:
-      - app-network
+  # prisma-studio:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ./server:/app
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - db
+  #   ports:
+  #     - "5553:5555"
+  #   command: npx prisma studio
+  #   networks:
+  #     - app-network
   db:
     image: mysql:8.0
     container_name: tonic-store
