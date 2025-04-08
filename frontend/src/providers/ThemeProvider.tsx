@@ -1,38 +1,43 @@
-import { ConfigProvider } from 'antd';
-import { ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-interface ThemeProviderProps {
-  children: ReactNode;
+type Theme = 'light' | 'dark';
+
+interface ThemeContextType {
+  theme: Theme;
+  toggleTheme: () => void;
 }
 
-const ThemeProvider = ({ children }: ThemeProviderProps) => {
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<Theme>('light');
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  };
+
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: '#1890ff',
-          borderRadius: 6,
-          fontFamily: 'Inter, sans-serif',
-        },
-        components: {
-          Button: {
-            borderRadius: 6,
-          },
-          Card: {
-            borderRadius: 12,
-          },
-          Input: {
-            borderRadius: 6,
-          },
-          Select: {
-            borderRadius: 6,
-          },
-        },
-      }}
-    >
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
-    </ConfigProvider>
+    </ThemeContext.Provider>
   );
 };
 
-export default ThemeProvider; 
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+}; 
