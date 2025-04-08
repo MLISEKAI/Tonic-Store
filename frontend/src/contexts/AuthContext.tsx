@@ -22,22 +22,36 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedToken = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      
+      if (storedToken && storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser) {
+          setToken(storedToken);
+          setUser(parsedUser);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading auth state:', error);
+      // Clear invalid data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
     }
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       const response: AuthResponse = await api.login(email, password);
-      setToken(response.token);
-      setUser(response.user);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      if (response && response.token && response.user) {
+        setToken(response.token);
+        setUser(response.user);
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
     } catch (error) {
+      console.error('Login error:', error);
       throw error;
     }
   };
@@ -45,11 +59,14 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const register = async (name: string, email: string, password: string) => {
     try {
       const response: AuthResponse = await api.register(name, email, password);
-      setToken(response.token);
-      setUser(response.user);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      if (response && response.token && response.user) {
+        setToken(response.token);
+        setUser(response.user);
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
     } catch (error) {
+      console.error('Registration error:', error);
       throw error;
     }
   };
@@ -61,15 +78,17 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('user');
   };
 
+  const value: AuthContextType = {
+    user,
+    token,
+    login,
+    register,
+    logout,
+    isAuthenticated: !!token
+  };
+
   return (
-    <AuthContext.Provider value={{
-      user,
-      token,
-      login,
-      register,
-      logout,
-      isAuthenticated: !!token
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
