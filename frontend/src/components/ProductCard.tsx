@@ -26,18 +26,20 @@ export const ProductCard: FC<ProductCardProps> = ({ product, onAddToCart }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden w-full max-w-sm mx-auto">
       {product.imageUrl && (
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="w-full h-48 object-cover"
-        />
+        <div className="relative aspect-square">
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="w-full h-full object-contain p-2"
+          />
+        </div>
       )}
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
-        <p className="text-sm text-gray-600 mt-1">{product.description}</p>
-        <div className="mt-2 flex justify-between items-center">
+      <div className="p-4 space-y-2">
+        <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">{product.name}</h3>
+        <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+        <div className="flex justify-between items-center pt-2">
           <span className="text-lg font-bold text-indigo-600">
             {new Intl.NumberFormat('vi-VN', {
               style: 'currency',
@@ -46,13 +48,13 @@ export const ProductCard: FC<ProductCardProps> = ({ product, onAddToCart }) => {
           </span>
           <button
             onClick={handleAddToCart}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
             disabled={product.stock === 0}
           >
             {product.stock > 0 ? 'Thêm vào giỏ' : 'Hết hàng'}
           </button>
         </div>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-sm text-gray-500">
           Còn lại: {product.stock} sản phẩm
         </p>
       </div>

@@ -31,20 +31,22 @@ services:
       - db
     networks:
       - app-network
-  # prisma-studio:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./server:/app
-  #   restart: unless-stopped
-  #   depends_on:
-  #     - db
-  #   ports:
-  #     - "5553:5555"
-  #   command: npx prisma studio
-  #   networks:
-  #     - app-network
+  prisma-studio:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "5555:5555"
+    command: npx prisma studio
+    networks:
+      - app-network
   db:
     image: mysql:8.0
     container_name: tonic-store
