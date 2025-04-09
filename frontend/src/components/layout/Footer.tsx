@@ -5,30 +5,30 @@ import { MailOutlined, FacebookOutlined, TwitterOutlined, InstagramOutlined, Arr
 const Footer = () => {
   const footerLinks = [
     {
-      title: 'Shop',
+      title: 'Cửa hàng',
       links: [
-        { label: 'All Products', path: '/products' },
-        { label: 'Featured', path: '/products?featured=true' },
-        { label: 'New Arrivals', path: '/products?new=true' },
-        { label: 'Sale', path: '/products?sale=true' },
+        { label: 'Tất cả sản phẩm', path: '/products' },
+        { label: 'Nổi bật', path: '/products?featured=true' },
+        { label: 'Hàng mới', path: '/products?new=true' },
+        { label: 'Khuyến mãi', path: '/products?sale=true' },
       ],
     },
     {
-      title: 'About',
+      title: 'Về chúng tôi',
       links: [
-        { label: 'Our Story', path: '/about' },
-        { label: 'Careers', path: '/careers' },
-        { label: 'Terms & Conditions', path: '/terms' },
-        { label: 'Privacy Policy', path: '/privacy' },
+        { label: 'Câu chuyện', path: '/about' },
+        { label: 'Tuyển dụng', path: '/careers' },
+        { label: 'Điều khoản', path: '/terms' },
+        { label: 'Chính sách bảo mật', path: '/privacy' },
       ],
     },
     {
-      title: 'Customer Service',
+      title: 'Hỗ trợ khách hàng',
       links: [
-        { label: 'Contact Us', path: '/contact' },
-        { label: 'FAQs', path: '/faq' },
-        { label: 'Shipping & Returns', path: '/shipping' },
-        { label: 'Track Order', path: '/track-order' },
+        { label: 'Liên hệ', path: '/contact' },
+        { label: 'Câu hỏi thường gặp', path: '/faq' },
+        { label: 'Vận chuyển & Đổi trả', path: '/shipping' },
+        { label: 'Theo dõi đơn hàng', path: '/track-order' },
       ],
     },
   ];
@@ -39,13 +39,13 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Newsletter */}
           <div className="md:col-span-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Stay Updated</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Cập nhật tin tức</h3>
             <p className="text-gray-600 mb-4">
-              Subscribe to our newsletter for the latest updates and offers.
+              Đăng ký nhận bản tin để cập nhật thông tin và ưu đãi mới nhất.
             </p>
             <div className="flex">
               <Input
-                placeholder="Your email"
+                placeholder="Email của bạn"
                 className="flex-grow rounded-l-full"
                 prefix={<MailOutlined className="text-gray-400" />}
               />
@@ -104,7 +104,7 @@ const Footer = () => {
               </a>
             </div>
             <p className="text-gray-500 text-sm">
-              © {new Date().getFullYear()} Tonic Store. All rights reserved.
+              © {new Date().getFullYear()} Tonic Store. Bảo lưu mọi quyền.
             </p>
           </div>
         </div>

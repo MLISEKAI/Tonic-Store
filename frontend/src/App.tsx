@@ -6,6 +6,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import ProductsPage from './pages/ProductsPage';
 import { CartPage } from './pages/CartPage';
 import { OrdersPage } from './pages/OrdersPage';
+import ProfilePage from './pages/ProfilePage';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 
@@ -23,6 +24,7 @@ function App() {
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </main>
           <Footer />

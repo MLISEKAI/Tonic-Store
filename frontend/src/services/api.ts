@@ -27,6 +27,17 @@ export const register = async (name: string, email: string, password: string) =>
   return handleResponse(response);
 };
 
+// User API
+export const getUserProfile = async (token: string) => {
+  const response = await fetch(`${API_URL}/users/profile`, {
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  return handleResponse(response);
+};
+
 // Products API
 export const getProducts = async () => {
   const response = await fetch(`${API_URL}/products`);
@@ -99,4 +110,23 @@ export const getOrder = async (token: string, orderId: number) => {
     headers: { Authorization: `Bearer ${token}` }
   });
   return handleResponse(response);
+};
+
+export const updateUserProfile = async (token: string, data: {
+  name?: string;
+  phone?: string;
+  address?: string;
+}) => {
+  const response = await fetch(`${API_URL}/users/profile`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to update user profile');
+  }
+  return response.json();
 };

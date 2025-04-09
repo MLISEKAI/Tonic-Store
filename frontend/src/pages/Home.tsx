@@ -7,28 +7,28 @@ const Home = () => {
   const products = [
     {
       id: 1,
-      name: 'Premium Headphones',
+      name: 'Tai nghe cao cấp',
       price: 199.99,
       rating: 4.5,
       image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',
     },
     {
       id: 2,
-      name: 'Wireless Earbuds',
+      name: 'Tai nghe không dây',
       price: 149.99,
       rating: 4.2,
       image: 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&q=80',
     },
     {
       id: 3,
-      name: 'Smart Watch',
+      name: 'Đồng hồ thông minh',
       price: 299.99,
       rating: 4.8,
       image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400&q=80',
     },
     {
       id: 4,
-      name: 'Bluetooth Speaker',
+      name: 'Loa Bluetooth',
       price: 129.99,
       rating: 4.3,
       image: 'https://images.unsplash.com/photo-1589256469067-ea99122bbdc4?w=400&q=80',
@@ -38,25 +38,25 @@ const Home = () => {
   const categories = [
     {
       id: 1,
-      name: 'Electronics',
+      name: 'Điện tử',
       image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=80',
       count: 120,
     },
     {
       id: 2,
-      name: 'Fashion',
+      name: 'Thời trang',
       image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=80',
       count: 85,
     },
     {
       id: 3,
-      name: 'Home & Living',
+      name: 'Nhà cửa & Đời sống',
       image: 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400&q=80',
       count: 65,
     },
     {
       id: 4,
-      name: 'Sports',
+      name: 'Thể thao',
       image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&q=80',
       count: 45,
     },
@@ -65,7 +65,7 @@ const Home = () => {
   return (
     <div className="space-y-12">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl overflow-hidden shadow-lg">
+      <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 overflow-hidden">
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80"
@@ -76,10 +76,10 @@ const Home = () => {
         <div className="relative px-6 py-12 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
           <div className="max-w-2xl mx-auto text-center">
             <h1 className="text-white mb-4 text-4xl sm:text-5xl font-bold">
-              Discover Amazing Products
+              Khám phá sản phẩm tuyệt vời
             </h1>
             <p className="text-white text-lg mb-8 opacity-90">
-              Shop the latest trends and find the perfect items for your needs. Quality products at affordable prices.
+              Mua sắm những xu hướng mới nhất và tìm kiếm những sản phẩm phù hợp với nhu cầu của bạn. Sản phẩm chất lượng với giá cả phải chăng.
             </p>
             <Button
               type="primary"
@@ -87,7 +87,7 @@ const Home = () => {
               className="bg-white text-blue-600 hover:bg-gray-100 h-12 px-8 text-lg"
               icon={<ArrowRightOutlined />}
             >
-              Shop Now
+              Mua ngay
             </Button>
           </div>
         </div>
@@ -96,7 +96,7 @@ const Home = () => {
       {/* Featured Products Section */}
       <div className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center mb-12 text-3xl font-bold">Featured Products</h2>
+          <h2 className="text-center mb-12 text-3xl font-bold">Sản phẩm nổi bật</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {products.map((product) => (
               <div
@@ -123,7 +123,7 @@ const Home = () => {
                   </button>
                   <button className="flex-1 p-3 bg-blue-600 text-white hover:bg-blue-700 transition-colors">
                     <ShoppingCartOutlined className="mr-2" />
-                    Add to Cart
+                    Thêm vào giỏ
                   </button>
                 </div>
               </div>
@@ -135,7 +135,7 @@ const Home = () => {
       {/* Categories Section */}
       <div className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center mb-12 text-3xl font-bold">Shop by Category</h2>
+          <h2 className="text-center mb-12 text-3xl font-bold">Mua sắm theo danh mục</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {categories.map((category) => (
               <Link to={`/categories/${category.id}`} key={category.id} className="block">
@@ -149,7 +149,7 @@ const Home = () => {
                   </div>
                   <div className="p-4 text-center">
                     <h3 className="text-xl font-semibold mb-2">{category.name}</h3>
-                    <p className="text-gray-500 text-sm">{category.count} products</p>
+                    <p className="text-gray-500 text-sm">{category.count} sản phẩm</p>
                   </div>
                 </div>
               </Link>
