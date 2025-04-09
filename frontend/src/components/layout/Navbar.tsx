@@ -14,35 +14,24 @@ import {
   ShoppingCartOutlined,
   UserOutlined,
   HeartOutlined,
-  LogoutOutlined,
-  SunOutlined,
-  MoonOutlined
+  LogoutOutlined
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { useTheme } from '../../providers/ThemeProvider';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { theme, toggleTheme } = useTheme();
+  const { isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const menuItems = [
-    { key: 'home', label: 'Home', path: '/' },
-    { key: 'products', label: 'Products', path: '/products' },
-    { key: 'categories', label: 'Categories', path: '/categories' },
-    { key: 'about', label: 'About', path: '/about' },
-    { key: 'contact', label: 'Contact', path: '/contact' }
+    { key: 'home', label: 'Trang chủ', path: '/' },
+    { key: 'products', label: 'Sản phẩm', path: '/products' },
+    { key: 'categories', label: 'Danh mục', path: '/categories' },
+    { key: 'about', label: 'Giới thiệu', path: '/about' },
+    { key: 'contact', label: 'Liên hệ', path: '/contact' }
   ];
 
   const userMenuItems: MenuProps['items'] = [
@@ -51,7 +40,7 @@ const Navbar = () => {
       label: (
         <Link to="/profile" className="flex items-center">
           <UserOutlined className="mr-2" />
-          Profile
+          Hồ sơ
         </Link>
       )
     },
@@ -60,7 +49,7 @@ const Navbar = () => {
       label: (
         <Link to="/orders" className="flex items-center">
           <ShoppingCartOutlined className="mr-2" />
-          My Orders
+          Đơn hàng của tôi
         </Link>
       )
     },
@@ -69,7 +58,7 @@ const Navbar = () => {
       label: (
         <Link to="/wishlist" className="flex items-center">
           <HeartOutlined className="mr-2" />
-          Wishlist
+          Yêu thích
         </Link>
       )
     },
@@ -77,9 +66,9 @@ const Navbar = () => {
     {
       key: 'logout',
       label: (
-        <span className="flex items-center text-red-500">
+        <span className="flex items-center text-red-500" onClick={() => logout()}>
           <LogoutOutlined className="mr-2" />
-          Logout
+          Đăng xuất
         </span>
       ),
       danger: true
@@ -96,12 +85,8 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? 'bg-white dark:bg-gray-800 shadow-md rounded-b-xl'
-          : 'bg-transparent'
-      }`}
-    >
+      className={`sticky top-0 z-50 transition-all duration-300 bg-white shadow-md`}
+      >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 w-full overflow-visible">
           {/* Logo */}
@@ -116,15 +101,14 @@ const Navbar = () => {
             <Menu
               mode="horizontal"
               selectedKeys={[selectedKey]}
-              className="border-0 bg-transparent flex flex-wrap gap-4"
+              className="border-0 bg-transparent flex flex-wrap gap-0"
             >
               {menuItems.map((item) => (
                 <Menu.Item key={item.key} className="!px-4">
                   <Link
                     to={item.path}
-                    className={`text-gray-600 font-semibold hover:text-blue-600 transition-colors${
-                      selectedKey === item.key ? 'text-blue-600' : ''
-                    }`}
+                    className={`text-gray-600 text-lg font-semibold hover:text-blue-600 transition-colors${
+                      selectedKey === item.key ? 'text-blue-600' : '' }`}
                   >
                     {item.label}
                   </Link>
@@ -137,59 +121,62 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <div className="hidden md:block">
               <Input
-                placeholder="Search products..."
+                placeholder="Tìm kiếm sản phẩm..."
                 prefix={<SearchOutlined className="text-gray-400" />}
-                className="w-64 px-4 py-1.5 rounded-full border border-gray-300 hover:border-blue-500 focus:border-blue-500 transition-all dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-64 px-4 py-1.5 rounded-full border border-gray-300 hover:border-blue-500 focus:border-blue-500 transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleSearch}
               />
             </div>
             <div className="flex items-center space-x-3">
-              <Button
-                type="text"
-                className="hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
-                icon={<HeartOutlined className="text-xl" />}
-              />
-              <Badge count={5} size="small" offset={[-2, 2]}>
-                <Button
-                  type="text"
-                  className="hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
-                  icon={<ShoppingCartOutlined className="text-xl" />}
-                />
-              </Badge>
-              <Button
-                type="text"
-                className="hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
-                icon={
-                  theme === 'dark' ? (
-                    <SunOutlined className="text-xl" />
-                  ) : (
-                    <MoonOutlined className="text-xl" />
-                  )
-                }
-                onClick={toggleTheme}
-              />
-              <Dropdown
-                menu={{ items: userMenuItems }}
-                placement="bottomRight"
-                trigger={['click']}
-              >
-                <Button
-                  type="text"
-                  className="hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
-                >
-                  <Avatar
-                    icon={<UserOutlined />}
-                    className="bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300"
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    type="text"
+                    className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
+                    icon={<HeartOutlined className="text-xl" />}
                   />
-                </Button>
-              </Dropdown>
+                  <Badge count={5} size="small" offset={[-2, 2]}>
+                    <Button
+                      type="text"
+                      className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
+                      icon={<ShoppingCartOutlined className="text-xl" />}
+                    />
+                  </Badge>
+                  <Dropdown
+                    menu={{ items: userMenuItems }}
+                    placement="bottomRight"
+                    trigger={['click']}
+                  >
+                    <Button
+                      type="text"
+                      className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
+                    >
+                      <Avatar
+                        icon={<UserOutlined />}
+                        className="bg-blue-100 text-blue-600"
+                      />
+                    </Button>
+                  </Dropdown>
+                </>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <Button type="primary" className="mr-2">
+                      Đăng nhập
+                    </Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button>Đăng ký</Button>
+                  </Link>
+                </>
+              )}
             </div>
             <Button
               type="text"
               icon={<MenuOutlined className="text-xl" />}
-              className="md:hidden hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-2 transition-all"
+              className="md:hidden hover:bg-gray-100 rounded-full p-2 transition-all"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             />
           </div>
@@ -203,9 +190,9 @@ const Navbar = () => {
         >
           <div className="py-4">
             <Input
-              placeholder="Search products..."
+              placeholder="Tìm kiếm sản phẩm..."
               prefix={<SearchOutlined className="text-gray-400" />}
-              className="w-full px-4 py-1.5 rounded-full border border-gray-300 hover:border-blue-500 focus:border-blue-500 transition-all dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="w-full px-4 py-1.5 rounded-full border border-gray-300 hover:border-blue-500 focus:border-blue-500 transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleSearch}
@@ -230,6 +217,26 @@ const Navbar = () => {
                 </Link>
               </Menu.Item>
             ))}
+            {!isAuthenticated && (
+              <>
+                <Menu.Item key="login" className="!px-4">
+                  <Link
+                    to="/login"
+                    className="text-gray-600 font-semibold hover:text-blue-600 transition-colors"
+                  >
+                    Đăng nhập
+                  </Link>
+                </Menu.Item>
+                <Menu.Item key="register" className="!px-4">
+                  <Link
+                    to="/register"
+                    className="text-gray-600 font-semibold hover:text-blue-600 transition-colors"
+                  >
+                    Đăng ký
+                  </Link>
+                </Menu.Item>
+              </>
+            )}
           </Menu>
         </div>
       </div>
