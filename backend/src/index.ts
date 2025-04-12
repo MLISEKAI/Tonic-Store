@@ -16,7 +16,7 @@ const morgan = require('morgan');
 
 // Cấu hình CORS chi tiết
 const corsOptions = {
-    origin: '*',
+    origin: 'http://localhost:5173', // Only allow requests from the frontend
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,
@@ -27,6 +27,7 @@ const corsOptions = {
 app.use((req: Request, res: Response, next: NextFunction) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     console.log('Headers:', req.headers);
+    console.log('Body:', req.body);
     next();
 });
 
@@ -61,12 +62,33 @@ app.use("/api/payments", paymentRoutes);
 // Middleware để bắt lỗi
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     console.error("Error:", err);
-    res.status(500).json({ message: "Internal Server Error", error: err.message });
+    if (err instanceof Error) {
+        res.status(500).json({ 
+            message: "Internal Server Error", 
+            error: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
+    } else {
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 });
 
-const PORT = 8080;
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    process.exit(1);
+});
+
+const PORT = Number(process.env.PORT) || 8080;
 const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server chạy tại http://localhost:${PORT}`);
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Database URL:', process.env.DATABASE_URL);
 });
 
 // Xử lý lỗi server
