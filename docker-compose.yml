@@ -9,8 +9,11 @@ services:
       - VITE_API_URL=${VITE_API_URL}
       - VITE_PORT=${VITE_PORT}
       - VITE_FRONTEND_URL=${VITE_FRONTEND_URL}
+      - NODE_ENV=development
+      - NODE_OPTIONS=--max-old-space-size=4096
     volumes:
       - ./frontend:/app
+      - /app/node_modules
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     restart: on-failure
@@ -28,16 +31,16 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
-      - PORT=8080
+      - PORT=${PORT}
       - NODE_ENV=development
-      - FRONTEND_URL=http://localhost:5173
+      - FRONTEND_URL=${FRONTEND_URL}
     volumes:
       - ./backend:/app
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     restart: unless-stopped
     ports:
-      - '8085:8080'
+      - '${PORT}:${PORT}'
     command: 'yarn run dev'
     depends_on:
       - db
@@ -77,6 +80,7 @@ services:
       TZ: Asia/Vietnam
     volumes:
       - ./docker/db/data:/var/lib/mysql
+      - ./docker/db/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 30s

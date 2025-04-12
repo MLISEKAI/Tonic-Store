@@ -13,6 +13,7 @@ export interface Product {
   stock: number;
   imageUrl?: string;
   category: string;
+  rating?: number;
 }
 
 export interface CartItem {
