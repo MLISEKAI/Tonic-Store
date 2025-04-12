@@ -2,6 +2,12 @@ import prisma from "../prisma";
 
 export const getAllProducts = async () => prisma.product.findMany();
 
+export const getProductById = async (id: number) => {
+  return prisma.product.findUnique({
+    where: { id }
+  });
+};
+
 export const createProduct = async (
   name: string,
   description: string,

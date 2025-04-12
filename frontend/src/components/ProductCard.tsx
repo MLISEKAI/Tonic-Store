@@ -12,13 +12,13 @@ export const ProductCard: FC<ProductCardProps> = ({ product, onAddToCart }) => {
   const { token, isAuthenticated } = useAuth();
 
   const handleAddToCart = async () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !token) {
       alert('Vui lòng đăng nhập để thêm vào giỏ hàng');
       return;
     }
 
     try {
-      await api.addToCart(token!, product.id, 1);
+      await api.addToCart(token, product.id, 1);
       onAddToCart?.();
     } catch (error) {
       alert('Không thể thêm vào giỏ hàng');

@@ -1,17 +1,17 @@
-FROM node:18-alpine AS base
+FROM node:20-slim
 
-FROM base AS dev
 WORKDIR /app
 
+# Copy package.json và yarn.lock
 COPY package*.json ./
 
-ENV NODE_ENV=development
-RUN apk add --no-cache python3 make g++
+# Cài đặt các dependencies
+RUN yarn install
 
-RUN yarn install --frozen-lockfile
+# Sao chép file .env vào container
+COPY .env .env
 
 COPY . .
 
-EXPOSE 5173
-
+# Chạy frontend
 CMD ["yarn", "run", "dev"]

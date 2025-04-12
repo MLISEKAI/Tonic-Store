@@ -18,9 +18,10 @@ export const CartPage: FC = () => {
   const fetchCart = async () => {
     try {
       const data = await api.getCart(token!);
-      setCartItems(data.items);
+      setCartItems(data.items || []);
     } catch (err) {
       setError('Không thể tải giỏ hàng');
+      setCartItems([]);
     } finally {
       setLoading(false);
     }
@@ -62,7 +63,7 @@ export const CartPage: FC = () => {
   };
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
+    return cartItems?.reduce((total, item) => total + item.product.price * item.quantity, 0) || 0;
   };
 
   if (loading) {
@@ -77,7 +78,7 @@ export const CartPage: FC = () => {
     return <div className="text-red-500">{error}</div>;
   }
 
-  if (cartItems.length === 0) {
+  if (!cartItems || cartItems.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Giỏ hàng</h1>

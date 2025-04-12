@@ -8,7 +8,7 @@ import * as api from '../services/api';
 const ProductsPage = () => {
   const [sortBy, setSortBy] = useState('featured');
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, token } = useAuth();
 
   const products = [
     {
@@ -187,19 +187,16 @@ const ProductsPage = () => {
   };
 
   const handleAddToCart = async (productId: number) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !token) {
       message.warning('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
       navigate('/login');
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        await api.addToCart(token, productId, 1);
-        message.success('Đã thêm sản phẩm vào giỏ hàng');
-        navigate('/cart');
-      }
+      await api.addToCart(token, productId, 1);
+      message.success('Đã thêm sản phẩm vào giỏ hàng');
+      navigate('/cart');
     } catch (error) {
       message.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng');
     }

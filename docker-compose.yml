@@ -3,8 +3,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    env_file:
+      - ./frontend/.env 
     environment:
-      - PORT=5173
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_PORT=${VITE_PORT}
+      - VITE_FRONTEND_URL=${VITE_FRONTEND_URL}
     volumes:
       - ./frontend:/app
       - /etc/localtime:/etc/localtime:ro
@@ -15,10 +19,17 @@ services:
     command: yarn run dev
     networks:
       - app-network
+
   server-be:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=8080
+      - NODE_ENV=development
+      - FRONTEND_URL=http://localhost:5173
     volumes:
       - ./backend:/app
       - /etc/localtime:/etc/localtime:ro
@@ -31,10 +42,13 @@ services:
       - db
     networks:
       - app-network
+
   prisma-studio:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
     volumes:
       - ./backend:/app
       - /etc/localtime:/etc/localtime:ro
@@ -47,6 +61,7 @@ services:
     command: npx prisma studio
     networks:
       - app-network
+
   db:
     image: mysql:8.0
     container_name: tonic-store
@@ -54,15 +69,22 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: mydatabase
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       TZ: Asia/Vietnam
     volumes:
       - ./docker/db/data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
     networks:
       - app-network
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin
@@ -73,7 +95,7 @@ services:
       - "9000:80"
     environment:
       PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     networks:
       - app-network
 

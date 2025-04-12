@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { getAllProducts, createProduct } from "../services/productService";
+import { getAllProducts, createProduct, getProductById } from "../services/productService";
 import { authenticate } from "../middleware/auth";
 
 const router = express.Router();
@@ -11,6 +11,26 @@ router.get("/", async (_req: Request, res: Response): Promise<void> => {
     return;
   } catch (error) {
     res.status(500).json({ error: "Lỗi khi lấy sản phẩm" });
+  }
+});
+
+router.get("/:id", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "ID sản phẩm không hợp lệ" });
+      return;
+    }
+
+    const product = await getProductById(id);
+    if (!product) {
+      res.status(404).json({ error: "Không tìm thấy sản phẩm" });
+      return;
+    }
+
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ error: "Lỗi khi lấy thông tin sản phẩm" });
   }
 });
 

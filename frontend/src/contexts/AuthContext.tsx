@@ -9,6 +9,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,25 +21,31 @@ interface AuthProviderProps {
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-      
-      if (storedToken && storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser) {
-          setToken(storedToken);
-          setUser(parsedUser);
+    const initializeAuth = async () => {
+      try {
+        const storedToken = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+        
+        if (storedToken && storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser) {
+            setToken(storedToken);
+            setUser(parsedUser);
+          }
         }
+      } catch (error) {
+        console.error('Error loading auth state:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error loading auth state:', error);
-      // Clear invalid data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -84,8 +91,13 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
-    isAuthenticated: !!token
+    isAuthenticated: !!token,
+    isLoading
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <AuthContext.Provider value={value}>
