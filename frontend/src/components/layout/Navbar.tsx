@@ -18,13 +18,34 @@ import {
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useAuth } from '../../contexts/AuthContext';
+import * as api from '../../services/api';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [cartCount, setCartCount] = useState(0);
   const { isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      if (isAuthenticated) {
+        try {
+          const token = localStorage.getItem('token');
+          if (token) {
+            const cart = await api.getCart(token);
+            const totalItems = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+            setCartCount(totalItems);
+          }
+        } catch (error) {
+          console.error('Error fetching cart:', error);
+        }
+      }
+    };
+
+    fetchCartCount();
+  }, [isAuthenticated]);
 
   const menuItems = [
     { key: 'home', label: 'Trang chủ', path: '/' },
@@ -137,11 +158,12 @@ const Navbar = () => {
                     className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
                     icon={<HeartOutlined className="text-xl" />}
                   />
-                  <Badge count={5} size="small" offset={[-2, 2]}>
+                  <Badge count={cartCount} size="small" offset={[-2, 2]}>
                     <Button
                       type="text"
                       className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
                       icon={<ShoppingCartOutlined className="text-xl" />}
+                      onClick={() => navigate('/cart')}
                     />
                   </Badge>
                   <Dropdown

@@ -1,28 +1,12 @@
-import express, { Request, Response } from "express";
-import { getCartByUserId, addToCart, updateCartItemQuantity, removeFromCart, clearCart } from "../services/cartService";
-import { authenticate } from "../middleware/auth";
+import { Router } from 'express';
+import { authenticate } from '../middleware/auth';
+import * as cartController from '../controllers/cartController';
 
-const router = express.Router();
+const router = Router();
 
-router.get("/:userId", authenticate, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const cart = await getCartByUserId(Number(req.params.userId));
-    res.json(cart);
-    return;
-  } catch (error) {
-    res.status(500).json({ error: "Lỗi khi lấy giỏ hàng" });
-  }
-});
-
-router.post("/", authenticate, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { userId, productId, quantity } = req.body;
-    const cartItem = await addToCart(Number(userId), Number(productId), Number(quantity));
-    res.json(cartItem);
-    return;
-  } catch (error) {
-    res.status(500).json({ error: "Lỗi khi thêm vào giỏ hàng" });
-  }
-});
+router.get('/', authenticate, cartController.getCart);
+router.post('/add', authenticate, cartController.addToCart);
+router.put('/update/:itemId', authenticate, cartController.updateCartItem);
+router.delete('/remove/:itemId', authenticate, cartController.removeFromCart);
 
 export default router;

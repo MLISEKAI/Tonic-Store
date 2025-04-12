@@ -7,6 +7,8 @@ import ProductsPage from './pages/ProductsPage';
 import { CartPage } from './pages/CartPage';
 import { OrdersPage } from './pages/OrdersPage';
 import ProfilePage from './pages/ProfilePage';
+import CategoriesPage from './pages/CategoriesPage';
+import AboutPage from './pages/AboutPage';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 
@@ -25,6 +27,8 @@ function App() {
               <Route path="/cart" element={<CartPage />} />
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/about" element={<AboutPage />} />
             </Routes>
           </main>
           <Footer />
