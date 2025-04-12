@@ -24,28 +24,28 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [cartCount, setCartCount] = useState(0);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, token, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCartCount = async () => {
-      if (isAuthenticated) {
+      if (isAuthenticated && token) {
         try {
-          const token = localStorage.getItem('token');
-          if (token) {
-            const cart = await api.getCart(token);
-            const totalItems = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
-            setCartCount(totalItems);
-          }
+          const { items } = await api.getCart(token);
+          const totalItems = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+          setCartCount(totalItems);
         } catch (error) {
           console.error('Error fetching cart:', error);
+          setCartCount(0);
         }
+      } else {
+        setCartCount(0);
       }
     };
 
     fetchCartCount();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, token]);
 
   const menuItems = [
     { key: 'home', label: 'Trang chủ', path: '/' },
