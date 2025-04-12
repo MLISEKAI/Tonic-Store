@@ -9,8 +9,8 @@ import { OrdersPage } from './pages/OrdersPage';
 import ProfilePage from './pages/ProfilePage';
 import CategoriesPage from './pages/CategoriesPage';
 import AboutPage from './pages/AboutPage';
-import Navbar from './components/layout/Navbar';
-import Footer from './components/layout/Footer';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 function App() {
   return (

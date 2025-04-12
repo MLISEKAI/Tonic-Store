@@ -17,8 +17,8 @@ import {
   LogoutOutlined
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { useAuth } from '../../contexts/AuthContext';
-import * as api from '../../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import * as api from '../services/api';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

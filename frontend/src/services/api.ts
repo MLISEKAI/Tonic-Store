@@ -2,8 +2,9 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Something went wrong');
+    const errorData = await response.json();
+    const errorMessage = errorData.error || errorData.details || 'Something went wrong';
+    throw new Error(errorMessage);
   }
   return response.json();
 };
@@ -52,7 +53,10 @@ export const getProduct = async (id: number) => {
 // Cart API
 export const getCart = async (token: string) => {
   const response = await fetch(`${API_URL}/cart`, {
-    headers: { Authorization: `Bearer ${token}` }
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
   });
   return handleResponse(response);
 };
@@ -62,7 +66,7 @@ export const addToCart = async (token: string, productId: number, quantity: numb
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({ productId, quantity }),
   });
