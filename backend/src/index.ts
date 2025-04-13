@@ -16,11 +16,11 @@ const morgan = require('morgan');
 
 // Cấu hình CORS chi tiết
 const corsOptions = {
-    origin: 'http://localhost:5173', // Only allow requests from the frontend
+    origin: ['http://localhost:5173', 'http://localhost:3001'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,
-    maxAge: 86400 // 24 hours
+    maxAge: 86400
 };
 
 // Middleware để xử lý request

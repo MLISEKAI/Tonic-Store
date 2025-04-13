@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Box, Paper, Typography, TextField, Button, Container } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 const Login: React.FC = () => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
@@ -12,14 +11,27 @@ const Login: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await axios.post('/api/auth/login', {
-                username,
-                password,
+            const response = await fetch('http://localhost:8085/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                }),
             });
-            localStorage.setItem('token', response.data.token);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Invalid email or password');
+            }
+
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
             navigate('/');
         } catch (error) {
-            setError('Invalid username or password');
+            setError(error instanceof Error ? error.message : 'Invalid email or password');
         }
     };
 
@@ -51,13 +63,13 @@ const Login: React.FC = () => {
                             margin="normal"
                             required
                             fullWidth
-                            id="username"
-                            label="Username"
-                            name="username"
-                            autoComplete="username"
+                            id="email"
+                            label="Email"
+                            name="email"
+                            autoComplete="email"
                             autoFocus
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                         />
                         <TextField
                             margin="normal"
@@ -91,4 +103,4 @@ const Login: React.FC = () => {
     );
 };
 
-export default Login; 
+export default Login;
