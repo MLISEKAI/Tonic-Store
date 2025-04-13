@@ -40,39 +40,65 @@ const handleResponse = async (res: Response) => {
 
 export const productService = {
   getAllProducts: async (): Promise<Product[]> => {
-    const res = await fetch(API_URL);
+    const token = localStorage.getItem('token');
+    const res = await fetch(API_URL, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
     return handleResponse(res);
   },
 
   getProductById: async (id: number): Promise<Product> => {
-    const res = await fetch(`${API_URL}/${id}`);
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
     return handleResponse(res);
   },
 
   createProduct: async (data: CreateProductData): Promise<Product> => {
+    const token = localStorage.getItem('token');
     const res = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
       body: JSON.stringify(data),
     });
     return handleResponse(res);
   },
 
   updateProduct: async (id: number, data: UpdateProductData): Promise<Product> => {
+    const token = localStorage.getItem('token');
     const res = await fetch(`${API_URL}/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
       body: JSON.stringify(data),
     });
     return handleResponse(res);
   },
 
   deleteProduct: async (id: number): Promise<void> => {
+    const token = localStorage.getItem('token');
+    console.log('Token:', token);
+    console.log('Request URL:', `${API_URL}/${id}`);
     const res = await fetch(`${API_URL}/${id}`, {
       method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
     });
+    console.log('Response Status:', res.status);
     if (!res.ok) {
       const error = await res.text();
+      console.log('Error Response:', error);
       throw new Error(error || 'Failed to delete product');
     }
   }

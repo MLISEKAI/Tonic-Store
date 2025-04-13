@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import prisma from "../src/prisma";
 
-const prisma = new PrismaClient();
+import bcrypt from 'bcryptjs';
 
 async function main() {
     // Create admin user
@@ -19,32 +18,6 @@ async function main() {
     });
 
     console.log('Admin user created:', admin);
-
-    // Create some initial products
-    const products = await Promise.all([
-        prisma.product.create({
-            data: {
-                name: 'Product 1',
-                description: 'Description for product 1',
-                price: 100,
-                stock: 50,
-                imageUrl: 'https://example.com/product1.jpg',
-                category: 'Category 1'
-            }
-        }),
-        prisma.product.create({
-            data: {
-                name: 'Product 2',
-                description: 'Description for product 2',
-                price: 200,
-                stock: 30,
-                imageUrl: 'https://example.com/product2.jpg',
-                category: 'Category 2'
-            }
-        })
-    ]);
-
-    console.log('Initial products created:', products);
 }
 
 main()
@@ -54,4 +27,4 @@ main()
     })
     .finally(async () => {
         await prisma.$disconnect();
-    }); 
+    });

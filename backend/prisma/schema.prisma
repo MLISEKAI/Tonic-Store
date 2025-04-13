@@ -30,8 +30,8 @@ model Product {
   imageUrl    String?
   category    String
   createdAt   DateTime    @default(now())
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
+  cartItems   CartItem[]  @relation("ProductToCartItem")
+  orderItems  OrderItem[] @relation("ProductToOrderItem")
 }
 
 model Cart {
@@ -48,8 +48,8 @@ model CartItem {
   productId Int
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  product   Product  @relation("ProductToCartItem", fields: [productId], references: [id])
 
   @@index([cartId], map: "CartItem_cartId_fkey")
   @@index([productId], map: "CartItem_productId_fkey")
@@ -76,7 +76,7 @@ model OrderItem {
   price     Float
   createdAt DateTime @default(now())
   order     Order    @relation(fields: [orderId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation("ProductToOrderItem", fields: [productId], references: [id])
 
   @@index([orderId], map: "OrderItem_orderId_fkey")
   @@index([productId], map: "OrderItem_productId_fkey")
