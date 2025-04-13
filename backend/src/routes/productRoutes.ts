@@ -9,8 +9,8 @@ router.get("/", async (_req: Request, res: Response): Promise<void> => {
   try {
     const products = await getAllProducts();
     res.json(products);
-    return;
   } catch (error) {
+    console.error('Error getting products:', error);
     res.status(500).json({ error: "Lỗi khi lấy sản phẩm" });
   }
 });
@@ -23,8 +23,8 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
       return;
     }
     res.json(product);
-    return;
   } catch (error) {
+    console.error('Error getting product:', error);
     res.status(500).json({ error: "Lỗi khi lấy sản phẩm" });
   }
 });
@@ -38,9 +38,9 @@ router.post("/", authenticate, async (req: Request, res: Response): Promise<void
     }
     const { name, description, price, stock, imageUrl, category } = req.body;
     const product = await createProduct(name, description, price, stock, imageUrl, category);
-    res.json(product);
-    return;
+    res.status(201).json(product);
   } catch (error) {
+    console.error('Error creating product:', error);
     res.status(500).json({ error: "Lỗi khi thêm sản phẩm" });
   }
 });
@@ -55,9 +55,13 @@ router.put("/:id", authenticate, async (req: Request, res: Response): Promise<vo
     const product = await updateProduct(Number(req.params.id), {
       name, description, price, stock, imageUrl, category
     });
+    if (!product) {
+      res.status(404).json({ error: "Sản phẩm không tồn tại" });
+      return;
+    }
     res.json(product);
-    return;
   } catch (error) {
+    console.error('Error updating product:', error);
     res.status(500).json({ error: "Lỗi khi cập nhật sản phẩm" });
   }
 });
@@ -68,10 +72,15 @@ router.delete("/:id", authenticate, async (req: Request, res: Response): Promise
       res.status(403).json({ error: "Không có quyền xóa sản phẩm" });
       return;
     }
+    const product = await getProductById(Number(req.params.id));
+    if (!product) {
+      res.status(404).json({ error: "Sản phẩm không tồn tại" });
+      return;
+    }
     await deleteProduct(Number(req.params.id));
     res.json({ message: "Xóa sản phẩm thành công" });
-    return;
   } catch (error) {
+    console.error('Error deleting product:', error);
     res.status(500).json({ error: "Lỗi khi xóa sản phẩm" });
   }
 });

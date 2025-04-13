@@ -24,10 +24,12 @@ const UserManagement: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<CreateUserData>({
-    username: '',
+    name: '',
     email: '',
     password: '',
     role: 'user',
+    phone: '',
+    address: '',
   });
 
   useEffect(() => {
@@ -47,18 +49,22 @@ const UserManagement: React.FC = () => {
     if (user) {
       setSelectedUser(user);
       setFormData({
-        username: user.username,
+        name: user.name,
         email: user.email,
         password: '',
         role: user.role,
+        phone: user.phone || '',
+        address: user.address || '',
       });
     } else {
       setSelectedUser(null);
       setFormData({
-        username: '',
+        name: '',
         email: '',
         password: '',
         role: 'user',
+        phone: '',
+        address: '',
       });
     }
     setOpenDialog(true);
@@ -103,18 +109,22 @@ const UserManagement: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Username</TableCell>
+              <TableCell>Name</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
+              <TableCell>Phone</TableCell>
+              <TableCell>Address</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell>{user.username}</TableCell>
+                <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
+                <TableCell>{user.phone || '-'}</TableCell>
+                <TableCell>{user.address || '-'}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => handleOpenDialog(user)}>
                     <EditIcon />
@@ -135,10 +145,10 @@ const UserManagement: React.FC = () => {
           <TextField
             autoFocus
             margin="dense"
-            label="Username"
+            label="Name"
             fullWidth
-            value={formData.username}
-            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
           <TextField
             margin="dense"
@@ -162,6 +172,20 @@ const UserManagement: React.FC = () => {
             fullWidth
             value={formData.role}
             onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Phone"
+            fullWidth
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Address"
+            fullWidth
+            value={formData.address}
+            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
