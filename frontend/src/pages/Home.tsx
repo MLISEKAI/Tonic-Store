@@ -1,39 +1,28 @@
 import { Button, Input } from 'antd';
 import { ArrowRightOutlined, ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { getProducts } from '../services/api';
+import { Product } from '../types';
 
 const Home = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const products = [
-    {
-      id: 1,
-      name: 'Tai nghe cao cấp',
-      price: 199.99,
-      rating: 4.5,
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',
-    },
-    {
-      id: 2,
-      name: 'Tai nghe không dây',
-      price: 149.99,
-      rating: 4.2,
-      image: 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&q=80',
-    },
-    {
-      id: 3,
-      name: 'Đồng hồ thông minh',
-      price: 299.99,
-      rating: 4.8,
-      image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400&q=80',
-    },
-    {
-      id: 4,
-      name: 'Loa Bluetooth',
-      price: 129.99,
-      rating: 4.3,
-      image: 'https://images.unsplash.com/photo-1589256469067-ea99122bbdc4?w=400&q=80',
-    },
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await getProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const categories = [
     {
@@ -61,6 +50,10 @@ const Home = () => {
       count: 45,
     },
   ];
+
+  if (loading) {
+    return <div className="text-center py-12">Đang tải...</div>;
+  }
 
   return (
     <div className="space-y-12">
@@ -106,14 +99,14 @@ const Home = () => {
                 <div className="h-48 overflow-hidden">
                   <img
                     alt={product.name}
-                    src={product.image}
+                    src={product.imageUrl || 'https://via.placeholder.com/400'}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="p-4">
                   <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
                   <div className="flex items-center mb-2">
-                    <span className="ml-2 text-gray-500">({product.rating})</span>
+                    <span className="ml-2 text-gray-500">({product.rating || 0})</span>
                   </div>
                   <p className="text-xl font-bold text-blue-600">${product.price}</p>
                 </div>

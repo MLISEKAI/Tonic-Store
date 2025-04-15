@@ -27,7 +27,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import ProductManagement from '../components/ProductManagement';
 import UserManagement from '../components/UserManagement';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, Label } from 'recharts';
 
 const drawerWidth = 240;
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
@@ -164,7 +164,8 @@ const Layout: React.FC = () => {
                     }))}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
+                    labelLine={true}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
@@ -173,6 +174,8 @@ const Layout: React.FC = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
+                  <Tooltip />
+                  <Legend />
                 </PieChart>
               </ResponsiveContainer>
             </Paper>
@@ -182,10 +185,21 @@ const Layout: React.FC = () => {
               <Typography variant="subtitle1">Top Selling Products</Typography>
               <ResponsiveContainer width="100%" height="90%">
                 <BarChart data={stats.topProducts}>
-                  <XAxis dataKey="name" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fontSize: 12 }}
+                    interval={0}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="value" fill={theme.palette.primary.main} />
+                  <Bar 
+                    dataKey="value" 
+                    fill={theme.palette.primary.main}
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </Paper>
