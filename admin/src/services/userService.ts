@@ -96,4 +96,20 @@ export const userService = {
       throw new Error(error || 'Failed to delete user');
     }
   },
+
+  changeUserPassword: async (userId: number, newPassword: string): Promise<void> => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/${userId}/password`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ newPassword }),
+    });
+    if (!res.ok) {
+      const error = await res.text();
+      throw new Error(error || 'Failed to change password');
+    }
+  },
 };

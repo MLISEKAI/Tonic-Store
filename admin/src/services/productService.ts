@@ -87,18 +87,14 @@ export const productService = {
 
   deleteProduct: async (id: number): Promise<void> => {
     const token = localStorage.getItem('token');
-    console.log('Token:', token);
-    console.log('Request URL:', `${API_URL}/${id}`);
     const res = await fetch(`${API_URL}/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
-    console.log('Response Status:', res.status);
     if (!res.ok) {
       const error = await res.text();
-      console.log('Error Response:', error);
       throw new Error(error || 'Failed to delete product');
     }
   }
