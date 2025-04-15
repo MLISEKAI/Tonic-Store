@@ -15,6 +15,8 @@ import {
   DialogActions,
   TextField,
   IconButton,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { userService, User, CreateUserData, UpdateUserData } from '../services/userService';
@@ -23,6 +25,7 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [changePassword, setChangePassword] = useState(false);
   const [formData, setFormData] = useState<CreateUserData>({
     name: '',
     email: '',
@@ -56,6 +59,7 @@ const UserManagement: React.FC = () => {
         phone: user.phone || '',
         address: user.address || '',
       });
+      setChangePassword(false);
     } else {
       setSelectedUser(null);
       setFormData({
@@ -66,6 +70,7 @@ const UserManagement: React.FC = () => {
         phone: '',
         address: '',
       });
+      setChangePassword(true);
     }
     setOpenDialog(true);
   };
@@ -77,7 +82,21 @@ const UserManagement: React.FC = () => {
   const handleSubmit = async () => {
     try {
       if (selectedUser) {
-        await userService.updateUser(selectedUser.id, formData);
+        // Update user info
+        const updateData: UpdateUserData = {
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          phone: formData.phone,
+          address: formData.address,
+        };
+        
+        await userService.updateUser(selectedUser.id, updateData);
+        
+        // If password change is requested
+        if (changePassword && formData.password) {
+          await userService.changeUserPassword(selectedUser.id, formData.password);
+        }
       } else {
         await userService.createUser(formData);
       }
@@ -158,14 +177,27 @@ const UserManagement: React.FC = () => {
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           />
-          <TextField
-            margin="dense"
-            label="Password"
-            type="password"
-            fullWidth
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          />
+          {selectedUser && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={changePassword}
+                  onChange={(e) => setChangePassword(e.target.checked)}
+                />
+              }
+              label="Change Password"
+            />
+          )}
+          {(changePassword || !selectedUser) && (
+            <TextField
+              margin="dense"
+              label="Password"
+              type="password"
+              fullWidth
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
+          )}
           <TextField
             margin="dense"
             label="Role"

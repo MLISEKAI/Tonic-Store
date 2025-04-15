@@ -19,6 +19,8 @@ model User {
   createdAt DateTime @default(now())
   cart      Cart?
   orders    Order[]
+  passwordChangesReceived PasswordChangeLog[] @relation("UserPasswordChanges")
+  passwordChangesMade     PasswordChangeLog[] @relation("AdminPasswordChanges")
 }
 
 model Product {
@@ -90,6 +92,15 @@ model Payment {
   transactionId String?
   createdAt     DateTime      @default(now())
   order         Order         @relation(fields: [orderId], references: [id])
+}
+
+model PasswordChangeLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  adminId   Int
+  changedAt DateTime @default(now())
+  user      User     @relation("UserPasswordChanges", fields: [userId], references: [id])
+  admin     User     @relation("AdminPasswordChanges", fields: [adminId], references: [id])
 }
 
 enum Role {

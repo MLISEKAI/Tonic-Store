@@ -4,11 +4,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     env_file:
-      - ./frontend/.env 
+      - ./frontend/.env
     environment:
-      - VITE_API_URL=${VITE_API_URL}
-      - VITE_PORT=${VITE_PORT}
-      - VITE_FRONTEND_URL=${VITE_FRONTEND_URL}
       - NODE_ENV=development
       - NODE_OPTIONS=--max-old-space-size=4096
     volumes:
@@ -17,7 +14,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     restart: on-failure
-
     ports:
       - "5173:5173"
     command: yarn run dev
@@ -28,22 +24,41 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - PORT=${PORT}
       - NODE_ENV=development
-      - FRONTEND_URL=${FRONTEND_URL}
     volumes:
       - ./backend:/app
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     restart: unless-stopped
     ports:
-      - '${PORT}:${PORT}'
+      - '8085:8085'
     command: 'yarn run dev'
     depends_on:
       - db
+    networks:
+      - app-network
+
+  server-fe-admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    env_file:
+      - ./admin/.env
+    environment:
+      - NODE_ENV=development
+      - NODE_OPTIONS=--max-old-space-size=4096
+    volumes:
+      - ./admin:/app
+      - /app/node_modules
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    restart: on-failure
+    ports:
+      - "3001:3001"
+    command: yarn run dev
     networks:
       - app-network
 
@@ -51,8 +66,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
+    env_file:
+      - ./backend/.env
     volumes:
       - ./backend:/app
       - /etc/localtime:/etc/localtime:ro
@@ -72,11 +87,9 @@ services:
     restart: always
     ports:
       - "3306:3306"
+    env_file:
+      - ./.env
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       TZ: Asia/Vietnam
     volumes:
       - ./docker/db/data:/var/lib/mysql
@@ -98,9 +111,10 @@ services:
       - db
     ports:
       - "9000:80"
+    env_file:
+      - ./.env
     environment:
       PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     networks:
       - app-network
 
