@@ -63,6 +63,11 @@ model Order {
   totalPrice Float
   status     OrderStatus @default(PENDING)
   createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  shippingAddress String
+  shippingPhone   String
+  shippingName    String
+  note           String?
   user       User        @relation(fields: [userId], references: [id])
   items      OrderItem[]
   payment    Payment?
@@ -89,8 +94,12 @@ model Payment {
   orderId       Int           @unique
   method        PaymentMethod
   status        PaymentStatus @default(PENDING)
+  amount        Float
+  currency      String        @default("VND")
   transactionId String?
+  paymentDate   DateTime?
   createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   order         Order         @relation(fields: [orderId], references: [id])
 }
 
@@ -111,19 +120,25 @@ enum Role {
 enum OrderStatus {
   PENDING
   CONFIRMED
+  PROCESSING
   SHIPPED
   DELIVERED
   CANCELLED
+  REFUNDED
 }
 
 enum PaymentStatus {
   PENDING
   COMPLETED
   FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
 }
 
 enum PaymentMethod {
   CREDIT_CARD
   PAYPAL
   VN_PAY
+  COD
+  BANK_TRANSFER
 }
