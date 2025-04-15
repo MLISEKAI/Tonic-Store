@@ -1,4 +1,5 @@
 const API_URL = `${import.meta.env.VITE_API_URL}/users`;
+const AUTH_URL = `${import.meta.env.VITE_API_URL}/auth`;
 
 export interface User {
   id: number;
@@ -59,13 +60,18 @@ export const userService = {
 
   createUser: async (data: CreateUserData): Promise<User> => {
     const token = localStorage.getItem('token');
-    const res = await fetch(API_URL, {
+    const res = await fetch(`${AUTH_URL}/register`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: data.role,
+      }),
     });
     return handleResponse(res);
   },

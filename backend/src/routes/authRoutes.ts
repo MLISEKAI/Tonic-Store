@@ -7,9 +7,9 @@ const router = express.Router();
 
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    console.log("Attempting to register user:", { name, email });
-    const user = await registerUser(name, email, password);
+    const { name, email, password, role } = req.body;
+    console.log("Attempting to register user:", { name, email, role });
+    const user = await registerUser(name, email, password, role);
     console.log("User registered successfully:", user);
     res.json(user);
   } catch (error) {
@@ -31,10 +31,26 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    console.log("Attempting to login user:", { email });
     const { token, user } = await loginUser(email, password);
+    console.log("User logged in successfully:", { id: user.id, email: user.email, role: user.role });
+    
     res.json({ token, user });
   } catch (error) {
-    res.status(401).json({ error: "Sai email hoặc mật khẩu" });
+    console.error("Login error:", error);
+    if (error instanceof Error) {
+      if (error.message === "User not found") {
+        return res.status(401).json({ error: "User not found" });
+      }
+      if (error.message === "Invalid password") {
+        return res.status(401).json({ error: "Invalid password" });
+      }
+    }
+    res.status(500).json({ error: "Login failed", details: error instanceof Error ? error.message : "Unknown error" });
   }
 });
 

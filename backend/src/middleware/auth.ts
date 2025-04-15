@@ -36,4 +36,11 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
       res.status(401).json({ error: "Token không hợp lệ hoặc đã hết hạn" });
     }
 };
+
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user || req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  next();
+};
   

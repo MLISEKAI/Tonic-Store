@@ -1,15 +1,11 @@
 import express, { Request, Response } from "express";
 import { getAllUsers, deleteUser, getUserProfile, updateUserProfile, changeUserPassword, changeOwnPassword, updateUser } from "../services/userService";
-import { authenticate } from "../middleware/auth";
+import { authenticate, requireAdmin } from "../middleware/auth";
 
 const router = express.Router();
 
-router.get("/", authenticate, async (req: Request, res: Response): Promise<void> => {
+router.get("/", authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
-    if (!req.user || req.user.role !== "ADMIN") {
-      res.status(403).json({ error: "Không có quyền truy cập" });
-      return;
-    }
     const users = await getAllUsers();
     res.json(users);
     return;
@@ -18,12 +14,8 @@ router.get("/", authenticate, async (req: Request, res: Response): Promise<void>
   }
 });
 
-router.delete("/:id", authenticate, async (req: Request, res: Response): Promise<void> => {
+router.delete("/:id", authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
-    if (!req.user || req.user.role !== "ADMIN") {
-      res.status(403).json({ error: "Không có quyền xóa user" });
-      return;
-    }
     await deleteUser(Number(req.params.id));
     res.json({ message: "User đã bị xóa" });
     return;
@@ -61,15 +53,15 @@ router.put('/profile', authenticate, async (req, res) => {
 });
 
 // Admin changes user's password
-router.put("/:id/password", authenticate, async (req: Request, res: Response) => {
+router.put("/:id/password", authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
-    if (!req.user || req.user.role !== "ADMIN") {
-      return res.status(403).json({ error: "Không có quyền thay đổi mật khẩu" });
-    }
-
     const { newPassword } = req.body;
     if (!newPassword) {
       return res.status(400).json({ error: "Mật khẩu mới là bắt buộc" });
+    }
+
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const updatedUser = await changeUserPassword(
@@ -107,12 +99,8 @@ router.put("/profile/password", authenticate, async (req: Request, res: Response
 });
 
 // Update user information (admin only)
-router.put("/:id", authenticate, async (req: Request, res: Response) => {
+router.put("/:id", authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
-    if (!req.user || req.user.role !== "ADMIN") {
-      return res.status(403).json({ error: "Không có quyền cập nhật user" });
-    }
-
     const { name, email, role, phone, address } = req.body;
     const updatedUser = await updateUser(Number(req.params.id), {
       name,

@@ -85,8 +85,10 @@ process.on('uncaughtException', (error) => {
 });
 
 const PORT = Number(process.env.PORT) || 8085;
-const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server chạy tại http://localhost:${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+
+const server = app.listen(PORT, HOST, () => {
+    console.log(`🚀 Server chạy tại http://${HOST}:${PORT}`);
     console.log('Environment:', process.env.NODE_ENV);
     console.log('Database URL:', process.env.DATABASE_URL);
 });

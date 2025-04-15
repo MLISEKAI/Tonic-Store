@@ -28,7 +28,14 @@ const Login: React.FC = () => {
             }
 
             const data = await response.json();
+            
+            // Check if user is admin
+            if (data.user.role !== 'ADMIN') {
+                throw new Error('Bạn không có quyền truy cập trang admin');
+            }
+            
             localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
             navigate('/');
         } catch (error) {
             setError(error instanceof Error ? error.message : 'Invalid email or password');
