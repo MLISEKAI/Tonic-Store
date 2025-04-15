@@ -17,6 +17,10 @@ import {
   IconButton,
   Checkbox,
   FormControlLabel,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { userService, User, CreateUserData, UpdateUserData } from '../services/userService';
@@ -30,7 +34,7 @@ const UserManagement: React.FC = () => {
     name: '',
     email: '',
     password: '',
-    role: 'user',
+    role: 'CUSTOMER',
     phone: '',
     address: '',
   });
@@ -66,7 +70,7 @@ const UserManagement: React.FC = () => {
         name: '',
         email: '',
         password: '',
-        role: 'user',
+        role: 'CUSTOMER',
         phone: '',
         address: '',
       });
@@ -198,13 +202,17 @@ const UserManagement: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
           )}
-          <TextField
-            margin="dense"
-            label="Role"
-            fullWidth
-            value={formData.role}
-            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Role</InputLabel>
+            <Select
+              value={formData.role}
+              label="Role"
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+            >
+              <MenuItem value="CUSTOMER">Customer</MenuItem>
+              <MenuItem value="ADMIN">Admin</MenuItem>
+            </Select>
+          </FormControl>
           <TextField
             margin="dense"
             label="Phone"
