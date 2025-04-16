@@ -107,7 +107,7 @@ const Navbar = () => {
   return (
     <nav
       className={`sticky top-0 z-50 transition-all duration-300 bg-white shadow-md`}
-      >
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 w-full overflow-visible">
           {/* Logo */}
@@ -128,8 +128,7 @@ const Navbar = () => {
                 <Menu.Item key={item.key} className="!px-4">
                   <Link
                     to={item.path}
-                    className={`text-gray-600 text-lg font-semibold hover:text-blue-600 transition-colors${
-                      selectedKey === item.key ? 'text-blue-600' : '' }`}
+                    className={`text-gray-600 text-lg font-semibold hover:text-blue-600 transition-colors${selectedKey === item.key ? 'text-blue-600' : ''}`}
                   >
                     {item.label}
                   </Link>
@@ -206,9 +205,8 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         <div
-          className={`md:hidden transition-all duration-500 transform origin-top ${
-            isMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'
-          }`}
+          className={`md:hidden transition-all duration-500 transform origin-top ${isMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'
+            }`}
         >
           <div className="py-4">
             <Input
@@ -229,11 +227,10 @@ const Navbar = () => {
               <Menu.Item key={item.key} className="!px-4">
                 <Link
                   to={item.path}
-                  className={`text-gray-600 font-semibold hover:text-blue-600 transition-colors${
-                    selectedKey === item.key
+                  className={`text-gray-600 font-semibold hover:text-blue-600 transition-colors${selectedKey === item.key
                       ? 'text-blue-600'
                       : ''
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </Link>

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 import * as cartService from '../services/cartService';
-import prisma from '../prisma';
 
 export const getCart = async (req: Request, res: Response) => {
   try {
