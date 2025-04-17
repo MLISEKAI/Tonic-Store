@@ -94,16 +94,33 @@ export const removeFromCart = async (token: string, itemId: number) => {
 };
 
 // Orders API
-export const createOrder = async (token: string) => {
+export const createOrder = async (token: string, orderData: {
+  items: Array<{
+    productId: number;
+    quantity: number;
+    price: number;
+  }>;
+  totalPrice: number;
+  shippingAddress: string;
+  shippingPhone: string;
+  shippingName: string;
+  note?: string;
+  paymentMethod: string;
+  userId: number;
+}) => {
   const response = await fetch(`${API_URL}/orders`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}` }
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(orderData)
   });
   return handleResponse(response);
 };
 
 export const getOrders = async (token: string) => {
-  const response = await fetch(`${API_URL}/orders`, {
+  const response = await fetch(`${API_URL}/orders/user`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return handleResponse(response);

@@ -4,7 +4,7 @@ const OrderService = {
   // Create new order
   async createOrder(orderData: any) {
     try {
-      const response = await fetch(`${API_URL}/api/orders`, {
+      const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -21,7 +21,7 @@ const OrderService = {
   // Get order by ID
   async getOrder(id: string) {
     try {
-      const response = await fetch(`${API_URL}/api/orders/${id}`);
+      const response = await fetch(`${API_URL}/orders/${id}`);
       if (!response.ok) throw new Error('Network response was not ok');
       return await response.json();
     } catch (error) {
@@ -32,7 +32,7 @@ const OrderService = {
   // Get user's orders
   async getUserOrders(userId: string) {
     try {
-      const response = await fetch(`${API_URL}/api/orders/user/${userId}`);
+      const response = await fetch(`${API_URL}/orders/user/${userId}`);
       if (!response.ok) throw new Error('Network response was not ok');
       return await response.json();
     } catch (error) {
@@ -44,7 +44,7 @@ const OrderService = {
   async getAllOrders(params: any) {
     try {
       const queryString = new URLSearchParams(params).toString();
-      const response = await fetch(`${API_URL}/api/orders?${queryString}`);
+      const response = await fetch(`${API_URL}/orders?${queryString}`);
       if (!response.ok) throw new Error('Network response was not ok');
       return await response.json();
     } catch (error) {
@@ -55,7 +55,7 @@ const OrderService = {
   // Update order status (admin)
   async updateOrderStatus(id: string, status: string) {
     try {
-      const response = await fetch(`${API_URL}/api/orders/${id}/status`, {
+      const response = await fetch(`${API_URL}/orders/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ const OrderService = {
   // Update payment status (admin)
   async updatePaymentStatus(id: string, status: string, transactionId?: string) {
     try {
-      const response = await fetch(`${API_URL}/api/orders/${id}/payment`, {
+      const response = await fetch(`${API_URL}/orders/${id}/payment`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

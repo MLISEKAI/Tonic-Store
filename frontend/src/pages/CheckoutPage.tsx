@@ -30,13 +30,17 @@ const CheckoutPage: React.FC = () => {
       }
 
       const orderData = {
-        ...formData,
         items: cart.items.map(item => ({
           productId: item.product.id,
           quantity: item.quantity,
           price: item.product.price
         })),
-        totalPrice: cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+        totalPrice: cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
+        shippingAddress: formData.address,
+        shippingPhone: formData.phone,
+        shippingName: formData.name,
+        note: formData.note,
+        paymentMethod: formData.paymentMethod
       };
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, {

@@ -12,7 +12,7 @@ export const CartPage: FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { token, isAuthenticated } = useAuth();
+  const { token, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   const fetchCart = async () => {
@@ -55,10 +55,57 @@ export const CartPage: FC = () => {
 
   const handleCheckout = async () => {
     try {
-      await api.createOrder(token!);
+      if (!token) {
+        setError('Vui lòng đăng nhập để tiếp tục');
+        return;
+      }
+
+      if (!cartItems || cartItems.length === 0) {
+        setError('Giỏ hàng trống');
+        return;
+      }
+
+      // Check if shipping information is complete
+      if (!user?.address || !user?.phone || !user?.name) {
+        setError('Vui lòng cập nhật thông tin giao hàng trong hồ sơ của bạn');
+        navigate('/profile');
+        return;
+      }
+
+      const orderData = {
+        items: cartItems.map(item => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+          price: Number(item.product.price)
+        })),
+        totalPrice: Number(calculateTotal()),
+        shippingAddress: user.address,
+        shippingPhone: user.phone,
+        shippingName: user.name,
+        note: '',
+        paymentMethod: 'COD',
+        userId: user.id
+      };
+
+      console.log('Sending order data:', orderData);
+
+      const response = await api.createOrder(token, orderData);
+      
+      if (response.error) {
+        setError(response.error);
+        return;
+      }
+
       navigate('/orders');
     } catch (err) {
-      setError('Không thể tạo đơn hàng');
+      console.error('Checkout error:', err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else if (typeof err === 'object' && err !== null && 'error' in err) {
+        setError((err as { error: string }).error);
+      } else {
+        setError('Không thể tạo đơn hàng. Vui lòng thử lại sau.');
+      }
     }
   };
 
