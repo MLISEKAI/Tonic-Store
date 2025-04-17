@@ -1,5 +1,5 @@
-import prisma from "../prisma";
-import { OrderStatus } from "@prisma/client";
+import { PrismaClient, OrderStatus, Prisma } from '@prisma/client';
+const prisma = new PrismaClient();
 
 export const getAllOrders = async () => {
   return prisma.order.findMany({
@@ -24,8 +24,19 @@ export const createOrder = async (
   shippingName: string,
   note?: string
 ) => {
-  return prisma.order.create({
-    data: {
+  try {
+    console.log('Creating order with data:', {
+      userId,
+      totalPrice,
+      status,
+      items,
+      shippingAddress,
+      shippingPhone,
+      shippingName,
+      note
+    });
+
+    const orderData: Prisma.OrderUncheckedCreateInput = {
       userId,
       totalPrice,
       status: status as OrderStatus,
@@ -40,9 +51,25 @@ export const createOrder = async (
           price: item.price,
         })),
       },
-    },
-    include: { items: { include: { product: true } }, payment: true },
-  });
+    };
+
+    console.log('Order data prepared:', orderData);
+
+    const order = await prisma.order.create({
+      data: orderData,
+      include: { items: { include: { product: true } }, payment: true },
+    });
+
+    console.log('Order created successfully:', order);
+    return order;
+  } catch (error) {
+    console.error('Error in createOrder:', error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      console.error('Prisma error code:', error.code);
+      console.error('Prisma error meta:', error.meta);
+    }
+    throw error;
+  }
 };
 
 export const updateOrderStatus = async (id: number, status: string) => {

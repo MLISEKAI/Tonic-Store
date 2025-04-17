@@ -1,17 +1,72 @@
 import express, { Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
-import { createOrder, getOrder, updateOrderStatus } from '../services/orderService';
+import { createOrder, getOrder, updateOrderStatus, getAllOrders } from '../services/orderService';
 import { createPayment, updatePaymentStatus } from '../services/paymentService';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
-import { PaymentMethod, PaymentStatus } from '@prisma/client';
+import { PaymentMethod, PaymentStatus, PrismaClient } from '@prisma/client';
 
 const router = express.Router();
+const prisma = new PrismaClient();
+
+// Get all orders (admin only)
+router.get('/', authenticate, async (req: Request, res: Response) => {
+  try {
+    if (req.user!.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    const orders = await getAllOrders();
+    res.json(orders);
+  } catch (error) {
+    console.error('Error getting orders:', error);
+    res.status(500).json({ error: 'Failed to get orders' });
+  }
+});
+
+// Get user's orders
+router.get('/user', authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      include: { items: { include: { product: true } }, payment: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(orders);
+  } catch (error) {
+    console.error('Error getting user orders:', error);
+    res.status(500).json({ error: 'Failed to get user orders' });
+  }
+});
 
 // Create new order
 router.post('/', authenticate, async (req: Request, res: Response) => {
   try {
     const { items, totalPrice, shippingAddress, shippingPhone, shippingName, note, paymentMethod } = req.body;
     const userId = req.user!.id;
+
+    // Validate required fields
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Items array is required and must not be empty' });
+    }
+
+    if (!totalPrice || typeof totalPrice !== 'number') {
+      return res.status(400).json({ error: 'Total price is required and must be a number' });
+    }
+
+    if (!shippingAddress || !shippingPhone || !shippingName) {
+      return res.status(400).json({ error: 'Shipping information is required' });
+    }
+
+    if (!paymentMethod) {
+      return res.status(400).json({ error: 'Payment method is required' });
+    }
+
+    // Validate items structure
+    for (const item of items) {
+      if (!item.productId || !item.quantity || !item.price) {
+        return res.status(400).json({ error: 'Each item must have productId, quantity, and price' });
+      }
+    }
 
     // Create order
     const order = await createOrder(
