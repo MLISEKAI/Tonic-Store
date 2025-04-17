@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { createOrder } from '../services/api';
 import { formatPrice } from '../utils/format';
+import VNPayPayment from '../components/VNPayPayment';
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const CheckoutPage: React.FC = () => {
     note: '',
     paymentMethod: 'VN_PAY'
   });
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,32 +35,24 @@ const CheckoutPage: React.FC = () => {
         items: cart.items.map(item => ({
           productId: item.product.id,
           quantity: item.quantity,
-          price: item.product.price
+          price: parseFloat(item.product.price.toString().replace(',', '.'))
         })),
-        totalPrice: cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
+        totalPrice: cart.items.reduce((sum, item) => 
+          sum + parseFloat(item.product.price.toString().replace(',', '.')) * item.quantity, 
+          0
+        ),
         shippingAddress: formData.address,
         shippingPhone: formData.phone,
         shippingName: formData.name,
         note: formData.note,
-        paymentMethod: formData.paymentMethod
+        paymentMethod: formData.paymentMethod,
+        userId: JSON.parse(localStorage.getItem('user') || '{}').id
       };
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(orderData)
-      });
-
-      if (!response.ok) throw new Error('Failed to create order');
-
-      const data = await response.json();
+      const data = await createOrder(token, orderData);
       
       if (formData.paymentMethod === 'VN_PAY') {
-        // Redirect to VNPay payment page
-        window.location.href = data.paymentUrl;
+        setPaymentUrl(data.paymentUrl);
       } else {
         clearCart();
         navigate(`/orders/${data.id}`);
@@ -70,10 +64,19 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
+  const handleTimeout = () => {
+    setError('Phiên thanh toán đã hết hạn. Vui lòng thử lại.');
+    setPaymentUrl(null);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  if (paymentUrl) {
+    return <VNPayPayment paymentUrl={paymentUrl} onTimeout={handleTimeout} />;
+  }
 
   if (!cart.items.length) {
     return (
