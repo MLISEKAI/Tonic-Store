@@ -1,57 +1,77 @@
 import crypto from 'crypto';
-import { config } from '../config';
+import qs from 'qs';
 
-export const createPaymentUrl = (orderId: number, amount: number, ipAddr: string): string => {
-  const tmnCode = config.vnpay.tmnCode;
-  const secretKey = config.vnpay.secretKey;
-  const vnpUrl = config.vnpay.url;
-  const returnUrl = config.vnpay.returnUrl;
-  
+const VNPAY_CONFIG = {
+  vnp_TmnCode: process.env.VNPAY_TMN_CODE || '',
+  vnp_HashSecret: process.env.VNPAY_HASH_SECRET || '',
+  vnp_Url: process.env.VNPAY_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
+  vnp_ReturnUrl: process.env.VNPAY_RETURN_URL || 'http://localhost:3000/payment/return',
+  vnp_ApiUrl: process.env.VNPAY_API_URL || 'https://sandbox.vnpayment.vn/merchant_webapi/api/transaction',
+};
+
+export const createPaymentUrl = (orderId: number, amount: number, bankCode?: string) => {
   const date = new Date();
-  const createDate = date.toISOString().replace(/-/g, '').replace('T', '').replace(/:/g, '').split('.')[0];
+  const createDate = date.toISOString().replace(/-|:|\.\d\d\d/g, '');
   
-  const orderIdStr = orderId.toString().padStart(6, '0');
-  const amountStr = (amount * 100).toString();
-  
-  const vnpParams: Record<string, string> = {
+  const ipAddr = '127.0.0.1';
+  const txnRef = `TONIC-${orderId}-${Date.now()}`;
+  const orderInfo = `Thanh toan don hang #${orderId}`;
+  const orderType = 'other';
+  const locale = 'vn';
+  const currCode = 'VND';
+  const vnp_Amount = amount * 100; // VNPay yêu cầu số tiền nhân 100
+
+  let vnp_Params: any = {
     vnp_Version: '2.1.0',
     vnp_Command: 'pay',
-    vnp_TmnCode: tmnCode,
-    vnp_Amount: amountStr,
-    vnp_CreateDate: createDate,
-    vnp_CurrCode: 'VND',
+    vnp_TmnCode: VNPAY_CONFIG.vnp_TmnCode,
+    vnp_Locale: locale,
+    vnp_CurrCode: currCode,
+    vnp_TxnRef: txnRef,
+    vnp_OrderInfo: orderInfo,
+    vnp_OrderType: orderType,
+    vnp_Amount: vnp_Amount,
+    vnp_ReturnUrl: VNPAY_CONFIG.vnp_ReturnUrl,
     vnp_IpAddr: ipAddr,
-    vnp_Locale: 'vn',
-    vnp_OrderInfo: `Thanh toan don hang #${orderIdStr}`,
-    vnp_OrderType: 'other',
-    vnp_ReturnUrl: returnUrl,
-    vnp_TxnRef: orderIdStr,
+    vnp_CreateDate: createDate,
   };
 
-  // Sort params by key
-  const sortedParams = Object.keys(vnpParams)
-    .sort()
-    .reduce((acc: Record<string, string>, key: string) => {
-      acc[key] = vnpParams[key];
-      return acc;
-    }, {});
+  if (bankCode) {
+    vnp_Params['vnp_BankCode'] = bankCode;
+  }
 
-  // Create query string
-  const queryString = Object.entries(sortedParams)
-    .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-    .join('&');
+  // Sắp xếp các tham số theo thứ tự alphabet
+  vnp_Params = sortObject(vnp_Params);
 
-  // Create secure hash
-  const secureHash = crypto
-    .createHmac('sha512', secretKey)
-    .update(queryString)
-    .digest('hex');
+  // Tạo chuỗi hash
+  const signData = qs.stringify(vnp_Params, { encode: false });
+  const hmac = crypto.createHmac('sha512', VNPAY_CONFIG.vnp_HashSecret);
+  const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+  vnp_Params['vnp_SecureHash'] = signed;
 
-  return `${vnpUrl}?${queryString}&vnp_SecureHash=${secureHash}`;
+  // Tạo URL thanh toán
+  const paymentUrl = VNPAY_CONFIG.vnp_Url + '?' + qs.stringify(vnp_Params, { encode: false });
+  
+  return paymentUrl;
+};
+
+const sortObject = (obj: any) => {
+  const sorted: any = {};
+  const str = [];
+  let key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      str.push(encodeURIComponent(key));
+    }
+  }
+  str.sort();
+  for (key = 0; key < str.length; key++) {
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, '+');
+  }
+  return sorted;
 };
 
 export const verifyPayment = (query: Record<string, string>): boolean => {
-  const secretKey = config.vnpay.secretKey;
   const secureHash = query.vnp_SecureHash;
   
   // Remove secure hash from query
@@ -73,7 +93,7 @@ export const verifyPayment = (query: Record<string, string>): boolean => {
 
   // Create secure hash
   const hash = crypto
-    .createHmac('sha512', secretKey)
+    .createHmac('sha512', VNPAY_CONFIG.vnp_HashSecret)
     .update(queryString)
     .digest('hex');
 

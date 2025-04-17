@@ -1,131 +1,60 @@
-import { FC, useState, useEffect } from 'react';
+import { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CartItem } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import * as api from '../services/api';
+import { useCart } from '../contexts/CartContext';
 
 const formatPrice = (price: number) => {
   return price.toLocaleString('vi-VN') + 'đ';
 };
 
 export const CartPage: FC = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const { token, isAuthenticated, user } = useAuth();
+  const { cart, updateQuantity, removeFromCart } = useCart();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  const fetchCart = async () => {
+  const handleUpdateQuantity = async (productId: number, quantity: number) => {
     try {
-      const data = await api.getCart(token!);
-      setCartItems(data.items || []);
+      updateQuantity(productId, quantity);
     } catch (err) {
-      setError('Không thể tải giỏ hàng');
-      setCartItems([]);
-    } finally {
-      setLoading(false);
+      console.error('Không thể cập nhật số lượng:', err);
     }
   };
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-    fetchCart();
-  }, [isAuthenticated, navigate]);
-
-  const handleUpdateQuantity = async (itemId: number, quantity: number) => {
+  const handleRemoveItem = async (productId: number) => {
     try {
-      await api.updateCartItem(token!, itemId, quantity);
-      fetchCart();
+      removeFromCart(productId);
     } catch (err) {
-      setError('Không thể cập nhật số lượng');
-    }
-  };
-
-  const handleRemoveItem = async (itemId: number) => {
-    try {
-      await api.removeFromCart(token!, itemId);
-      fetchCart();
-    } catch (err) {
-      setError('Không thể xóa sản phẩm');
+      console.error('Không thể xóa sản phẩm:', err);
     }
   };
 
   const handleCheckout = async () => {
-    try {
-      if (!token) {
-        setError('Vui lòng đăng nhập để tiếp tục');
-        return;
-      }
-
-      if (!cartItems || cartItems.length === 0) {
-        setError('Giỏ hàng trống');
-        return;
-      }
-
-      // Check if shipping information is complete
-      if (!user?.address || !user?.phone || !user?.name) {
-        setError('Vui lòng cập nhật thông tin giao hàng trong hồ sơ của bạn');
-        navigate('/profile');
-        return;
-      }
-
-      const orderData = {
-        items: cartItems.map(item => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-          price: Number(item.product.price)
-        })),
-        totalPrice: Number(calculateTotal()),
-        shippingAddress: user.address,
-        shippingPhone: user.phone,
-        shippingName: user.name,
-        note: '',
-        paymentMethod: 'COD',
-        userId: user.id
-      };
-
-      console.log('Sending order data:', orderData);
-
-      const response = await api.createOrder(token, orderData);
-      
-      if (response.error) {
-        setError(response.error);
-        return;
-      }
-
-      navigate('/orders');
-    } catch (err) {
-      console.error('Checkout error:', err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else if (typeof err === 'object' && err !== null && 'error' in err) {
-        setError((err as { error: string }).error);
-      } else {
-        setError('Không thể tạo đơn hàng. Vui lòng thử lại sau.');
-      }
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
     }
+
+    if (!cart.items || cart.items.length === 0) {
+      console.error('Giỏ hàng trống');
+      return;
+    }
+
+    // Check if shipping information is complete
+    if (!user?.address || !user?.phone || !user?.name) {
+      console.error('Vui lòng cập nhật thông tin giao hàng trong hồ sơ của bạn');
+      navigate('/profile');
+      return;
+    }
+
+    // Navigate to checkout page
+    navigate('/checkout');
   };
 
   const calculateTotal = () => {
-    return cartItems?.reduce((total, item) => total + item.product.price * item.quantity, 0) || 0;
+    return cart.items.reduce((total, item) => total + item.product.price * item.quantity, 0);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
-  }
-
-  if (!cartItems || cartItems.length === 0) {
+  if (!cart.items || cart.items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Giỏ hàng</h1>
@@ -139,8 +68,8 @@ export const CartPage: FC = () => {
       <h1 className="text-2xl font-bold mb-4">Giỏ hàng</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
-          {cartItems.map((item) => (
-            <div key={item.id} className="flex items-center border-b py-4">
+          {cart.items.map((item) => (
+            <div key={item.product.id} className="flex items-center border-b py-4">
               <img
                 src={item.product.imageUrl}
                 alt={item.product.name}
@@ -152,7 +81,7 @@ export const CartPage: FC = () => {
               </div>
               <div className="flex items-center">
                 <button
-                  onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                  onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
                   className="px-2 py-1 border rounded"
                   disabled={item.quantity <= 1}
                 >
@@ -160,13 +89,13 @@ export const CartPage: FC = () => {
                 </button>
                 <span className="mx-2">{item.quantity}</span>
                 <button
-                  onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                  onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
                   className="px-2 py-1 border rounded"
                 >
                   +
                 </button>
                 <button
-                  onClick={() => handleRemoveItem(item.id)}
+                  onClick={() => handleRemoveItem(item.product.id)}
                   className="ml-4 text-red-500"
                 >
                   Xóa

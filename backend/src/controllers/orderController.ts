@@ -1,9 +1,14 @@
 import { Request, Response } from 'express';
-import { PrismaClient, OrderStatus, PaymentMethod, PaymentStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { ParsedQs } from 'qs';
+import { createPaymentUrl } from '../services/vnpayService';
 
 const prisma = new PrismaClient();
+
+type OrderStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
+type PaymentMethod = 'COD' | 'VN_PAY' | 'BANK_TRANSFER';
+type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED';
 
 interface OrderItem {
   productId: number;
@@ -18,176 +23,50 @@ export const OrderController = {
       const { userId, items, shippingAddress, shippingPhone, shippingName, note, paymentMethod } = req.body;
 
       // Validate input
-      if (!userId) {
-        return res.status(400).json({ error: 'User ID is required' });
+      if (!userId || !items || !shippingAddress || !shippingPhone || !shippingName || !paymentMethod) {
+        return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      if (!items || !Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ error: 'Order must contain at least one item' });
-      }
+      // Calculate total price
+      const totalPrice = items.reduce((sum: number, item: OrderItem) => sum + item.price * item.quantity, 0);
 
-      if (!shippingAddress || !shippingPhone || !shippingName) {
-        return res.status(400).json({ error: 'Shipping information is required' });
-      }
-
-      if (!paymentMethod) {
-        return res.status(400).json({ error: 'Payment method is required' });
-      }
-
-      // Calculate total price and validate items
-      let totalPrice = 0;
-      const validatedItems: OrderItem[] = [];
-
-      try {
-        for (const item of items) {
-          if (!item.productId || !item.quantity || !item.price) {
-            return res.status(400).json({ error: 'Invalid item data. Product ID, quantity and price are required' });
-          }
-
-          // Verify product exists and has sufficient stock
-          const product = await prisma.product.findUnique({
-            where: { id: item.productId }
-          });
-
-          if (!product) {
-            return res.status(400).json({ error: `Product with id ${item.productId} not found` });
-          }
-
-          if (product.stock < item.quantity) {
-            return res.status(400).json({ 
-              error: `Insufficient stock for product ${product.name}`,
-              productId: product.id,
-              availableStock: product.stock,
-              requestedQuantity: item.quantity
-            });
-          }
-
-          const itemPrice = Number(item.price);
-          totalPrice += itemPrice * item.quantity;
-          validatedItems.push({
-            productId: product.id,
-            quantity: item.quantity,
-            price: itemPrice
-          });
-        }
-      } catch (error) {
-        console.error('Error validating products:', error);
-        return res.status(500).json({ 
-          error: 'Error validating products',
-          details: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-
-      // Create order in a transaction to ensure consistency
-      try {
-        console.log('Creating order with data:', {
+      // Create order
+      const order = await prisma.order.create({
+        data: {
           userId,
-          totalPrice,
+          totalPrice: Number(totalPrice),
           shippingAddress,
           shippingPhone,
           shippingName,
           note,
-          paymentMethod,
-          items: validatedItems
-        });
-
-        const order = await prisma.$transaction(async (prisma) => {
-          try {
-            // Create the order
-            const newOrder = await prisma.order.create({
-              data: {
-                userId,
-                totalPrice: Number(totalPrice),
-                shippingAddress,
-                shippingPhone,
-                shippingName,
-                note,
-                status: OrderStatus.PENDING,
-                items: {
-                  create: validatedItems.map(item => ({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    price: item.price
-                  }))
-                }
-              },
-              include: {
-                items: {
-                  include: {
-                    product: true
-                  }
-                }
-              }
-            });
-
-            console.log('Order created successfully:', newOrder);
-
-            // Create payment separately
-            const payment = await prisma.payment.create({
-              data: {
-                orderId: newOrder.id,
-                method: PaymentMethod.COD,
-                status: PaymentStatus.PENDING,
-                amount: Number(totalPrice),
-                currency: 'VND'
-              }
-            });
-
-            console.log('Payment created successfully:', payment);
-
-            // Update product stock
-            for (const item of validatedItems) {
-              try {
-                await prisma.product.update({
-                  where: { id: item.productId },
-                  data: {
-                    stock: {
-                      decrement: item.quantity
-                    }
-                  }
-                });
-                console.log(`Updated stock for product ${item.productId}`);
-              } catch (error) {
-                console.error(`Error updating stock for product ${item.productId}:`, error);
-                throw error;
-              }
-            }
-
-            return newOrder;
-          } catch (error) {
-            console.error('Error in transaction:', error);
-            throw error;
+          status: 'PENDING' as OrderStatus,
+          items: {
+            create: items.map((item: OrderItem) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.price
+            }))
           }
-        });
-
-        return res.status(201).json(order);
-      } catch (error) {
-        console.error('Error in order creation transaction:', error);
-        if (error instanceof Error) {
-          console.error('Error details:', {
-            name: error.name,
-            message: error.message,
-            stack: error.stack
-          });
+        },
+        include: {
+          items: {
+            include: {
+              product: true
+            }
+          }
         }
-        return res.status(500).json({ 
-          error: 'Failed to create order',
-          details: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-    } catch (error) {
-      console.error('Unexpected error in createOrder:', error);
-      if (error instanceof Error) {
-        console.error('Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        });
-      }
-      return res.status(500).json({ 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
       });
+
+      // If payment method is VNPay, create payment URL
+      if (paymentMethod === 'VN_PAY') {
+        const paymentUrl = createPaymentUrl(order.id, totalPrice);
+        return res.json({ ...order, paymentUrl });
+      }
+
+      return res.json(order);
+    } catch (error) {
+      console.error('Error creating order:', error);
+      return res.status(500).json({ error: 'Failed to create order' });
     }
   },
 

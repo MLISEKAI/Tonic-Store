@@ -1,5 +1,7 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+
+type UserRole = 'ADMIN' | 'CUSTOMER';
 
 const prisma = new PrismaClient();
 
@@ -115,7 +117,7 @@ export const changeOwnPassword = async (userId: number, currentPassword: string,
 export const updateUser = async (id: number, data: {
   name?: string;
   email?: string;
-  role?: string;
+  role?: UserRole;
   phone?: string;
   address?: string;
 }) => {
@@ -124,7 +126,7 @@ export const updateUser = async (id: number, data: {
     data: {
       name: data.name,
       email: data.email,
-      role: data.role as Role,
+      role: data.role ? data.role : undefined,
       phone: data.phone,
       address: data.address,
     },
