@@ -5,9 +5,10 @@ import { authenticate } from "../middleware/auth";
 const router = express.Router();
 
 // Public routes - anyone can view products
-router.get("/", async (_req: Request, res: Response): Promise<void> => {
+router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const products = await getAllProducts();
+    const category = req.query.category as string;
+    const products = await getAllProducts(category);
     res.json(products);
   } catch (error) {
     console.error('Error getting products:', error);
@@ -36,8 +37,8 @@ router.post("/", authenticate, async (req: Request, res: Response): Promise<void
       res.status(403).json({ error: "Không có quyền thêm sản phẩm" });
       return;
     }
-    const { name, description, price, stock, imageUrl, category } = req.body;
-    const product = await createProduct(name, description, price, stock, imageUrl, category);
+    const { name, description, price, stock, imageUrl, categoryId } = req.body;
+    const product = await createProduct(name, description, price, stock, imageUrl, categoryId);
     res.status(201).json(product);
   } catch (error) {
     console.error('Error creating product:', error);
@@ -51,9 +52,9 @@ router.put("/:id", authenticate, async (req: Request, res: Response): Promise<vo
       res.status(403).json({ error: "Không có quyền cập nhật sản phẩm" });
       return;
     }
-    const { name, description, price, stock, imageUrl, category } = req.body;
+    const { name, description, price, stock, imageUrl, categoryId } = req.body;
     const product = await updateProduct(Number(req.params.id), {
-      name, description, price, stock, imageUrl, category
+      name, description, price, stock, imageUrl, categoryId
     });
     if (!product) {
       res.status(404).json({ error: "Sản phẩm không tồn tại" });

@@ -40,9 +40,17 @@ export const getUserProfile = async (token: string) => {
 };
 
 // Products API
-export const getProducts = async () => {
-  const response = await fetch(`${API_URL}/products`);
-  return handleResponse(response);
+export const getProducts = async (category?: string) => {
+  const url = new URL(`${API_URL}/products`);
+  if (category) {
+    url.searchParams.append('category', category);
+  }
+  const response = await fetch(url.toString());
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to fetch products');
+  }
+  return response.json();
 };
 
 export const getProduct = async (id: number) => {
@@ -148,6 +156,25 @@ export const updateUserProfile = async (token: string, data: {
   });
   if (!response.ok) {
     throw new Error('Failed to update user profile');
+  }
+  return response.json();
+};
+
+// Categories API
+export const getCategories = async () => {
+  const response = await fetch(`${API_URL}/categories`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to fetch categories');
+  }
+  return response.json();
+};
+
+export const getCategoryById = async (id: number) => {
+  const response = await fetch(`${API_URL}/categories/${id}`);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to fetch category');
   }
   return response.json();
 };

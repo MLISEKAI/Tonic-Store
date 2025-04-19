@@ -1,7 +1,11 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const getProducts = async () => {
-  const response = await fetch(`${API_URL}/products`);
+export const getProducts = async (category?: string) => {
+  const url = new URL(`${API_URL}/products`);
+  if (category) {
+    url.searchParams.append('category', category);
+  }
+  const response = await fetch(url.toString());
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error || 'Failed to fetch products');

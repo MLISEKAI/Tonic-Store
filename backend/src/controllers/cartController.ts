@@ -79,14 +79,23 @@ export const updateCartItem = async (req: Request, res: Response) => {
 
     const { itemId } = req.params;
     const { quantity } = req.body;
-    if (!quantity) {
-      return res.status(400).json({ message: 'Missing quantity' });
+
+    if (!quantity || quantity < 1) {
+      return res.status(400).json({ message: 'Invalid quantity' });
     }
 
-    const cartItem = await cartService.updateCartItem(userId, parseInt(itemId), quantity);
-    res.json(cartItem);
+    await cartService.updateCartItem(userId, parseInt(itemId), quantity);
+    res.json({ message: 'Cart item updated successfully' });
   } catch (error) {
     console.error('Error in updateCartItem controller:', error);
+    if (error instanceof Error) {
+      if (error.message === 'Cart not found') {
+        return res.status(404).json({ message: 'Cart not found' });
+      }
+      if (error.message === 'Cart item not found') {
+        return res.status(404).json({ message: 'Cart item not found' });
+      }
+    }
     res.status(500).json({ message: 'Error updating cart item' });
   }
 };
@@ -99,10 +108,18 @@ export const removeFromCart = async (req: Request, res: Response) => {
     }
 
     const { itemId } = req.params;
-    await cartService.removeFromCart(userId, parseInt(itemId));
-    res.json({ message: 'Item removed from cart' });
+    const result = await cartService.removeFromCart(userId, parseInt(itemId));
+    res.json(result);
   } catch (error) {
     console.error('Error in removeFromCart controller:', error);
+    if (error instanceof Error) {
+      if (error.message === 'Cart not found') {
+        return res.status(404).json({ message: 'Cart not found' });
+      }
+      if (error.message === 'Cart item not found') {
+        return res.status(404).json({ message: 'Cart item not found' });
+      }
+    }
     res.status(500).json({ message: 'Error removing from cart' });
   }
 }; 

@@ -12,17 +12,17 @@ export const CartPage: FC = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  const handleUpdateQuantity = async (productId: number, quantity: number) => {
+  const handleUpdateQuantity = async (cartItemId: number, quantity: number) => {
     try {
-      updateQuantity(productId, quantity);
+      await updateQuantity(cartItemId, quantity);
     } catch (err) {
       console.error('Không thể cập nhật số lượng:', err);
     }
   };
 
-  const handleRemoveItem = async (productId: number) => {
+  const handleRemoveItem = async (cartItemId: number) => {
     try {
-      removeFromCart(productId);
+      await removeFromCart(cartItemId);
     } catch (err) {
       console.error('Không thể xóa sản phẩm:', err);
     }
@@ -69,7 +69,7 @@ export const CartPage: FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
           {cart.items.map((item) => (
-            <div key={item.product.id} className="flex items-center border-b py-4">
+            <div key={item.id} className="flex items-center border-b py-4">
               <img
                 src={item.product.imageUrl}
                 alt={item.product.name}
@@ -81,7 +81,7 @@ export const CartPage: FC = () => {
               </div>
               <div className="flex items-center">
                 <button
-                  onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
+                  onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                   className="px-2 py-1 border rounded"
                   disabled={item.quantity <= 1}
                 >
@@ -89,13 +89,13 @@ export const CartPage: FC = () => {
                 </button>
                 <span className="mx-2">{item.quantity}</span>
                 <button
-                  onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
+                  onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                   className="px-2 py-1 border rounded"
                 >
                   +
                 </button>
                 <button
-                  onClick={() => handleRemoveItem(item.product.id)}
+                  onClick={() => handleRemoveItem(item.id)}
                   className="ml-4 text-red-500"
                 >
                   Xóa

@@ -1,5 +1,10 @@
 const API_URL = `${import.meta.env.VITE_API_URL}/products`;
 
+export interface Category {
+  id: number;
+  name: string;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -7,7 +12,7 @@ export interface Product {
   price: number;
   stock: number;
   imageUrl: string;
-  category: string;
+  category: Category;
   createdAt: string;
   updatedAt: string;
 }
@@ -18,7 +23,7 @@ export interface CreateProductData {
   price: number;
   stock: number;
   imageUrl: string;
-  category: string;
+  categoryId: number;
 }
 
 export interface UpdateProductData {
@@ -27,7 +32,7 @@ export interface UpdateProductData {
   price?: number;
   stock?: number;
   imageUrl?: string;
-  category?: string;
+  categoryId?: number;
 }
 
 const handleResponse = async (res: Response) => {

@@ -2,87 +2,54 @@ import { Button, Input } from 'antd';
 import { ArrowRightOutlined, ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { getProducts } from '../services/api';
+import { getProducts, getCategories } from '../services/api';
 import { Product } from '../types';
+
+interface Category {
+  id: number;
+  name: string;
+  imageUrl?: string;
+  productCount?: number;
+}
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getProducts();
-        setProducts(data);
+        const [productsData, categoriesData] = await Promise.all([
+          getProducts(),
+          getCategories()
+        ]);
+        setProducts(productsData);
+        setCategories(categoriesData);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
-
-  const categories = [
-    {
-      id: 1,
-      name: 'Điện tử',
-      image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=80',
-      count: 120,
-    },
-    {
-      id: 2,
-      name: 'Thời trang',
-      image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=80',
-      count: 85,
-    },
-    {
-      id: 3,
-      name: 'Nhà cửa & Đời sống',
-      image: 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400&q=80',
-      count: 65,
-    },
-    {
-      id: 4,
-      name: 'Thể thao',
-      image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&q=80',
-      count: 45,
-    },
-  ];
 
   if (loading) {
     return <div className="text-center py-12">Đang tải...</div>;
   }
 
   return (
-    <div className="space-y-12">
+    <div>
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 overflow-hidden">
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80"
-            alt="Hero background"
-            className="w-full h-full object-cover opacity-10"
-          />
-        </div>
-        <div className="relative px-6 py-12 sm:px-12 sm:py-20 lg:px-16 lg:py-24">
-          <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-white mb-4 text-4xl sm:text-5xl font-bold">
-              Khám phá sản phẩm tuyệt vời
-            </h1>
-            <p className="text-white text-lg mb-8 opacity-90">
-              Mua sắm những xu hướng mới nhất và tìm kiếm những sản phẩm phù hợp với nhu cầu của bạn. Sản phẩm chất lượng với giá cả phải chăng.
-            </p>
-            <Button
-              type="primary"
-              size="large"
-              className="bg-white text-blue-600 hover:bg-gray-100 h-12 px-8 text-lg"
-              icon={<ArrowRightOutlined />}
-            >
-              Mua ngay
-            </Button>
-          </div>
+      <div className="bg-blue-600 text-white py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">Chào mừng đến với Tonic Store</h1>
+          <p className="text-xl mb-8">Khám phá những sản phẩm tuyệt vời với giá cả phải chăng</p>
+          <Button type="primary" size="large" className="bg-white text-blue-600">
+            Mua sắm ngay <ArrowRightOutlined />
+          </Button>
         </div>
       </div>
 
@@ -131,18 +98,18 @@ const Home = () => {
           <h2 className="text-center mb-12 text-3xl font-bold">Mua sắm theo danh mục</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {categories.map((category) => (
-              <Link to={`/categories/${category.id}`} key={category.id} className="block">
+              <Link to={`/products?category=${encodeURIComponent(category.name)}`} key={category.id} className="block">
                 <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
                   <div className="h-48 overflow-hidden">
                     <img
                       alt={category.name}
-                      src={category.image}
+                      src={category.imageUrl || 'https://via.placeholder.com/400'}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
                   </div>
                   <div className="p-4 text-center">
                     <h3 className="text-xl font-semibold mb-2">{category.name}</h3>
-                    <p className="text-gray-500 text-sm">{category.count} sản phẩm</p>
+                    <p className="text-gray-500 text-sm">{category.productCount || 0} sản phẩm</p>
                   </div>
                 </div>
               </Link>
