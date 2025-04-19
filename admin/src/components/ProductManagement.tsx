@@ -29,7 +29,7 @@ const ProductManagement: React.FC = () => {
     price: 0,
     stock: 0,
     imageUrl: '',
-    category: '',
+    categoryId: 0,
   });
 
   useEffect(() => {
@@ -39,9 +39,27 @@ const ProductManagement: React.FC = () => {
   const fetchProducts = async () => {
     try {
       const data = await productService.getAllProducts();
-      setProducts(data);
+      console.log('Raw data from API:', data);
+      // Ensure data is an array and has the correct structure
+      const formattedProducts = Array.isArray(data) ? data.map(product => {
+        console.log('Processing product:', product);
+        return {
+          id: product.id,
+          name: product.name || '',
+          description: product.description || '',
+          price: product.price || 0,
+          stock: product.stock || 0,
+          imageUrl: product.imageUrl || '',
+          category: product.category || '',
+          createdAt: product.createdAt || '',
+          updatedAt: product.updatedAt || ''
+        };
+      }) : [];
+      console.log('Formatted products:', formattedProducts);
+      setProducts(formattedProducts);
     } catch (error) {
       console.error('Error fetching products:', error);
+      setProducts([]);
     }
   };
 
@@ -54,7 +72,7 @@ const ProductManagement: React.FC = () => {
         price: product.price,
         stock: product.stock,
         imageUrl: product.imageUrl,
-        category: product.category,
+        categoryId: product.category.id,
       });
     } else {
       setSelectedProduct(null);
@@ -64,7 +82,7 @@ const ProductManagement: React.FC = () => {
         price: 0,
         stock: 0,
         imageUrl: '',
-        category: '',
+        categoryId: 0,
       });
     }
     setOpenDialog(true);
@@ -120,11 +138,11 @@ const ProductManagement: React.FC = () => {
           <TableBody>
             {products.map((product) => (
               <TableRow key={product.id}>
-                <TableCell>{product.name}</TableCell>
-                <TableCell>{product.description}</TableCell>
-                <TableCell>${product.price}</TableCell>
-                <TableCell>{product.stock}</TableCell>
-                <TableCell>{product.category}</TableCell>
+                <TableCell>{String(product.name)}</TableCell>
+                <TableCell>{String(product.description)}</TableCell>
+                <TableCell>{String(Number(product.price))}</TableCell>
+                <TableCell>{String(product.stock)}</TableCell>
+                <TableCell>{product.category.name}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => handleOpenDialog(product)}>
                     <EditIcon />
@@ -182,10 +200,11 @@ const ProductManagement: React.FC = () => {
           />
           <TextField
             margin="dense"
-            label="Category"
+            label="Category ID"
+            type="number"
             fullWidth
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            value={formData.categoryId}
+            onChange={(e) => setFormData({ ...formData, categoryId: Number(e.target.value) })}
           />
         </DialogContent>
         <DialogActions>

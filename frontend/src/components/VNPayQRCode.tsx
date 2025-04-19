@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { VNPayTimer } from '../utils/vnpay-timer';
-import QRCode from 'qrcode';
+import * as QRCode from 'qrcode';
 import '../utils/vnpay-init';
 
 interface VNPayQRCodeProps {

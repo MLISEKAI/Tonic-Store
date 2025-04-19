@@ -27,6 +27,7 @@ interface CartContextType {
   clearCart: () => Promise<void>;
   loading: boolean;
   error: string | null;
+  totalItems: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -36,6 +37,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { token } = useAuth();
+
+  const totalItems = cart.items.reduce((total, item) => total + item.quantity, 0);
 
   const fetchCart = async () => {
     if (!token) return;
@@ -63,7 +66,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       await api.addToCart(token, product.id, quantity);
-      await fetchCart();
+      
+      const updatedCart = { ...cart };
+      const existingItem = updatedCart.items.find(item => item.product.id === product.id);
+      
+      if (existingItem) {
+        existingItem.quantity += quantity;
+      } else {
+        updatedCart.items.push({
+          id: Date.now(),
+          product,
+          quantity
+        });
+      }
+      
+      setCart(updatedCart);
     } catch (err) {
       setError('Không thể thêm vào giỏ hàng');
       console.error('Error adding to cart:', err);
@@ -72,11 +89,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const removeFromCart = async (productId: number) => {
+  const removeFromCart = async (cartItemId: number) => {
     if (!token) return;
     try {
       setLoading(true);
-      await api.removeFromCart(token, productId);
+      await api.removeFromCart(token, cartItemId);
       await fetchCart();
     } catch (err) {
       setError('Không thể xóa sản phẩm');
@@ -86,11 +103,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateQuantity = async (productId: number, quantity: number) => {
+  const updateQuantity = async (cartItemId: number, quantity: number) => {
     if (!token) return;
     try {
       setLoading(true);
-      await api.updateCartItem(token, productId, quantity);
+      await api.updateCartItem(token, cartItemId, quantity);
       await fetchCart();
     } catch (err) {
       setError('Không thể cập nhật số lượng');
@@ -114,7 +131,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, loading, error }}>
+    <CartContext.Provider value={{ 
+      cart, 
+      addToCart, 
+      removeFromCart, 
+      updateQuantity, 
+      clearCart, 
+      loading, 
+      error,
+      totalItems
+    }}>
       {children}
     </CartContext.Provider>
   );

@@ -9,6 +9,7 @@ import orderRoutes from "./routes/orderRoutes";
 import cartRoutes from "./routes/cartRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
 import statsRoutes from "./routes/statsRoutes";
+import categoryRoutes from "./routes/categoryRoutes";
 import { Request, Response, NextFunction } from "express";
 
 dotenv.config();
@@ -60,6 +61,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/stats", statsRoutes);
+app.use("/api/categories", categoryRoutes);
 
 // Middleware để bắt lỗi
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
