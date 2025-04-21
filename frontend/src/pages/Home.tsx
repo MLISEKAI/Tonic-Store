@@ -24,7 +24,8 @@ const Home = () => {
           getProducts(),
           getCategories()
         ]);
-        setProducts(productsData);
+        // Lấy 6 sản phẩm đầu tiên
+        setProducts(productsData.slice(0, 6));
         setCategories(categoriesData);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -57,7 +58,7 @@ const Home = () => {
       <div className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-center mb-12 text-3xl font-bold">Sản phẩm nổi bật</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product) => (
               <div
                 key={product.id}
@@ -96,24 +97,30 @@ const Home = () => {
       <div className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-center mb-12 text-3xl font-bold">Mua sắm theo danh mục</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {categories.map((category) => (
-              <Link to={`/products?category=${encodeURIComponent(category.name)}`} key={category.id} className="block">
-                <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-                  <div className="h-48 overflow-hidden">
-                    <img
-                      alt={category.name}
-                      src={category.imageUrl || 'https://via.placeholder.com/400'}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
+          <div className="overflow-x-auto">
+            <div className="flex space-x-6 pb-4">
+              {categories.map((category) => (
+                <Link 
+                  to={`/products?category=${encodeURIComponent(category.name)}`} 
+                  key={category.id} 
+                  className="flex-none w-64 h-64"
+                >
+                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
+                    <div className="h-40 overflow-hidden rounded-t-lg">
+                      <img
+                        alt={category.name}
+                        src={category.imageUrl || 'https://via.placeholder.com/400'}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-4 flex-1 flex flex-col justify-center items-center text-center">
+                      <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
+                      <p className="text-gray-500 text-sm">{category.productCount || 0} sản phẩm</p>
+                    </div>
                   </div>
-                  <div className="p-4 text-center">
-                    <h3 className="text-xl font-semibold mb-2">{category.name}</h3>
-                    <p className="text-gray-500 text-sm">{category.productCount || 0} sản phẩm</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,15 @@
-import express from "express";
+import express, { Request, Response, NextFunction, RequestHandler } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import morgan from 'morgan';
+import helmet from 'helmet';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
+import { register } from 'prom-client';
+import { swaggerSpec } from './config/swagger';
+import logger from './config/logger';
+import * as metrics from './config/metrics';
 
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
@@ -10,20 +19,59 @@ import cartRoutes from "./routes/cartRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
 import statsRoutes from "./routes/statsRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
-import { Request, Response, NextFunction } from "express";
 
 dotenv.config();
 const app = express();
-const morgan = require('morgan');
 
-// Cấu hình CORS chi tiết
-const corsOptions = {
-    origin: ['http://localhost:5173', 'http://localhost:3001'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    credentials: true,
-    maxAge: 86400
-};
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(compression() as unknown as RequestHandler);
+app.use(express.json());
+app.use(morgan('combined', { stream: { write: (message: string) => logger.info(message.trim()) } }));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Metrics middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = (Date.now() - start) / 1000;
+    metrics.httpRequestDuration.observe(
+      { method: req.method, route: req.route?.path || req.path, status_code: res.statusCode },
+      duration
+    );
+    metrics.httpRequestsTotal.inc({ method: req.method, route: req.route?.path || req.path, status_code: res.statusCode });
+  });
+  next();
+});
+
+// API Documentation
+app.use('/api/docs', 
+  swaggerUi.serve as unknown as RequestHandler, 
+  swaggerUi.setup(swaggerSpec) as unknown as RequestHandler
+);
+
+// Metrics endpoint
+app.get('/metrics', async (req: Request, res: Response) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (error) {
+    logger.error('Error generating metrics:', error);
+    res.status(500).end();
+  }
+});
+
+// Health check endpoint
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // Middleware để xử lý request
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -32,17 +80,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     console.log('Body:', req.body);
     next();
 });
-
-app.use(cors(corsOptions));
-
-// Xử lý preflight requests
-app.options('*', cors(corsOptions));
-
-// Cấu hình body parser
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-app.use(morgan('dev'));
 
 // Test endpoint
 app.get('/test', (req: Request, res: Response) => {
@@ -64,7 +101,7 @@ app.use("/api/stats", statsRoutes);
 app.use("/api/categories", categoryRoutes);
 
 // Middleware để bắt lỗi
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     console.error("Error:", err);
     if (err instanceof Error) {
         res.status(500).json({ 
@@ -78,12 +115,12 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', (error: Error) => {
     console.error('Uncaught Exception:', error);
     process.exit(1);
 });
@@ -95,10 +132,12 @@ const server = app.listen(PORT, HOST, () => {
     console.log(`🚀 Server chạy tại http://${HOST}:${PORT}`);
     console.log('Environment:', process.env.NODE_ENV);
     console.log('Database URL:', process.env.DATABASE_URL);
+    console.log(`API documentation available at http://localhost:${PORT}/api/docs`);
+    console.log(`Metrics available at http://localhost:${PORT}/metrics`);
 });
 
 // Xử lý lỗi server
-server.on('error', (error: any) => {
+server.on('error', (error: Error) => {
     console.error('Server error:', error);
 });
 

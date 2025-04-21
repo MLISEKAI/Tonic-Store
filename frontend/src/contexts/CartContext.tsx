@@ -22,8 +22,8 @@ interface Cart {
 interface CartContextType {
   cart: Cart;
   addToCart: (product: Product, quantity: number) => Promise<void>;
-  removeFromCart: (productId: number) => Promise<void>;
-  updateQuantity: (productId: number, quantity: number) => Promise<void>;
+  removeFromCart: (cartItemId: number) => Promise<void>;
+  updateQuantity: (cartItemId: number, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
   loading: boolean;
   error: string | null;
@@ -66,21 +66,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       await api.addToCart(token, product.id, quantity);
-      
-      const updatedCart = { ...cart };
-      const existingItem = updatedCart.items.find(item => item.product.id === product.id);
-      
-      if (existingItem) {
-        existingItem.quantity += quantity;
-      } else {
-        updatedCart.items.push({
-          id: Date.now(),
-          product,
-          quantity
-        });
-      }
-      
-      setCart(updatedCart);
+      await fetchCart();
     } catch (err) {
       setError('Không thể thêm vào giỏ hàng');
       console.error('Error adding to cart:', err);
@@ -122,6 +108,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       setCart({ items: [] });
+      await fetchCart();
     } catch (err) {
       setError('Không thể xóa giỏ hàng');
       console.error('Error clearing cart:', err);
