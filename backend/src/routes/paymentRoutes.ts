@@ -1,28 +1,22 @@
-import express, { Request, Response } from "express";
-import { getAllPayments, createPayment, updatePaymentStatus } from "../services/paymentService";
-import { authenticate } from "../middleware/auth";
+import express from 'express';
+import { authenticate, requireAdmin } from '../middleware/auth';
+import {
+  createPaymentController,
+  verifyPaymentController,
+  getPaymentController,
+  refundPaymentController
+} from '../controllers/paymentController';
 
 const router = express.Router();
 
-router.get("/", authenticate, async (_req: Request, res: Response): Promise<void> => {
-  try {
-    const payments = await getAllPayments();
-    res.json(payments);
-    return;
-  } catch (error) {
-    res.status(500).json({ error: "Lỗi khi lấy danh sách thanh toán" });
-  }
-});
+// Public routes
+router.get('/verify', verifyPaymentController);
 
-router.post("/", authenticate, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { orderId, method, transactionId } = req.body;
-    const payment = await createPayment(Number(orderId), method, transactionId);
-    res.json(payment);
-    return;
-  } catch (error) {
-    res.status(500).json({ error: "Lỗi khi tạo thanh toán" });
-  }
-});
+// Protected routes
+router.post('/', authenticate, createPaymentController);
+router.get('/:id', authenticate, getPaymentController);
+
+// Admin routes
+router.post('/:id/refund', authenticate, requireAdmin, refundPaymentController);
 
 export default router;

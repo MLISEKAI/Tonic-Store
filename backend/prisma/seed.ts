@@ -72,6 +72,10 @@ async function main() {
         stock: number;
         imageUrl: string;
         categoryId?: number;
+        viewCount?: number;
+        soldCount?: number;
+        rating?: number;
+        status?: string;
     }
 
     // Create sample products
@@ -83,7 +87,11 @@ async function main() {
             price: 29.99,
             stock: 100,
             imageUrl: "https://example.com/ao-thun-nam.jpg",
-            categoryId: createdCategories.get("Thời Trang Nam")
+            categoryId: createdCategories.get("Thời Trang Nam"),
+            viewCount: 1500,
+            soldCount: 200,
+            rating: 4.5,
+            status: "ACTIVE"
         },
         // Thời Trang Nữ
         {
@@ -92,7 +100,11 @@ async function main() {
             price: 49.99,
             stock: 80,
             imageUrl: "https://example.com/vay-lien-than.jpg",
-            categoryId: createdCategories.get("Thời Trang Nữ")
+            categoryId: createdCategories.get("Thời Trang Nữ"),
+            viewCount: 2000,
+            soldCount: 150,
+            rating: 4.8,
+            status: "ACTIVE"
         },
         // Điện Thoại & Phụ Kiện
         {
@@ -101,7 +113,11 @@ async function main() {
             price: 1299.99,
             stock: 50,
             imageUrl: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-7inch_GEO_EMEA?wid=5120&hei=2880&fmt=p-jpg&qlt=80&.v=1693009283816",
-            categoryId: createdCategories.get("Điện Thoại & Phụ Kiện")
+            categoryId: createdCategories.get("Điện Thoại & Phụ Kiện"),
+            viewCount: 5000,
+            soldCount: 100,
+            rating: 4.9,
+            status: "ACTIVE"
         },
         // Mẹ & Bé
         {
@@ -110,7 +126,11 @@ async function main() {
             price: 199.99,
             stock: 30,
             imageUrl: "https://example.com/xe-day-em-be.jpg",
-            categoryId: createdCategories.get("Mẹ & Bé")
+            categoryId: createdCategories.get("Mẹ & Bé"),
+            viewCount: 800,
+            soldCount: 50,
+            rating: 4.7,
+            status: "ACTIVE"
         },
         // Thiết Bị Điện Tử
         {
@@ -119,7 +139,11 @@ async function main() {
             price: 249.99,
             stock: 100,
             imageUrl: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MQD83?wid=572&hei=572&fmt=jpeg&qlt=95&.v=1660803972361",
-            categoryId: createdCategories.get("Thiết Bị Điện Tử")
+            categoryId: createdCategories.get("Thiết Bị Điện Tử"),
+            viewCount: 3000,
+            soldCount: 200,
+            rating: 4.8,
+            status: "ACTIVE"
         },
         // Nhà Cửa & Đời Sống
         {
@@ -128,7 +152,11 @@ async function main() {
             price: 599.99,
             stock: 20,
             imageUrl: "https://example.com/bo-ban-an.jpg",
-            categoryId: createdCategories.get("Nhà Cửa & Đời Sống")
+            categoryId: createdCategories.get("Nhà Cửa & Đời Sống"),
+            viewCount: 1200,
+            soldCount: 30,
+            rating: 4.6,
+            status: "ACTIVE"
         },
         // Máy Tính & Laptop
         {
@@ -146,7 +174,11 @@ async function main() {
             price: 19.99,
             stock: 200,
             imageUrl: "https://example.com/son-moi-li.jpg",
-            categoryId: createdCategories.get("Sắc Đẹp")
+            categoryId: createdCategories.get("Sắc Đẹp"),
+            viewCount: 2500,
+            soldCount: 300,
+            rating: 4.7,
+            status: "ACTIVE"
         },
         // Máy Ảnh & Máy Quay Phim
         {
@@ -155,7 +187,11 @@ async function main() {
             price: 2499.99,
             stock: 15,
             imageUrl: "https://example.com/sony-a7iv.jpg",
-            categoryId: createdCategories.get("Máy Ảnh & Máy Quay Phim")
+            categoryId: createdCategories.get("Máy Ảnh & Máy Quay Phim"),
+            viewCount: 1800,
+            soldCount: 25,
+            rating: 4.8,
+            status: "ACTIVE"
         },
         // Sức Khỏe
         {
@@ -164,7 +200,11 @@ async function main() {
             price: 49.99,
             stock: 50,
             imageUrl: "https://example.com/may-do-huyet-ap.jpg",
-            categoryId: createdCategories.get("Sức Khỏe")
+            categoryId: createdCategories.get("Sức Khỏe"),
+            viewCount: 900,
+            soldCount: 40,
+            rating: 4.6,
+            status: "ACTIVE"
         },
         // Đồng Hồ
         {
@@ -173,7 +213,11 @@ async function main() {
             price: 429.99,
             stock: 55,
             imageUrl: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MQDY3ref_VW_34FR+watch-45-alum-midnight-nc-9s_VW_34FR_WF_CO?wid=750&hei=712&trim=1%2C0&fmt=p-jpg&qlt=95&.v=1683224241054",
-            categoryId: createdCategories.get("Đồng Hồ")
+            categoryId: createdCategories.get("Đồng Hồ"),
+            viewCount: 3500,
+            soldCount: 120,
+            rating: 4.8,
+            status: "ACTIVE"
         },
         // Giày Dép Nữ
         {
@@ -182,7 +226,11 @@ async function main() {
             price: 59.99,
             stock: 40,
             imageUrl: "https://example.com/giay-cao-got.jpg",
-            categoryId: createdCategories.get("Giày Dép Nữ")
+            categoryId: createdCategories.get("Giày Dép Nữ"),
+            viewCount: 1600,
+            soldCount: 60,
+            rating: 4.7,
+            status: "ACTIVE"
         },
         // Giày Dép Nam
         {
@@ -191,7 +239,11 @@ async function main() {
             price: 79.99,
             stock: 60,
             imageUrl: "https://example.com/giay-the-thao-nam.jpg",
-            categoryId: createdCategories.get("Giày Dép Nam")
+            categoryId: createdCategories.get("Giày Dép Nam"),
+            viewCount: 2000,
+            soldCount: 90,
+            rating: 4.6,
+            status: "ACTIVE"
         },
         // Túi Ví Nữ
         {
@@ -200,7 +252,11 @@ async function main() {
             price: 89.99,
             stock: 35,
             imageUrl: "https://example.com/tui-xach-nu.jpg",
-            categoryId: createdCategories.get("Túi Ví Nữ")
+            categoryId: createdCategories.get("Túi Ví Nữ"),
+            viewCount: 1400,
+            soldCount: 45,
+            rating: 4.7,
+            status: "ACTIVE"
         },
         // Thiết Bị Điện Gia Dụng
         {
@@ -209,7 +265,11 @@ async function main() {
             price: 69.99,
             stock: 45,
             imageUrl: "https://example.com/may-xay-sinh-to.jpg",
-            categoryId: createdCategories.get("Thiết Bị Điện Gia Dụng")
+            categoryId: createdCategories.get("Thiết Bị Điện Gia Dụng"),
+            viewCount: 1100,
+            soldCount: 55,
+            rating: 4.5,
+            status: "ACTIVE"
         },
         // Phụ Kiện & Trang Sức Nữ
         {
@@ -218,7 +278,11 @@ async function main() {
             price: 39.99,
             stock: 70,
             imageUrl: "https://example.com/vong-tay-bac.jpg",
-            categoryId: createdCategories.get("Phụ Kiện & Trang Sức Nữ")
+            categoryId: createdCategories.get("Phụ Kiện & Trang Sức Nữ"),
+            viewCount: 1300,
+            soldCount: 65,
+            rating: 4.6,
+            status: "ACTIVE"
         },
         // Thể Thao & Du Lịch
         {
@@ -227,7 +291,11 @@ async function main() {
             price: 49.99,
             stock: 40,
             imageUrl: "https://example.com/balo-du-lich.jpg",
-            categoryId: createdCategories.get("Thể Thao & Du Lịch")
+            categoryId: createdCategories.get("Thể Thao & Du Lịch"),
+            viewCount: 1500,
+            soldCount: 50,
+            rating: 4.7,
+            status: "ACTIVE"
         },
         // Bách Hóa Online
         {
@@ -236,7 +304,11 @@ async function main() {
             price: 9.99,
             stock: 500,
             imageUrl: "https://example.com/khau-trang.jpg",
-            categoryId: createdCategories.get("Bách Hóa Online")
+            categoryId: createdCategories.get("Bách Hóa Online"),
+            viewCount: 3000,
+            soldCount: 400,
+            rating: 4.8,
+            status: "ACTIVE"
         },
         // Ô Tô & Xe Máy & Xe Đạp
         {
@@ -245,79 +317,115 @@ async function main() {
             price: 29.99,
             stock: 100,
             imageUrl: "https://example.com/mu-bao-hiem.jpg",
-            categoryId: createdCategories.get("Ô Tô & Xe Máy & Xe Đạp")
+            categoryId: createdCategories.get("Ô Tô & Xe Máy & Xe Đạp"),
+            viewCount: 1800,
+            soldCount: 120,
+            rating: 4.6,
+            status: "ACTIVE"
         },
         // Nhà Sách Online
         {
             name: "Sách dạy nấu ăn",
             description: "Sách dạy nấu ăn 100 món ngon",
-            price: 19.99,
+            price: 24.99,
             stock: 80,
             imageUrl: "https://example.com/sach-nau-an.jpg",
-            categoryId: createdCategories.get("Nhà Sách Online")
+            categoryId: createdCategories.get("Nhà Sách Online"),
+            viewCount: 1200,
+            soldCount: 70,
+            rating: 4.7,
+            status: "ACTIVE"
         },
         // Balo & Túi Ví Nam
         {
             name: "Balo laptop nam",
-            description: "Balo laptop nam chống nước",
+            description: "Balo laptop chống nước 15.6 inch",
             price: 59.99,
             stock: 45,
             imageUrl: "https://example.com/balo-laptop-nam.jpg",
-            categoryId: createdCategories.get("Balo & Túi Ví Nam")
+            categoryId: createdCategories.get("Balo & Túi Ví Nam"),
+            viewCount: 1600,
+            soldCount: 55,
+            rating: 4.6,
+            status: "ACTIVE"
         },
         // Thời Trang Trẻ Em
         {
             name: "Áo thun trẻ em",
-            description: "Áo thun trẻ em chất liệu cotton mềm mại",
-            price: 15.99,
+            description: "Áo thun cotton 100% cho bé",
+            price: 19.99,
             stock: 120,
             imageUrl: "https://example.com/ao-thun-tre-em.jpg",
-            categoryId: createdCategories.get("Thời Trang Trẻ Em")
+            categoryId: createdCategories.get("Thời Trang Trẻ Em"),
+            viewCount: 1400,
+            soldCount: 90,
+            rating: 4.7,
+            status: "ACTIVE"
         },
         // Đồ Chơi
         {
-            name: "Lego thành phố",
-            description: "Bộ xếp hình Lego thành phố 1000 mảnh",
+            name: "Lego Star Wars",
+            description: "Bộ xếp hình Lego Star Wars",
             price: 79.99,
             stock: 30,
-            imageUrl: "https://example.com/lego-thanh-pho.jpg",
-            categoryId: createdCategories.get("Đồ Chơi")
+            imageUrl: "https://example.com/lego-star-wars.jpg",
+            categoryId: createdCategories.get("Đồ Chơi"),
+            viewCount: 2000,
+            soldCount: 40,
+            rating: 4.8,
+            status: "ACTIVE"
         },
         // Giặt Giũ & Chăm Sóc Nhà Cửa
         {
-            name: "Nước giặt",
-            description: "Nước giặt hương thơm tự nhiên 3L",
-            price: 12.99,
+            name: "Nước giặt xả",
+            description: "Nước giặt xả 3.8L",
+            price: 14.99,
             stock: 200,
-            imageUrl: "https://example.com/nuoc-giat.jpg",
-            categoryId: createdCategories.get("Giặt Giũ & Chăm Sóc Nhà Cửa")
+            imageUrl: "https://example.com/nuoc-giat-xa.jpg",
+            categoryId: createdCategories.get("Giặt Giũ & Chăm Sóc Nhà Cửa"),
+            viewCount: 2500,
+            soldCount: 180,
+            rating: 4.6,
+            status: "ACTIVE"
         },
         // Chăm Sóc Thú Cưng
         {
             name: "Thức ăn cho chó",
-            description: "Thức ăn hạt cho chó trưởng thành 5kg",
-            price: 39.99,
-            stock: 60,
+            description: "Thức ăn hạt cho chó 5kg",
+            price: 29.99,
+            stock: 100,
             imageUrl: "https://example.com/thuc-an-cho-cho.jpg",
-            categoryId: createdCategories.get("Chăm Sóc Thú Cưng")
+            categoryId: createdCategories.get("Chăm Sóc Thú Cưng"),
+            viewCount: 1500,
+            soldCount: 80,
+            rating: 4.7,
+            status: "ACTIVE"
         },
         // Voucher & Dịch Vụ
         {
             name: "Voucher spa",
-            description: "Voucher chăm sóc da mặt tại spa",
-            price: 99.99,
+            description: "Voucher massage body 60 phút",
+            price: 49.99,
             stock: 50,
             imageUrl: "https://example.com/voucher-spa.jpg",
-            categoryId: createdCategories.get("Voucher & Dịch Vụ")
+            categoryId: createdCategories.get("Voucher & Dịch Vụ"),
+            viewCount: 900,
+            soldCount: 40,
+            rating: 4.8,
+            status: "ACTIVE"
         },
         // Dụng cụ và thiết bị tiện ích
         {
             name: "Bộ dụng cụ sửa chữa",
-            description: "Bộ dụng cụ sửa chữa đa năng 100 món",
-            price: 49.99,
-            stock: 40,
-            imageUrl: "https://example.com/bo-dung-cu-sua-chua.jpg",
-            categoryId: createdCategories.get("Dụng cụ và thiết bị tiện ích")
+            description: "Bộ dụng cụ đa năng 100 món",
+            price: 39.99,
+            stock: 60,
+            imageUrl: "https://example.com/bo-dung-cu.jpg",
+            categoryId: createdCategories.get("Dụng cụ và thiết bị tiện ích"),
+            viewCount: 1100,
+            soldCount: 45,
+            rating: 4.6,
+            status: "ACTIVE"
         }
     ];
 

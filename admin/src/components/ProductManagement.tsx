@@ -15,6 +15,12 @@ import {
   DialogActions,
   TextField,
   IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { productService, Product, CreateProductData, UpdateProductData } from '../services/productService';
@@ -30,6 +36,20 @@ const ProductManagement: React.FC = () => {
     stock: 0,
     imageUrl: '',
     categoryId: 0,
+    sku: '',
+    barcode: '',
+    weight: 0,
+    dimensions: '',
+    material: '',
+    origin: '',
+    warranty: '',
+    status: 'ACTIVE',
+    seoTitle: '',
+    seoDescription: '',
+    seoUrl: '',
+    isFeatured: false,
+    isNew: false,
+    isBestSeller: false,
   });
 
   useEffect(() => {
@@ -52,7 +72,9 @@ const ProductManagement: React.FC = () => {
           imageUrl: product.imageUrl || '',
           category: product.category || '',
           createdAt: product.createdAt || '',
-          updatedAt: product.updatedAt || ''
+          updatedAt: product.updatedAt || '',
+          viewCount: product.viewCount || 0,
+          soldCount: product.soldCount || 0,
         };
       }) : [];
       console.log('Formatted products:', formattedProducts);
@@ -73,6 +95,20 @@ const ProductManagement: React.FC = () => {
         stock: product.stock,
         imageUrl: product.imageUrl,
         categoryId: product.category.id,
+        sku: product.sku || '',
+        barcode: product.barcode || '',
+        weight: product.weight || 0,
+        dimensions: product.dimensions || '',
+        material: product.material || '',
+        origin: product.origin || '',
+        warranty: product.warranty || '',
+        status: product.status || 'ACTIVE',
+        seoTitle: product.seoTitle || '',
+        seoDescription: product.seoDescription || '',
+        seoUrl: product.seoUrl || '',
+        isFeatured: product.isFeatured || false,
+        isNew: product.isNew || false,
+        isBestSeller: product.isBestSeller || false,
       });
     } else {
       setSelectedProduct(null);
@@ -83,6 +119,20 @@ const ProductManagement: React.FC = () => {
         stock: 0,
         imageUrl: '',
         categoryId: 0,
+        sku: '',
+        barcode: '',
+        weight: 0,
+        dimensions: '',
+        material: '',
+        origin: '',
+        warranty: '',
+        status: 'ACTIVE',
+        seoTitle: '',
+        seoDescription: '',
+        seoUrl: '',
+        isFeatured: false,
+        isNew: false,
+        isBestSeller: false,
       });
     }
     setOpenDialog(true);
@@ -128,10 +178,16 @@ const ProductManagement: React.FC = () => {
           <TableHead>
             <TableRow>
               <TableCell>Name</TableCell>
-              <TableCell>Description</TableCell>
+              <TableCell>SKU</TableCell>
               <TableCell>Price</TableCell>
               <TableCell>Stock</TableCell>
+              <TableCell>Status</TableCell>
               <TableCell>Category</TableCell>
+              <TableCell>Featured</TableCell>
+              <TableCell>New</TableCell>
+              <TableCell>Best Seller</TableCell>
+              <TableCell>Views</TableCell>
+              <TableCell>Sold</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -139,10 +195,16 @@ const ProductManagement: React.FC = () => {
             {products.map((product) => (
               <TableRow key={product.id}>
                 <TableCell>{String(product.name)}</TableCell>
-                <TableCell>{String(product.description)}</TableCell>
+                <TableCell>{String(product.sku || '-')}</TableCell>
                 <TableCell>{String(Number(product.price))}</TableCell>
                 <TableCell>{String(product.stock)}</TableCell>
+                <TableCell>{String(product.status || 'ACTIVE')}</TableCell>
                 <TableCell>{product.category.name}</TableCell>
+                <TableCell>{product.isFeatured ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{product.isNew ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{product.isBestSeller ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{String(product.viewCount || 0)}</TableCell>
+                <TableCell>{String(product.soldCount || 0)}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => handleOpenDialog(product)}>
                     <EditIcon />
@@ -172,6 +234,8 @@ const ProductManagement: React.FC = () => {
             margin="dense"
             label="Description"
             fullWidth
+            multiline
+            rows={4}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           />
@@ -205,6 +269,119 @@ const ProductManagement: React.FC = () => {
             fullWidth
             value={formData.categoryId}
             onChange={(e) => setFormData({ ...formData, categoryId: Number(e.target.value) })}
+          />
+          <TextField
+            margin="dense"
+            label="SKU"
+            fullWidth
+            value={formData.sku}
+            onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Barcode"
+            fullWidth
+            value={formData.barcode}
+            onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Weight (kg)"
+            type="number"
+            fullWidth
+            value={formData.weight}
+            onChange={(e) => setFormData({ ...formData, weight: Number(e.target.value) })}
+          />
+          <TextField
+            margin="dense"
+            label="Dimensions"
+            fullWidth
+            value={formData.dimensions}
+            onChange={(e) => setFormData({ ...formData, dimensions: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Material"
+            fullWidth
+            value={formData.material}
+            onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Origin"
+            fullWidth
+            value={formData.origin}
+            onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Warranty"
+            fullWidth
+            value={formData.warranty}
+            onChange={(e) => setFormData({ ...formData, warranty: e.target.value })}
+          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={formData.status}
+              label="Status"
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            >
+              <MenuItem value="ACTIVE">Active</MenuItem>
+              <MenuItem value="INACTIVE">Inactive</MenuItem>
+              <MenuItem value="OUT_OF_STOCK">Out of Stock</MenuItem>
+              <MenuItem value="COMING_SOON">Coming Soon</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            margin="dense"
+            label="SEO Title"
+            fullWidth
+            value={formData.seoTitle}
+            onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="SEO Description"
+            fullWidth
+            multiline
+            rows={2}
+            value={formData.seoDescription}
+            onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="SEO URL"
+            fullWidth
+            value={formData.seoUrl}
+            onChange={(e) => setFormData({ ...formData, seoUrl: e.target.value })}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={formData.isFeatured}
+                onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+              />
+            }
+            label="Featured Product"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={formData.isNew}
+                onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
+              />
+            }
+            label="New Product"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={formData.isBestSeller}
+                onChange={(e) => setFormData({ ...formData, isBestSeller: e.target.checked })}
+              />
+            }
+            label="Best Seller"
           />
         </DialogContent>
         <DialogActions>

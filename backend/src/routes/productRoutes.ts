@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { getAllProducts, createProduct, getProductById, updateProduct, deleteProduct, searchProducts, updateProductStatus, updateProductRating } from "../services/productService";
+import { getAllProducts, createProduct, getProductById, updateProduct, deleteProduct, searchProducts, updateProductStatus, updateProductRating, getProductBySeoUrl, incrementViewCount } from "../services/productService";
 import { authenticate } from "../middleware/auth";
 
 const router = express.Router();
@@ -43,6 +43,21 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   try {
     const id = parseInt(req.params.id);
     const product = await getProductById(id);
+    if (!product) {
+      res.status(404).json({ error: 'Product not found' });
+      return;
+    }
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get product' });
+  }
+});
+
+// Thêm route mới trước route /:id
+router.get("/seo/:seoUrl", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { seoUrl } = req.params;
+    const product = await getProductBySeoUrl(seoUrl);
     if (!product) {
       res.status(404).json({ error: 'Product not found' });
       return;
@@ -119,6 +134,17 @@ router.patch("/:id/rating", async (req: Request, res: Response): Promise<void> =
     res.json(product);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update product rating' });
+  }
+});
+
+// Cập nhật lượt xem sản phẩm
+router.patch("/:id/view", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+    const product = await incrementViewCount(id);
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update product view count' });
   }
 });
 

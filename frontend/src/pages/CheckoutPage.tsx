@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
-import { createOrder } from '../services/api';
+import { createOrder, createPaymentUrl } from '../services/api';
 import { formatPrice } from '../utils/format';
 import VNPayPayment from '../components/VNPayPayment';
+import { Order, PaymentMethod, PaymentStatus } from '../types';
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const CheckoutPage: React.FC = () => {
     phone: '',
     address: '',
     note: '',
-    paymentMethod: 'VN_PAY'
+    paymentMethod: PaymentMethod.VN_PAY
   });
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
@@ -49,13 +50,14 @@ const CheckoutPage: React.FC = () => {
         userId: JSON.parse(localStorage.getItem('user') || '{}').id
       };
 
-      const data = await createOrder(token, orderData);
+      const order = await createOrder(token, orderData);
       
-      if (formData.paymentMethod === 'VN_PAY') {
-        setPaymentUrl(data.paymentUrl);
+      if (formData.paymentMethod === PaymentMethod.VN_PAY) {
+        const paymentData = await createPaymentUrl(token, order.id);
+        setPaymentUrl(paymentData.url);
       } else {
         clearCart();
-        navigate(`/orders/${data.id}`);
+        navigate(`/orders/${order.id}`);
       }
     } catch (err) {
       setError('Có lỗi xảy ra khi tạo đơn hàng');
@@ -95,9 +97,10 @@ const CheckoutPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-8">Thanh toán</h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
+          <h2 className="text-xl font-bold mb-4">Thông tin giao hàng</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Họ tên</label>
@@ -125,7 +128,8 @@ const CheckoutPage: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Địa chỉ</label>
-              <textarea
+              <input
+                type="text"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
@@ -152,9 +156,9 @@ const CheckoutPage: React.FC = () => {
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
-                <option value="VN_PAY">VNPay</option>
-                <option value="COD">Thanh toán khi nhận hàng</option>
-                <option value="BANK_TRANSFER">Chuyển khoản ngân hàng</option>
+                <option value={PaymentMethod.VN_PAY}>VNPay</option>
+                <option value={PaymentMethod.COD}>Thanh toán khi nhận hàng</option>
+                <option value={PaymentMethod.BANK_TRANSFER}>Chuyển khoản ngân hàng</option>
               </select>
             </div>
 
@@ -170,22 +174,47 @@ const CheckoutPage: React.FC = () => {
           </form>
         </div>
 
-        <div className="bg-gray-50 p-6 rounded">
-          <h2 className="text-xl font-bold mb-4">Đơn hàng của bạn</h2>
-          <div className="space-y-4">
-            {cart.items.map(item => (
-              <div key={item.product.id} className="flex justify-between">
-                <div>
-                  <span className="font-medium">{item.product.name}</span>
-                  <span className="text-gray-500"> x {item.quantity}</span>
-                </div>
-                <span>{formatPrice(item.product.price * item.quantity)}</span>
-              </div>
-            ))}
-            <div className="border-t pt-4">
-              <div className="flex justify-between font-bold">
+        <div>
+          <h2 className="text-xl font-bold mb-4">Đơn hàng</h2>
+          <div className="bg-white shadow rounded-lg p-6">
+            <ul className="divide-y divide-gray-200">
+              {cart.items.map((item) => (
+                <li key={item.id} className="py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      {item.product.imageUrl && (
+                        <img
+                          src={item.product.imageUrl}
+                          alt={item.product.name}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                      )}
+                      <div className="ml-4">
+                        <h4 className="text-lg font-medium text-gray-900">
+                          {item.product.name}
+                        </h4>
+                        <p className="text-gray-500">
+                          Số lượng: {item.quantity}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-indigo-600 font-medium">
+                      {formatPrice(item.product.price * item.quantity)}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="flex justify-between text-lg font-bold">
                 <span>Tổng cộng:</span>
-                <span>{formatPrice(cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0))}</span>
+                <span className="text-indigo-600">
+                  {formatPrice(cart.items.reduce(
+                    (sum, item) => sum + item.product.price * item.quantity,
+                    0
+                  ))}
+                </span>
               </div>
             </div>
           </div>

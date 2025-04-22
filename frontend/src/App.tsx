@@ -15,12 +15,13 @@ import SearchPage from './pages/SearchPage';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProductDetailPage from './pages/ProductDetailPage';
+import OrderDetailPage from './pages/OrderDetailPage';
 
-function App() {
+const App = () => {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Router>
+    <Router>
+      <AuthProvider>
+        <CartProvider>
           <div className="flex flex-col min-h-screen">
             <Navbar />
             <main className="flex-grow">
@@ -29,22 +30,23 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/products" element={<ProductsPage />} />
+                <Route path="/products/:id" element={<ProductDetailPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/orders/:id" element={<OrderDetailPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/categories" element={<CategoriesPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/search" element={<SearchPage />} />
-                <Route path="/products/:id" element={<ProductDetailPage />} />
               </Routes>
             </main>
             <Footer />
           </div>
-        </Router>
-      </CartProvider>
-    </AuthProvider>
+        </CartProvider>
+      </AuthProvider>
+    </Router>
   );
-}
+};
 
 export default App;
