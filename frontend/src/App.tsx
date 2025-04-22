@@ -11,8 +11,10 @@ import ProfilePage from './pages/ProfilePage';
 import CategoriesPage from './pages/CategoriesPage';
 import AboutPage from './pages/AboutPage';
 import CheckoutPage from './pages/CheckoutPage';
+import SearchPage from './pages/SearchPage';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ProductDetailPage from './pages/ProductDetailPage';
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/categories" element={<CategoriesPage />} />
                 <Route path="/about" element={<AboutPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/products/:id" element={<ProductDetailPage />} />
               </Routes>
             </main>
             <Footer />

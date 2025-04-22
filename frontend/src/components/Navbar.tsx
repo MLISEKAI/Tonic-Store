@@ -6,7 +6,8 @@ import {
   Menu,
   Badge,
   Dropdown,
-  Avatar
+  Avatar,
+  notification
 } from 'antd';
 import {
   MenuOutlined,
@@ -24,6 +25,7 @@ import { useCart } from '../contexts/CartContext';
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const { isAuthenticated, token, logout } = useAuth();
   const { totalItems } = useCart();
   const location = useLocation();
@@ -80,9 +82,21 @@ const Navbar = () => {
 
   const selectedKey = location.pathname.split('/')[1] || 'home';
 
-  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleSearch = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      try {
+        setIsSearching(true);
+        const results = await api.searchProducts(searchQuery.trim());
+        navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`, { state: { results } });
+      } catch (error) {
+        notification.error({
+          message: 'Lỗi',
+          description: 'Có lỗi xảy ra khi tìm kiếm sản phẩm',
+          placement: 'topRight',
+        });
+      } finally {
+        setIsSearching(false);
+      }
     }
   };
 
@@ -101,55 +115,52 @@ const Navbar = () => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8 whitespace-nowrap overflow-visible">
-            <Menu
-              mode="horizontal"
-              selectedKeys={[selectedKey]}
-              className="border-0 bg-transparent flex flex-wrap gap-0"
-            >
-              {menuItems.map((item) => (
-                <Menu.Item key={item.key} className="!px-4">
-                  <Link
-                    to={item.path}
-                    className={`text-gray-600 text-lg font-semibold hover:text-blue-600 transition-colors${selectedKey === item.key ? 'text-blue-600' : ''}`}
-                  >
-                    {item.label}
-                  </Link>
-                </Menu.Item>
-              ))}
-            </Menu>
+            {menuItems.map((item) => (
+              <Link
+                key={item.key}
+                to={item.path}
+                className={`text-gray-600 text-lg font-semibold hover:text-blue-600 transition-colors ${
+                  selectedKey === item.key ? 'text-blue-600' : ''
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
 
           {/* Search and Actions */}
           <div className="flex items-center space-x-4">
-            <div className="hidden md:block">
+            <div className="hidden md:block relative">
               <Input
                 placeholder="Tìm kiếm sản phẩm..."
-                prefix={<SearchOutlined className="text-gray-400" />}
+                prefix={<SearchOutlined className={`text-gray-400 ${isSearching ? 'animate-spin' : ''}`} />}
                 className="w-64 px-4 py-1.5 rounded-full border border-gray-300 hover:border-blue-500 focus:border-blue-500 transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleSearch}
+                disabled={isSearching}
               />
             </div>
             <div className="flex items-center space-x-3">
               {isAuthenticated ? (
                 <>
-                  <Button
-                    type="text"
-                    className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
-                    icon={<HeartOutlined className="text-xl" />}
-                  />
-                  <Badge count={totalItems} size="small" offset={[-2, 2]}>
-                    <ShoppingCartOutlined 
-                      className="text-xl cursor-pointer" 
-                      onClick={() => navigate('/cart')}
+                  <Link to="/wishlist">
+                    <Button
+                      type="text"
+                      className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
+                      icon={<HeartOutlined className="text-xl" />}
                     />
-                  </Badge>
-                  <Dropdown
-                    menu={{ items: userMenuItems }}
-                    placement="bottomRight"
-                    trigger={['click']}
-                  >
+                  </Link>
+                  <Link to="/cart">
+                    <Badge count={totalItems} size="small" offset={[-2, 2]}>
+                      <Button
+                        type="text"
+                        className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
+                        icon={<ShoppingCartOutlined className="text-xl" />}
+                      />
+                    </Badge>
+                  </Link>
+                  <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                     <Button
                       type="text"
                       className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
@@ -191,11 +202,12 @@ const Navbar = () => {
           <div className="py-4">
             <Input
               placeholder="Tìm kiếm sản phẩm..."
-              prefix={<SearchOutlined className="text-gray-400" />}
+              prefix={<SearchOutlined className={`text-gray-400 ${isSearching ? 'animate-spin' : ''}`} />}
               className="w-full px-4 py-1.5 rounded-full border border-gray-300 hover:border-blue-500 focus:border-blue-500 transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleSearch}
+              disabled={isSearching}
             />
           </div>
           <Menu
