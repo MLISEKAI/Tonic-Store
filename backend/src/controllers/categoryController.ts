@@ -1,37 +1,70 @@
-import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { Request, Response } from 'express';
+import {
+  getAllCategories,
+  getCategoryById,
+  createCategory,
+  updateCategory,
+  deleteCategory
+} from '../services/categoryService';
 
-const prisma = new PrismaClient();
-
-export const getAllCategories = async (req: Request, res: Response) => {
+export const getAllCategoriesController = async (req: Request, res: Response) => {
   try {
-    const categories = await prisma.category.findMany({
-      include: {
-        _count: {
-          select: { products: true }
-        }
-      }
-    });
+    const categories = await getAllCategories();
     res.json(categories);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching categories" });
+    res.status(500).json({ error: 'Failed to get categories' });
   }
 };
 
-export const getCategoryById = async (req: Request, res: Response) => {
+export const getCategoryByIdController = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const category = await prisma.category.findUnique({
-      where: { id: Number(id) },
-      include: {
-        products: true
-      }
-    });
+    const id = parseInt(req.params.id);
+    const category = await getCategoryById(id);
     if (!category) {
-      return res.status(404).json({ message: "Category not found" });
+      return res.status(404).json({ error: 'Category not found' });
     }
     res.json(category);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching category" });
+    res.status(500).json({ error: 'Failed to get category' });
+  }
+};
+
+export const createCategoryController = async (req: Request, res: Response) => {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
+    const category = await createCategory(name);
+    res.status(201).json(category);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create category' });
+  }
+};
+
+export const updateCategoryController = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
+    const category = await updateCategory(id, name);
+    res.json(category);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update category' });
+  }
+};
+
+export const deleteCategoryController = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    await deleteCategory(id);
+    res.json({ message: 'Category deleted successfully' });
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Cannot delete category with products') {
+      return res.status(400).json({ error: error.message });
+    }
+    res.status(500).json({ error: 'Failed to delete category' });
   }
 }; 

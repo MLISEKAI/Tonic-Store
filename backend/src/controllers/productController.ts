@@ -25,15 +25,51 @@ export const getProductById = async (req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const { name, description, price, stock, imageUrl, category } = req.body;
-    const product = await productService.createProduct(
+    const { 
+      name, 
+      description, 
+      price, 
+      stock, 
+      imageUrl, 
+      categoryId,
+      sku,
+      barcode,
+      weight,
+      dimensions,
+      material,
+      origin,
+      warranty,
+      status,
+      seoTitle,
+      seoDescription,
+      seoUrl,
+      isFeatured,
+      isNew,
+      isBestSeller
+    } = req.body;
+
+    const product = await productService.createProduct({
       name,
       description,
       price,
       stock,
+      categoryId,
       imageUrl,
-      category
-    );
+      sku,
+      barcode,
+      weight,
+      dimensions,
+      material,
+      origin,
+      warranty,
+      status,
+      seoTitle,
+      seoDescription,
+      seoUrl,
+      isFeatured,
+      isNew,
+      isBestSeller
+    });
     res.status(201).json(product);
   } catch (error) {
     res.status(500).json({ message: "Error creating product" });
@@ -43,14 +79,50 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, description, price, stock, imageUrl, category } = req.body;
+    const { 
+      name, 
+      description, 
+      price, 
+      stock, 
+      imageUrl, 
+      categoryId,
+      sku,
+      barcode,
+      weight,
+      dimensions,
+      material,
+      origin,
+      warranty,
+      status,
+      seoTitle,
+      seoDescription,
+      seoUrl,
+      isFeatured,
+      isNew,
+      isBestSeller
+    } = req.body;
+
     const product = await productService.updateProduct(Number(id), {
       name,
       description,
       price,
       stock,
+      categoryId,
       imageUrl,
-      category,
+      sku,
+      barcode,
+      weight,
+      dimensions,
+      material,
+      origin,
+      warranty,
+      status,
+      seoTitle,
+      seoDescription,
+      seoUrl,
+      isFeatured,
+      isNew,
+      isBestSeller
     });
     res.json(product);
   } catch (error) {
@@ -65,5 +137,15 @@ export const deleteProduct = async (req: Request, res: Response) => {
     res.json({ message: "Product deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting product" });
+  }
+};
+
+export const incrementProductView = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const product = await productService.incrementViewCount(Number(id));
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating product view count" });
   }
 }; 

@@ -188,3 +188,116 @@ export const getCategoryById = async (id: number) => {
   }
   return response.json();
 };
+
+export const incrementProductView = async (id: number) => {
+  const response = await fetch(`${API_URL}/products/${id}/view`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  return handleResponse(response);
+};
+
+// Reviews API
+export const getProductReviews = async (productId: number) => {
+  const response = await fetch(`${API_URL}/reviews/product/${productId}`);
+  return handleResponse(response);
+};
+
+export const createReview = async (token: string, data: {
+  productId: number;
+  rating: number;
+  comment: string;
+}) => {
+  const response = await fetch(`${API_URL}/reviews`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return handleResponse(response);
+};
+
+export const updateReview = async (token: string, reviewId: number, data: {
+  rating?: number;
+  comment?: string;
+}) => {
+  const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return handleResponse(response);
+};
+
+export const deleteReview = async (token: string, reviewId: number) => {
+  const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return handleResponse(response);
+};
+
+// Stats API
+export const getStats = async (token: string) => {
+  const response = await fetch(`${API_URL}/stats`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return handleResponse(response);
+};
+
+export const getSalesByDate = async (token: string, startDate: string, endDate: string) => {
+  const response = await fetch(`${API_URL}/stats/sales?startDate=${startDate}&endDate=${endDate}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return handleResponse(response);
+};
+
+export const getTopCustomers = async (token: string, limit: number = 10) => {
+  const response = await fetch(`${API_URL}/stats/top-customers?limit=${limit}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return handleResponse(response);
+};
+
+// Payment API
+export const createPaymentUrl = async (token: string, orderId: number) => {
+  const response = await fetch(`${API_URL}/payment/create-url`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ orderId })
+  });
+  return handleResponse(response);
+};
+
+export const verifyPayment = async (token: string, data: {
+  vnp_Amount: string;
+  vnp_BankCode: string;
+  vnp_BankTranNo: string;
+  vnp_CardType: string;
+  vnp_OrderInfo: string;
+  vnp_PayDate: string;
+  vnp_ResponseCode: string;
+  vnp_TmnCode: string;
+  vnp_TransactionNo: string;
+  vnp_TransactionStatus: string;
+  vnp_TxnRef: string;
+  vnp_SecureHash: string;
+}) => {
+  const response = await fetch(`${API_URL}/payment/verify`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return handleResponse(response);
+};

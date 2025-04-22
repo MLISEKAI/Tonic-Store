@@ -173,11 +173,60 @@ export const searchProducts = async (query: string) => {
           description: {
             contains: query
           }
+        },
+        {
+          seoUrl: {
+            contains: query
+          }
         }
       ]
     },
     include: {
       category: true
+    }
+  });
+};
+
+export const getProductBySeoUrl = async (seoUrl: string) => {
+  return prisma.product.findUnique({
+    where: { seoUrl },
+    include: {
+      category: true,
+      reviews: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        }
+      }
+    }
+  });
+};
+
+export const incrementViewCount = async (productId: number) => {
+  return prisma.product.update({
+    where: { id: productId },
+    data: {
+      viewCount: {
+        increment: 1
+      }
+    }
+  });
+};
+
+export const updateSoldCount = async (productId: number, quantity: number) => {
+  return prisma.product.update({
+    where: { id: productId },
+    data: {
+      soldCount: {
+        increment: quantity
+      },
+      stock: {
+        decrement: quantity
+      }
     }
   });
 }; 

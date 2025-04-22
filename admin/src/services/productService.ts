@@ -15,6 +15,24 @@ export interface Product {
   category: Category;
   createdAt: string;
   updatedAt: string;
+  sku?: string;
+  barcode?: string;
+  weight?: number;
+  dimensions?: string;
+  material?: string;
+  origin?: string;
+  warranty?: string;
+  status?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoUrl?: string;
+  isFeatured?: boolean;
+  isNew?: boolean;
+  isBestSeller?: boolean;
+  rating?: number;
+  reviewCount?: number;
+  viewCount?: number;
+  soldCount?: number;
 }
 
 export interface CreateProductData {
@@ -24,6 +42,20 @@ export interface CreateProductData {
   stock: number;
   imageUrl: string;
   categoryId: number;
+  sku?: string;
+  barcode?: string;
+  weight?: number;
+  dimensions?: string;
+  material?: string;
+  origin?: string;
+  warranty?: string;
+  status?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoUrl?: string;
+  isFeatured?: boolean;
+  isNew?: boolean;
+  isBestSeller?: boolean;
 }
 
 export interface UpdateProductData {
@@ -33,6 +65,20 @@ export interface UpdateProductData {
   stock?: number;
   imageUrl?: string;
   categoryId?: number;
+  sku?: string;
+  barcode?: string;
+  weight?: number;
+  dimensions?: string;
+  material?: string;
+  origin?: string;
+  warranty?: string;
+  status?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoUrl?: string;
+  isFeatured?: boolean;
+  isNew?: boolean;
+  isBestSeller?: boolean;
 }
 
 const handleResponse = async (res: Response) => {
