@@ -58,6 +58,16 @@ export const getProduct = async (id: number) => {
   return handleResponse(response);
 };
 
+export const searchProducts = async (query: string) => {
+  try {
+    const response = await fetch(`${API_URL}/products/search?q=${encodeURIComponent(query)}`);
+    return handleResponse(response);
+  } catch (error) {
+    console.error('Error searching products:', error);
+    throw error;
+  }
+};
+
 // Cart API
 export const getCart = async (token: string) => {
   const response = await fetch(`${API_URL}/cart`, {

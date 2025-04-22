@@ -17,10 +17,12 @@ model User {
   phone     String?
   address   String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
   cart      Cart?
   orders    Order[]
   passwordChangesReceived PasswordChangeLog[] @relation("UserPasswordChanges")
   passwordChangesMade     PasswordChangeLog[] @relation("AdminPasswordChanges")
+  reviews   Review[]
 }
 
 model Category {
@@ -28,6 +30,7 @@ model Category {
   name      String    @unique
   products  Product[]
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt @default(now())
 }
 
 model Product {
@@ -40,16 +43,40 @@ model Product {
   categoryId  Int
   category    Category    @relation(fields: [categoryId], references: [id])
   createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
   cartItems   CartItem[]  @relation("ProductToCartItem")
   orderItems  OrderItem[] @relation("ProductToOrderItem")
+  reviews     Review[]
+
+  sku         String?     @db.VarChar(50)
+  barcode     String?     @db.VarChar(50)
+  weight      Float?
+  dimensions  String?
+  material    String?
+  origin      String?
+  warranty    String?
+  status      ProductStatus @default(ACTIVE)
+  seoTitle    String?     @db.VarChar(70)
+  seoDescription String?  @db.VarChar(320)
+  seoUrl      String?     @unique
+  isFeatured  Boolean     @default(false)
+  isNew       Boolean     @default(false)
+  isBestSeller Boolean    @default(false)
+  rating      Float?      @default(0)
+  reviewCount Int         @default(0)
+  viewCount   Int         @default(0)
+  soldCount   Int         @default(0)
 
   @@index([categoryId])
+  @@index([sku])
+  @@index([barcode])
 }
 
 model Cart {
   id        Int        @id @default(autoincrement())
   userId    Int        @unique
   createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt @default(now())
   user      User       @relation(fields: [userId], references: [id])
   items     CartItem[]
 }
@@ -60,6 +87,7 @@ model CartItem {
   productId Int
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
   cart      Cart     @relation(fields: [cartId], references: [id])
   product   Product  @relation("ProductToCartItem", fields: [productId], references: [id])
 
@@ -73,6 +101,7 @@ model Order {
   totalPrice Float
   status     OrderStatus @default(PENDING)
   createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
   shippingAddress String
   shippingPhone   String
   shippingName    String
@@ -91,6 +120,7 @@ model OrderItem {
   quantity  Int
   price     Float
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   order     Order    @relation(fields: [orderId], references: [id])
   product   Product  @relation("ProductToOrderItem", fields: [productId], references: [id])
 
@@ -123,6 +153,24 @@ model PasswordChangeLog {
   admin     User     @relation("AdminPasswordChanges", fields: [adminId], references: [id])
 }
 
+model Review {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  productId   Int
+  rating      Int     
+  comment     String?  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId]) 
+  @@index([productId])
+  @@index([userId])
+}
+
+
 enum Role {
   CUSTOMER
   ADMIN
@@ -152,4 +200,11 @@ enum PaymentMethod {
   VN_PAY
   COD
   BANK_TRANSFER
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  OUT_OF_STOCK
+  COMING_SOON
 }

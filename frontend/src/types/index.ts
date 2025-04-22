@@ -15,11 +15,35 @@ export interface Product {
   stock: number;
   imageUrl?: string;
   categoryId: number;
-  category?: {
-    id: number;
-    name: string;
-  };
+  category?: Category;
+  createdAt?: string;
+  
+  // Thêm các trường mới
+  sku?: string;
+  barcode?: string;
+  weight?: number;
+  dimensions?: string;
+  material?: string;
+  origin?: string;
+  warranty?: string;
+  status?: 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK' | 'COMING_SOON';
+  seoTitle?: string;
+  seoDescription?: string;
+  seoUrl?: string;
+  isFeatured?: boolean;
+  isNew?: boolean;
+  isBestSeller?: boolean;
   rating?: number;
+  reviewCount?: number;
+  viewCount?: number;
+  soldCount?: number;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  products?: Product[];
+  createdAt?: string;
 }
 
 export interface CartItem {
