@@ -7,21 +7,27 @@ import { message } from 'antd';
 
 interface OrderItem {
   id: number;
+  orderId: number;
+  productId: number;
+  quantity: number;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
   product: {
     id: number;
     name: string;
     price: number;
     imageUrl?: string;
   };
-  quantity: number;
-  price: number;
 }
 
 interface Order {
   id: number;
+  userId: number;
   totalPrice: number;
   status: string;
   createdAt: string;
+  updatedAt: string;
   shippingAddress: string;
   shippingPhone: string;
   shippingName: string;
@@ -51,10 +57,48 @@ const OrderDetailPage: React.FC = () => {
           return;
         }
 
-        const data = await api.getOrder(token, parseInt(id!));
-        setOrder(data);
+        // Validate order ID
+        if (!id) {
+          setError('Không tìm thấy ID đơn hàng');
+          setLoading(false);
+          return;
+        }
+
+        const orderId = parseInt(id);
+        if (isNaN(orderId)) {
+          setError('ID đơn hàng không hợp lệ');
+          setLoading(false);
+          return;
+        }
+
+        const data = await api.getOrder(token, orderId);
+        
+        if (!data) {
+          setError('Không tìm thấy đơn hàng');
+          setLoading(false);
+          return;
+        }
+        
+        // Transform data to match our interface
+        const transformedOrder: Order = {
+          ...data,
+          userId: data.userId,
+          shippingAddress: data.shippingAddress,
+          shippingPhone: data.shippingPhone,
+          shippingName: data.shippingName,
+          items: data.items.map((item: any) => ({
+            ...item,
+            productId: item.productId,
+            orderId: item.orderId,
+            quantity: item.quantity,
+            price: item.price
+          }))
+        };
+        
+        setOrder(transformedOrder);
       } catch (err) {
-        setError('Không thể tải chi tiết đơn hàng');
+        console.error('Error fetching order:', err);
+        setError('Không thể tải chi tiết đơn hàng. Vui lòng thử lại sau.');
       } finally {
         setLoading(false);
       }

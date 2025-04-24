@@ -1,37 +1,79 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
-import { createOrder, createPaymentUrl } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { createOrder, createPaymentUrl, getShippingAddresses } from '../services/api';
 import { formatPrice } from '../utils/format';
 import VNPayPayment from '../components/VNPayPayment';
 import { Order, PaymentMethod, PaymentStatus } from '../types';
+import { message, Form, Input, Select, Button, Radio, Spin } from 'antd';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { cart, clearCart } = useCart();
+  const { token, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    address: '',
-    note: '',
-    paymentMethod: PaymentMethod.VN_PAY
-  });
+  const [form] = Form.useForm();
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+  const [shippingAddresses, setShippingAddresses] = useState<any[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    const fetchAddresses = async () => {
+      try {
+        const addresses = await getShippingAddresses(token);
+        setShippingAddresses(addresses);
+        const defaultAddress = addresses.find((addr: any) => addr.isDefault);
+        if (defaultAddress) {
+          setSelectedAddress(defaultAddress.id);
+          form.setFieldsValue({
+            name: defaultAddress.name,
+            phone: defaultAddress.phone,
+            address: defaultAddress.address
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching addresses:', error);
+      }
+    };
+
+    fetchAddresses();
+  }, [token, navigate, form]);
+
+  const handleSubmit = async (values: any) => {
     setLoading(true);
     setError(null);
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
+      if (!token || !user) {
+        setError('Vui lòng đăng nhập để thanh toán');
         navigate('/login');
         return;
       }
 
+      // Validate form data
+      if (!values.name || !values.phone || !values.address) {
+        setError('Vui lòng điền đầy đủ thông tin giao hàng');
+        setLoading(false);
+        return;
+      }
+
+      // Validate cart
+      if (!cart.items.length) {
+        setError('Giỏ hàng trống');
+        setLoading(false);
+        return;
+      }
+
+      // Prepare order data
       const orderData = {
         items: cart.items.map(item => ({
           productId: item.product.id,
@@ -42,25 +84,40 @@ const CheckoutPage: React.FC = () => {
           sum + parseFloat(item.product.price.toString().replace(',', '.')) * item.quantity, 
           0
         ),
-        shippingAddress: formData.address,
-        shippingPhone: formData.phone,
-        shippingName: formData.name,
-        note: formData.note,
-        paymentMethod: formData.paymentMethod,
-        userId: JSON.parse(localStorage.getItem('user') || '{}').id
+        shippingAddress: values.address,
+        shippingPhone: values.phone,
+        shippingName: values.name,
+        note: values.note,
+        paymentMethod: values.paymentMethod,
+        userId: user.id,
+        shippingAddressId: selectedAddress
       };
 
+      console.log('Creating order with data:', orderData);
+
+      // Create order
       const order = await createOrder(token, orderData);
-      
-      if (formData.paymentMethod === PaymentMethod.VN_PAY) {
-        const paymentData = await createPaymentUrl(token, order.id);
-        setPaymentUrl(paymentData.url);
+      console.log('Order created:', order);
+
+      // Handle payment
+      if (values.paymentMethod === PaymentMethod.VN_PAY) {
+        try {
+          const paymentUrl = await createPaymentUrl(token, order.id);
+          if (paymentUrl) {
+            setPaymentUrl(paymentUrl);
+          } else {
+            throw new Error('Không thể tạo URL thanh toán');
+          }
+        } catch (err) {
+          setError('Không thể tạo URL thanh toán. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.');
+        }
       } else {
         clearCart();
         navigate(`/orders/${order.id}`);
       }
     } catch (err) {
-      setError('Có lỗi xảy ra khi tạo đơn hàng');
+      console.error('Checkout error:', err);
+      setError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -69,11 +126,6 @@ const CheckoutPage: React.FC = () => {
   const handleTimeout = () => {
     setError('Phiên thanh toán đã hết hạn. Vui lòng thử lại.');
     setPaymentUrl(null);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   if (paymentUrl) {
@@ -101,77 +153,90 @@ const CheckoutPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <h2 className="text-xl font-bold mb-4">Thông tin giao hàng</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Họ tên</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+            initialValues={{
+              paymentMethod: PaymentMethod.VN_PAY
+            }}
+          >
+            {shippingAddresses.length > 0 && (
+              <Form.Item label="Chọn địa chỉ giao hàng">
+                <Select
+                  value={selectedAddress}
+                  onChange={(value) => {
+                    setSelectedAddress(value);
+                    const address = shippingAddresses.find(addr => addr.id === value);
+                    if (address) {
+                      form.setFieldsValue({
+                        name: address.name,
+                        phone: address.phone,
+                        address: address.address
+                      });
+                    }
+                  }}
+                >
+                  {shippingAddresses.map((address) => (
+                    <Select.Option key={address.id} value={address.id}>
+                      {address.name} - {address.address} {address.isDefault ? '(Mặc định)' : ''}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Số điện thoại</label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Địa chỉ</label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Ghi chú</label>
-              <textarea
-                name="note"
-                value={formData.note}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Phương thức thanh toán</label>
-              <select
-                name="paymentMethod"
-                value={formData.paymentMethod}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value={PaymentMethod.VN_PAY}>VNPay</option>
-                <option value={PaymentMethod.COD}>Thanh toán khi nhận hàng</option>
-                <option value={PaymentMethod.BANK_TRANSFER}>Chuyển khoản ngân hàng</option>
-              </select>
-            </div>
-
-            {error && <div className="text-red-500">{error}</div>}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+            <Form.Item
+              name="name"
+              label="Họ tên"
+              rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
             >
-              {loading ? 'Đang xử lý...' : 'Đặt hàng'}
-            </button>
-          </form>
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              name="phone"
+              label="Số điện thoại"
+              rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              name="address"
+              label="Địa chỉ"
+              rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
+            >
+              <Input.TextArea />
+            </Form.Item>
+
+            <Form.Item
+              name="note"
+              label="Ghi chú"
+            >
+              <Input.TextArea />
+            </Form.Item>
+
+            <Form.Item
+              name="paymentMethod"
+              label="Phương thức thanh toán"
+              rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán!' }]}
+            >
+              <Radio.Group>
+                <Radio value={PaymentMethod.VN_PAY}>VNPay</Radio>
+                <Radio value={PaymentMethod.COD}>Thanh toán khi nhận hàng</Radio>
+                <Radio value={PaymentMethod.BANK_TRANSFER}>Chuyển khoản ngân hàng</Radio>
+              </Radio.Group>
+            </Form.Item>
+
+            {error && <div className="text-red-500 mb-4">{error}</div>}
+
+            <Form.Item>
+              <Button type="primary" htmlType="submit" loading={loading} className="w-full">
+                Đặt hàng
+              </Button>
+            </Form.Item>
+          </Form>
         </div>
 
         <div>

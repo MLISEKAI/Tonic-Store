@@ -1,10 +1,11 @@
-import { Button, Input, notification } from 'antd';
-import { ArrowRightOutlined, ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
+import { Button, notification, Carousel, Spin } from 'antd';
+import { ArrowRightOutlined, StarOutlined, EyeOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getProducts, getCategories } from '../services/api';
 import { Product } from '../types';
 import { useCart } from '../contexts/CartContext';
+import ProductCard from '../components/ProductCard';
 
 interface Category {
   id: number;
@@ -13,33 +14,72 @@ interface Category {
   productCount?: number;
 }
 
+const CACHE_KEY = 'products_cache';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [productsData, categoriesData] = await Promise.all([
-          getProducts(),
-          getCategories()
-        ]);
-        // Lấy 6 sản phẩm đầu tiên
-        setProducts(productsData.slice(0, 6));
-        setCategories(categoriesData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    fetchData();
+      // Check cache first
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          setProducts(data);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // If no cache or cache expired, fetch from API
+      const [productsData, categoriesData] = await Promise.all([
+        getProducts(),
+        getCategories()
+      ]);
+
+      // Calculate product count for each category
+      const categoriesWithCount = categoriesData.map((category: Category) => ({
+        ...category,
+        productCount: productsData.filter((product: Product) => 
+          product.category?.name === category.name
+        ).length
+      }));
+
+      setProducts(productsData);
+      setCategories(categoriesWithCount);
+
+      // Update cache
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        data: productsData,
+        timestamp: Date.now()
+      }));
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    // Throttle the request by adding a delay
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 1000); // Wait 1 second before making the request
+
+    return () => clearTimeout(timer);
+  }, [fetchData]);
 
   const handleAddToCart = async (product: Product) => {
     if (!token) {
@@ -70,8 +110,45 @@ const Home = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-12">Đang tải...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" />
+      </div>
+    );
   }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-bold text-red-500 mb-4">{error}</h2>
+        <Button type="primary" onClick={fetchData}>
+          Thử lại
+        </Button>
+      </div>
+    );
+  }
+
+  // Get random products if no featured products
+  const getRandomProducts = (count: number) => {
+    const shuffled = [...products].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  };
+
+  const featuredProducts = products.filter(p => p.isFeatured).length > 0 
+    ? products.filter(p => p.isFeatured).slice(0, 4)
+    : getRandomProducts(4);
+
+  const newProducts = products.filter(p => p.isNew).length > 0
+    ? products.filter(p => p.isNew).slice(0, 4)
+    : getRandomProducts(4);
+
+  const bestSellers = products.filter(p => p.isBestSeller).length > 0
+    ? products.filter(p => p.isBestSeller).slice(0, 4)
+    : getRandomProducts(4);
+
+  const mostViewed = [...products]
+    .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+    .slice(0, 4);
 
   return (
     <div>
@@ -80,7 +157,12 @@ const Home = () => {
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">Chào mừng đến với Tonic Store</h1>
           <p className="text-xl mb-8">Khám phá những sản phẩm tuyệt vời với giá cả phải chăng</p>
-          <Button type="primary" size="large" className="bg-white text-blue-600">
+          <Button 
+            type="primary" 
+            size="large" 
+            className="bg-white text-blue-600"
+            onClick={() => navigate('/products')}
+          >
             Mua sắm ngay <ArrowRightOutlined />
           </Button>
         </div>
@@ -88,89 +170,81 @@ const Home = () => {
 
       {/* Featured Products Section */}
       <div className="py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto px-4">
           <h2 className="text-center mb-12 text-3xl font-bold">Sản phẩm nổi bật</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product) => (
-              <div
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredProducts.map((product) => (
+              <ProductCard
                 key={product.id}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
-              >
-                <div 
-                  className="h-48 overflow-hidden cursor-pointer"
-                  onClick={() => navigate(`/products/${product.id}`)}
-                >
-                  <img
-                    alt={product.name}
-                    src={product.imageUrl || 'https://via.placeholder.com/400'}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div 
-                  className="p-4 cursor-pointer"
-                  onClick={() => navigate(`/products/${product.id}`)}
-                >
-                  <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-                  <div className="flex items-center mb-2">
-                    <span className="ml-2 text-gray-500">({product.rating || 0})</span>
-                  </div>
-                  <p className="text-xl font-bold text-blue-600">${product.price}</p>
-                </div>
-                <div className="flex border-t">
-                  <button 
-                    className="flex-1 p-3 text-gray-600 hover:text-red-500 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Xử lý yêu thích
-                    }}
-                  >
-                    <HeartOutlined className="text-lg" />
-                  </button>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddToCart(product);
-                    }}
-                    className="flex-1 p-3 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                  >
-                    <ShoppingCartOutlined className="mr-2" />
-                    Thêm vào giỏ
-                  </button>
-                </div>
-              </div>
+                product={product}
+                onAddToCart={handleAddToCart}
+              />
             ))}
           </div>
         </div>
       </div>
 
-      {/* Categories Section */}
+      {/* New Arrivals Section */}
       <div className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center mb-12 text-3xl font-bold">Mua sắm theo danh mục</h2>
-          <div className="overflow-x-auto">
-            <div className="flex space-x-6 pb-4">
-              {categories.map((category) => (
-                <Link 
-                  to={`/products?category=${encodeURIComponent(category.name)}`} 
-                  key={category.id} 
-                  className="flex-none w-64 h-64"
-                >
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
-                    <div className="h-40 overflow-hidden rounded-t-lg">
-                      <img
-                        alt={category.name}
-                        src={category.imageUrl || 'https://via.placeholder.com/400'}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <div className="p-4 flex-1 flex flex-col justify-center items-center text-center">
-                      <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
-                      <p className="text-gray-500 text-sm">{category.productCount || 0} sản phẩm</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+        <div className="container mx-auto px-4">
+          <h2 className="text-center mb-12 text-3xl font-bold">Sản phẩm mới</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {newProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Most Viewed Products Section */}
+      <div className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-center mb-12 text-3xl font-bold">Sản phẩm được xem nhiều nhất</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {mostViewed.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Best Sellers Section */}
+      <div className="py-12">
+        <div className="container mx-auto px-4">
+          <h2 className="text-center mb-12 text-3xl font-bold">Sản phẩm bán chạy</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {bestSellers.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Special Offers Banner */}
+      <div className="py-12 bg-blue-50">
+        <div className="container mx-auto px-4">
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <h2 className="text-3xl font-bold mb-4">Khuyến mãi đặc biệt</h2>
+            <p className="text-xl mb-6">Giảm giá lên đến 50% cho các sản phẩm được chọn</p>
+            <Button 
+              type="primary" 
+              size="large"
+              onClick={() => navigate('/products')}
+            >
+              Xem ngay <ArrowRightOutlined />
+            </Button>
           </div>
         </div>
       </div>

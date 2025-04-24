@@ -1,7 +1,10 @@
 import { FC, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Spin, message } from 'antd';
 import { getCategories, getProducts } from '../services/api';
+import { useCart } from '../contexts/CartContext';
+import ProductCard from '../components/ProductCard';
+import { Product } from '../types';
 
 interface Category {
   id: number;
@@ -10,17 +13,13 @@ interface Category {
   productCount?: number;
 }
 
-interface Product {
-  id: number;
-  name: string;
-  category?: {
-    name: string;
-  };
-}
-
 const CategoriesPage: FC = () => {
+  const [searchParams] = useSearchParams();
+  const selectedCategory = searchParams.get('category');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,6 +36,7 @@ const CategoriesPage: FC = () => {
         }));
 
         setCategories(categoriesWithCount);
+        setProducts(productsData);
       } catch (error) {
         message.error('Không thể tải danh sách danh mục');
       } finally {
@@ -46,6 +46,19 @@ const CategoriesPage: FC = () => {
 
     fetchData();
   }, []);
+
+  const handleAddToCart = async (product: Product) => {
+    try {
+      await addToCart(product, 1);
+      message.success('Đã thêm sản phẩm vào giỏ hàng');
+    } catch (error) {
+      message.error('Không thể thêm sản phẩm vào giỏ hàng');
+    }
+  };
+
+  const filteredProducts = selectedCategory
+    ? products.filter(product => product.category?.name === selectedCategory)
+    : [];
 
   if (loading) {
     return (
@@ -57,38 +70,53 @@ const CategoriesPage: FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Danh mục sản phẩm</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {categories.map((category) => (
-          <Link
-            to={`/products?category=${encodeURIComponent(category.name)}`}
-            key={category.id}
-            className="block"
-          >
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center justify-center text-center group">
-              <div className="w-24 h-24 mb-4 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                {category.imageUrl ? (
-                  <img 
-                    src={category.imageUrl} 
-                    alt={category.name}
-                    className="w-16 h-16 object-contain"
-                  />
-                ) : (
-                  <span className="text-4xl text-gray-400">
-                    {category.name.charAt(0).toUpperCase()}
-                  </span>
-                )}
+      <h1 className="text-3xl font-bold mb-8 text-center">
+        {selectedCategory ? `Sản phẩm trong danh mục: ${selectedCategory}` : 'Danh mục sản phẩm'}
+      </h1>
+
+      {selectedCategory ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAddToCart={handleAddToCart}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {categories.map((category) => (
+            <Link
+              to={`/categories?category=${encodeURIComponent(category.name)}`}
+              key={category.id}
+              className="block"
+            >
+              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center justify-center text-center group">
+                <div className="w-24 h-24 mb-4 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                  {category.imageUrl ? (
+                    <img 
+                      src={category.imageUrl} 
+                      alt={category.name}
+                      className="w-16 h-16 object-contain"
+                    />
+                  ) : (
+                    <span className="text-4xl text-gray-400">
+                      {category.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+                  {category.name}
+                </h2>
+                <p className="text-sm text-gray-500 mt-2">
+                  {category.productCount} sản phẩm
+                </p>
               </div>
-              <h2 className="text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
-                {category.name}
-              </h2>
-              <p className="text-sm text-gray-500 mt-2">
-                {category.productCount} sản phẩm
-              </p>
-            </div>
-          </Link>
-        ))}
-      </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

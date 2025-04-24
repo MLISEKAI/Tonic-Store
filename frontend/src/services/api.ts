@@ -164,10 +164,7 @@ export const updateUserProfile = async (token: string, data: {
     },
     body: JSON.stringify(data),
   });
-  if (!response.ok) {
-    throw new Error('Failed to update user profile');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 // Categories API
@@ -266,15 +263,20 @@ export const getTopCustomers = async (token: string, limit: number = 10) => {
 
 // Payment API
 export const createPaymentUrl = async (token: string, orderId: number) => {
-  const response = await fetch(`${API_URL}/payment/create-url`, {
+  const response = await fetch(`${API_URL}/payment`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({ orderId })
   });
-  return handleResponse(response);
+
+  if (!response.ok) {
+    throw new Error('Failed to create payment URL');
+  }
+
+  return response.json();
 };
 
 export const verifyPayment = async (token: string, data: {
@@ -298,6 +300,83 @@ export const verifyPayment = async (token: string, data: {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(data)
+  });
+  return handleResponse(response);
+};
+
+// Shipping Address API
+export const getShippingAddresses = async (token: string) => {
+  const response = await fetch(`${API_URL}/shipping-addresses`, {
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return handleResponse(response);
+};
+
+export const getShippingAddress = async (token: string, id: number) => {
+  const response = await fetch(`${API_URL}/shipping-addresses/${id}`, {
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return handleResponse(response);
+};
+
+export const createShippingAddress = async (token: string, data: {
+  name: string;
+  phone: string;
+  address: string;
+  isDefault?: boolean;
+}) => {
+  const response = await fetch(`${API_URL}/shipping-addresses`, {
+    method: 'POST',
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return handleResponse(response);
+};
+
+export const updateShippingAddress = async (token: string, id: number, data: {
+  name?: string;
+  phone?: string;
+  address?: string;
+  isDefault?: boolean;
+}) => {
+  const response = await fetch(`${API_URL}/shipping-addresses/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return handleResponse(response);
+};
+
+export const deleteShippingAddress = async (token: string, id: number) => {
+  const response = await fetch(`${API_URL}/shipping-addresses/${id}`, {
+    method: 'DELETE',
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return handleResponse(response);
+};
+
+export const setDefaultShippingAddress = async (token: string, id: number) => {
+  const response = await fetch(`${API_URL}/shipping-addresses/${id}/default`, {
+    method: 'POST',
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
   });
   return handleResponse(response);
 };
