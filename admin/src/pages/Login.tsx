@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Paper, Typography, TextField, Button, Container } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { login } from '../services/api';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -11,23 +12,7 @@ const Login: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:8085/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email,
-                    password,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Invalid email or password');
-            }
-
-            const data = await response.json();
+            const data = await login(email, password);
             
             // Check if user is admin
             if (data.user.role !== 'ADMIN') {

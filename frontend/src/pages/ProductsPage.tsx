@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { getProducts } from '../services/productService';
 import { Product } from '../types';
+import ProductCard from '../components/ProductCard';
 
 const ProductsPage = () => {
   const [searchParams] = useSearchParams();
@@ -113,32 +114,11 @@ const ProductsPage = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {sortedProducts.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-              <img
-                src={product.imageUrl || 'https://via.placeholder.com/400'}
-                alt={product.name}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="font-semibold text-lg mb-2 line-clamp-2">{product.name}</h3>
-                <div className="flex items-center mb-2">
-                  <span className="text-gray-600 ml-2">({product.rating || 0})</span>
-                </div>
-                <p className="text-blue-600 font-bold mb-4">
-                  {product.price.toLocaleString('vi-VN')}đ
-                </p>
-                <div className="flex justify-between">
-                  <Button
-                    type="primary"
-                    icon={<ShoppingCartOutlined />}
-                    onClick={() => handleAddToCart(product)}
-                  >
-                    Thêm vào giỏ
-                  </Button>
-                  <Button icon={<HeartOutlined />} />
-                </div>
-              </div>
-            </div>
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAddToCart={handleAddToCart}
+            />
           ))}
         </div>
       )}
