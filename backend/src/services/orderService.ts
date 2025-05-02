@@ -79,3 +79,37 @@ export const updateOrderStatus = async (id: number, status: string) => {
     include: { items: { include: { product: true } }, payment: true },
   });
 };
+
+export const cancelOrder = async (orderId: number, userId: number) => {
+  try {
+    // Tìm đơn hàng
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      return { success: false, status: 404, message: 'Đơn hàng không tồn tại' };
+    }
+
+    // Kiểm tra quyền hủy đơn hàng
+    if (order.userId !== userId) {
+      return { success: false, status: 403, message: 'Bạn không có quyền hủy đơn hàng này' };
+    }
+
+    // Kiểm tra trạng thái đơn hàng
+    if (order.status !== OrderStatus.PENDING) {
+      return { success: false, status: 400, message: 'Chỉ có thể hủy đơn hàng ở trạng thái PENDING' };
+    }
+
+    // Cập nhật trạng thái đơn hàng thành "CANCELED"
+    const canceledOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: { status: OrderStatus.CANCELLED },
+    });
+
+    return { success: true, order: canceledOrder };
+  } catch (error) {
+    console.error('Error canceling order:', error);
+    return { success: false, status: 500, message: 'Không thể hủy đơn hàng' };
+  }
+};

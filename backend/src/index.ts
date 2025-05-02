@@ -20,6 +20,7 @@ import paymentRoutes from "./routes/paymentRoutes";
 import statsRoutes from "./routes/statsRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import reviewRoutes from './routes/reviewRoutes';
+import shippingAddressRoutes from "./routes/shippingAddressRoutes";
 
 dotenv.config();
 const app = express();
@@ -101,6 +102,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/shipping-addresses', shippingAddressRoutes);
 
 // Middleware để bắt lỗi
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

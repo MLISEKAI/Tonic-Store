@@ -185,7 +185,7 @@ const OrderDetailPage: React.FC = () => {
           </div>
 
           <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4">Thông tin giao hàng</h2>
+            <h2 className="text-xl font-bold mb-4">Thông tin nhận hàng</h2>
             <div className="space-y-2">
               <p><span className="font-medium">Họ tên:</span> {order.shippingName}</p>
               <p><span className="font-medium">Số điện thoại:</span> {order.shippingPhone}</p>
