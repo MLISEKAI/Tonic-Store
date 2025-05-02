@@ -99,7 +99,7 @@ const CheckoutPage: React.FC = () => {
       console.log('Creating order with data:', orderData);
   
       // Gửi yêu cầu tạo đơn hàng
-      const response = await fetch(`${API_URL}/user/orders`, {
+      const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ const CheckoutPage: React.FC = () => {
       // Nếu là COD, điều hướng đến trang chi tiết đơn hàng
       if (values.paymentMethod === PaymentMethod.COD) {
         clearCart();
-        navigate(`/user/orders/${data.order.id}`);
+        navigate(`/orders/${data.order.id}`);
       } else if (values.paymentMethod === PaymentMethod.VN_PAY) {
         // Xử lý thanh toán VNPay
         if (data.paymentUrl) {

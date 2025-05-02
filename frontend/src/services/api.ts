@@ -134,7 +134,7 @@ export const createOrder = async (token: string, orderData: {
   paymentMethod: string;
   userId: number;
 }) => {
-  const response = await fetch(`${API_URL}/user/orders`, {
+  const response = await fetch(`${API_URL}/orders`, {
     method: 'POST',
     headers: { 
       'Authorization': `Bearer ${token}`,
@@ -146,14 +146,14 @@ export const createOrder = async (token: string, orderData: {
 };
 
 export const getOrders = async (token: string) => {
-  const response = await fetch(`${API_URL}/user/orders/user`, {
+  const response = await fetch(`${API_URL}/orders/user`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return handleResponse(response);
 };
 
 export const getOrder = async (token: string, orderId: number) => {
-  const response = await fetch(`${API_URL}/user/orders/${orderId}`, {
+  const response = await fetch(`${API_URL}/orders/${orderId}`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return handleResponse(response);
