@@ -52,7 +52,7 @@ const Navbar = () => {
     {
       key: 'orders',
       label: (
-        <Link to="/orders" className="flex items-center">
+        <Link to="/user/orders" className="flex items-center">
           <ShoppingCartOutlined className="mr-2" />
           Đơn hàng của tôi
         </Link>

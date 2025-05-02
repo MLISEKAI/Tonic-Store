@@ -55,7 +55,7 @@ class OrderService {
             ...(status && { status })
         });
 
-        const response = await fetch(`${API_URL}/orders?${queryParams}`, {
+        const response = await fetch(`${API_URL}/user/orders?${queryParams}`, {
             headers: this.getHeaders()
         });
 
@@ -67,7 +67,7 @@ class OrderService {
     }
 
     async updateOrderStatus(orderId: string, status: string): Promise<void> {
-        const response = await fetch(`${API_URL}/orders/${orderId}/status`, {
+        const response = await fetch(`${API_URL}/user/orders/${orderId}/status`, {
             method: 'PATCH',
             headers: this.getHeaders(),
             body: JSON.stringify({ status })
@@ -79,7 +79,7 @@ class OrderService {
     }
 
     async updatePaymentStatus(orderId: string, status: string, transactionId?: string): Promise<void> {
-        const response = await fetch(`${API_URL}/orders/${orderId}/payment`, {
+        const response = await fetch(`${API_URL}/user/orders/${orderId}/payment`, {
             method: 'PATCH',
             headers: this.getHeaders(),
             body: JSON.stringify({ status, transactionId })

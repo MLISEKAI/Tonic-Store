@@ -122,4 +122,24 @@ export const removeFromCart = async (req: Request, res: Response) => {
     }
     res.status(500).json({ message: 'Error removing from cart' });
   }
+};
+
+export const clearCart = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    await cartService.clearCart(userId);
+    res.json({ message: 'Cart cleared successfully' });
+  } catch (error) {
+    console.error('Error in clearCart controller:', error);
+    if (error instanceof Error) {
+      if (error.message === 'Cart not found') {
+        return res.status(404).json({ message: 'Cart not found' });
+      }
+    }
+    res.status(500).json({ message: 'Error clearing cart' });
+  }
 }; 

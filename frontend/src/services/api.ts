@@ -111,6 +111,14 @@ export const removeFromCart = async (token: string, itemId: number) => {
   return handleResponse(response);
 };
 
+export const clearCart = async (token: string) => {
+  const response = await fetch(`${API_URL}/cart/clear`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return handleResponse(response);
+};
+
 // Orders API
 export const createOrder = async (token: string, orderData: {
   items: Array<{
@@ -126,7 +134,7 @@ export const createOrder = async (token: string, orderData: {
   paymentMethod: string;
   userId: number;
 }) => {
-  const response = await fetch(`${API_URL}/orders`, {
+  const response = await fetch(`${API_URL}/user/orders`, {
     method: 'POST',
     headers: { 
       'Authorization': `Bearer ${token}`,
@@ -138,14 +146,14 @@ export const createOrder = async (token: string, orderData: {
 };
 
 export const getOrders = async (token: string) => {
-  const response = await fetch(`${API_URL}/orders/user`, {
+  const response = await fetch(`${API_URL}/user/orders/user`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return handleResponse(response);
 };
 
 export const getOrder = async (token: string, orderId: number) => {
-  const response = await fetch(`${API_URL}/orders/${orderId}`, {
+  const response = await fetch(`${API_URL}/user/orders/${orderId}`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return handleResponse(response);

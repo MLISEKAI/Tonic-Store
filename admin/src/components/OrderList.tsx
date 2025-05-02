@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Select, message, Spin } from 'antd';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import OrderService, { Order, OrderResponse } from '../services/orderService';
+import OrderService, { Order, OrderResponse } from '../services/user/orderservice';
 
 const { Option } = Select;
 
@@ -128,7 +128,7 @@ const OrderList: React.FC = () => {
       title: 'Actions',
       key: 'actions',
       render: (text: string, record: Order) => (
-        <Button type="link" onClick={() => window.location.href = `/orders/${record.id}`}>
+        <Button type="link" onClick={() => window.location.href = `/user/orders/${record.id}`}>
           View Details
         </Button>
       ),

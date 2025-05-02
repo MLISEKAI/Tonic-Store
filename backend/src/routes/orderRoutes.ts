@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
-import { createOrder, getOrder, updateOrderStatus, getAllOrders, cancelOrder } from '../services/orderService';
+import { createOrder, getOrder, updateOrderStatus, getAllOrders, cancelOrder } from '../services/user/orderservice';
 import { createPayment, updatePaymentStatus } from '../services/paymentService';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
 import { PaymentMethod, PaymentStatus, PrismaClient } from '@prisma/client';
@@ -178,7 +178,7 @@ router.get('/vnpay/callback', async (req: Request, res: Response) => {
     await updatePaymentStatus(orderId, paymentStatus, vnp_TxnRef as string);
     
     // Redirect to frontend success/failure page
-    const redirectUrl = `${process.env.FRONTEND_URL}/orders/${orderId}?payment_status=${paymentStatus}`;
+    const redirectUrl = `${process.env.FRONTEND_URL}/user/orders/${orderId}?payment_status=${paymentStatus}`;
     res.redirect(redirectUrl);
   } catch (error) {
     console.error('Error processing VNPay callback:', error);
