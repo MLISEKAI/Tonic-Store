@@ -107,8 +107,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!token) return;
     try {
       setLoading(true);
+      await api.clearCart(token);
       setCart({ items: [] });
-      await fetchCart();
     } catch (err) {
       setError('Không thể xóa giỏ hàng');
       console.error('Error clearing cart:', err);

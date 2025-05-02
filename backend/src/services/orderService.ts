@@ -1,4 +1,4 @@
-import { PrismaClient, OrderStatus, Prisma } from '@prisma/client';
+import { PrismaClient, OrderStatus, Prisma, PaymentStatus } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const getAllOrders = async () => {
@@ -85,6 +85,7 @@ export const cancelOrder = async (orderId: number, userId: number) => {
     // Tìm đơn hàng
     const order = await prisma.order.findUnique({
       where: { id: orderId },
+      include: { payment: true }
     });
 
     if (!order) {
@@ -101,11 +102,19 @@ export const cancelOrder = async (orderId: number, userId: number) => {
       return { success: false, status: 400, message: 'Chỉ có thể hủy đơn hàng ở trạng thái PENDING' };
     }
 
-    // Cập nhật trạng thái đơn hàng thành "CANCELED"
-    const canceledOrder = await prisma.order.update({
-      where: { id: orderId },
-      data: { status: OrderStatus.CANCELLED },
-    });
+    // Cập nhật trạng thái đơn hàng và thanh toán trong một transaction
+    const [canceledOrder] = await prisma.$transaction([
+      // Cập nhật trạng thái đơn hàng
+      prisma.order.update({
+        where: { id: orderId },
+        data: { status: OrderStatus.CANCELLED }
+      }),
+      // Cập nhật trạng thái thanh toán
+      prisma.payment.update({
+        where: { orderId: orderId },
+        data: { status: PaymentStatus.FAILED }
+      })
+    ]);
 
     return { success: true, order: canceledOrder };
   } catch (error) {

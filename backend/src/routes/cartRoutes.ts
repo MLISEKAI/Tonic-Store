@@ -15,5 +15,6 @@ router.get('/', authenticate, cartController.getCart);
 router.post('/add', authenticate, cartController.addToCart);
 router.put('/update/:itemId', authenticate, cartController.updateCartItem);
 router.delete('/remove/:itemId', authenticate, cartController.removeFromCart);
+router.delete('/clear', authenticate, cartController.clearCart);
 
 export default router;

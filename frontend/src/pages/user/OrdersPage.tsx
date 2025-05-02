@@ -1,10 +1,10 @@
 import { FC, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, Button, message } from 'antd';
-import { Order, OrderStatus } from '../types';
-import { useAuth } from '../contexts/AuthContext';
-import * as api from '../services/api';
-import OrderList from '../components/OrderList';
+import { Order, OrderStatus } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
+import * as api from '../../services/api';
+import OrderList from '../../components/user/OrderList';
 
 const { TabPane } = Tabs;
 
@@ -17,7 +17,7 @@ export const OrdersPage: FC = () => {
 
   const handleCancelOrder = async (orderId: number) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/cancel`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/orders/${orderId}/cancel`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
