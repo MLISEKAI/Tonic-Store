@@ -6,7 +6,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import ProductsPage from "./pages/ProductsPage";
 import { CartPage } from "./pages/CartPage";
-import { OrdersPage } from "./pages/user/OrdersPage";
+import { OrdersPage } from "./pages/ordersPage";
 import OrderDetailPage from "./pages/user/OrderDetailPage";
 import ProfilePage from "./pages/user/ProfilePage";
 import CategoriesPage from "./pages/CategoriesPage";
@@ -33,8 +33,8 @@ const App = () => {
                 <Route path="/products/:id" element={<ProductDetailPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/user/orders" element={<OrdersPage />} />
-                <Route path="/user/orders/:id" element={<OrderDetailPage />} />
+                <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/orders/:id" element={<OrderDetailPage />} />
                 <Route path="/user/profile" element={<ProfilePage />} />
                 <Route path="/categories" element={<CategoriesPage />} />
                 <Route path="/about" element={<AboutPage />} />

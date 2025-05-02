@@ -19,7 +19,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/cart', cartRoutes);
-app.use('/api/user/orders', orderRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/shipping-addresses', shippingAddressRoutes);
 

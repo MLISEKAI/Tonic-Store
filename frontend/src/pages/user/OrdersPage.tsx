@@ -17,7 +17,7 @@ export const OrdersPage: FC = () => {
 
   const handleCancelOrder = async (orderId: number) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/orders/${orderId}/cancel`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/orders/${orderId}/cancel`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
