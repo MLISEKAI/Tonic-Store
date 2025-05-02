@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
-import { createOrder, getOrder, updateOrderStatus, getAllOrders } from '../services/orderService';
+import { createOrder, getOrder, updateOrderStatus, getAllOrders, cancelOrder } from '../services/orderService';
 import { createPayment, updatePaymentStatus } from '../services/paymentService';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
 import { PaymentMethod, PaymentStatus, PrismaClient } from '@prisma/client';
@@ -19,6 +19,40 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error getting orders:', error);
     res.status(500).json({ error: 'Failed to get orders' });
+  }
+});
+
+// Update order status (admin only)
+router.patch('/:id/status', authenticate, async (req: Request, res: Response) => {
+  try {
+    if (req.user!.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const { status } = req.body;
+    const order = await updateOrderStatus(Number(req.params.id), status);
+    res.json(order);
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    res.status(500).json({ error: 'Failed to update order status' });
+  }
+});
+
+// Hủy đơn hàng
+router.patch('/:id/cancel', authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const orderId = Number(req.params.id);
+
+    const result = await cancelOrder(orderId, userId);
+    if (!result.success) {
+      return res.status(result.status || 500).json({ error: result.message });
+    }
+
+    res.json({ success: true, order: result.order });
+  } catch (error) {
+    console.error('Error canceling order:', error);
+    res.status(500).json({ error: 'Failed to cancel order' });
   }
 });
 
@@ -118,22 +152,6 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error getting order:', error);
     res.status(500).json({ error: 'Failed to get order' });
-  }
-});
-
-// Update order status (admin only)
-router.patch('/:id/status', authenticate, async (req: Request, res: Response) => {
-  try {
-    if (req.user!.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    const { status } = req.body;
-    const order = await updateOrderStatus(Number(req.params.id), status);
-    res.json(order);
-  } catch (error) {
-    console.error('Error updating order status:', error);
-    res.status(500).json({ error: 'Failed to update order status' });
   }
 });
 

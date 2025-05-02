@@ -41,7 +41,7 @@ export const CartPage: FC = () => {
 
     // Check if shipping information is complete
     if (!user?.address || !user?.phone || !user?.name) {
-      console.error('Vui lòng cập nhật thông tin giao hàng trong hồ sơ của bạn');
+      console.error('Vui lòng cập nhật Thông tin nhận hàng trong hồ sơ của bạn');
       navigate('/profile');
       return;
     }

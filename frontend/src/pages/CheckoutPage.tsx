@@ -42,6 +42,9 @@ const CheckoutPage: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching addresses:', error);
+        if (error instanceof Error && error.message.includes('401')) {
+          navigate('/login');
+        }
       }
     };
 
@@ -51,29 +54,29 @@ const CheckoutPage: React.FC = () => {
   const handleSubmit = async (values: any) => {
     setLoading(true);
     setError(null);
-
+  
     try {
       if (!token || !user) {
         setError('Vui lòng đăng nhập để thanh toán');
         navigate('/login');
         return;
       }
-
+  
       // Validate form data
       if (!values.name || !values.phone || !values.address) {
-        setError('Vui lòng điền đầy đủ thông tin giao hàng');
+        setError('Vui lòng điền đầy đủ Thông tin nhận hàng');
         setLoading(false);
         return;
       }
-
+  
       // Validate cart
       if (!cart.items.length) {
         setError('Giỏ hàng trống');
         setLoading(false);
         return;
       }
-
-      // Prepare order data
+  
+      // Chuẩn bị dữ liệu đơn hàng
       const orderData = {
         items: cart.items.map(item => ({
           productId: item.product.id,
@@ -92,28 +95,43 @@ const CheckoutPage: React.FC = () => {
         userId: user.id,
         shippingAddressId: selectedAddress
       };
-
+  
       console.log('Creating order with data:', orderData);
-
-      // Create order
-      const order = await createOrder(token, orderData);
-      console.log('Order created:', order);
-
-      // Handle payment
-      if (values.paymentMethod === PaymentMethod.VN_PAY) {
-        try {
-          const paymentUrl = await createPaymentUrl(token, order.id);
-          if (paymentUrl) {
-            setPaymentUrl(paymentUrl);
-          } else {
-            throw new Error('Không thể tạo URL thanh toán');
-          }
-        } catch (err) {
-          setError('Không thể tạo URL thanh toán. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.');
-        }
-      } else {
+  
+      // Gửi yêu cầu tạo đơn hàng
+      const response = await fetch(`${API_URL}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(orderData)
+      });
+  
+      // Kiểm tra phản hồi từ backend
+      if (!response.ok) {
+        throw new Error('Không thể tạo đơn hàng');
+      }
+  
+      const data = await response.json();
+      console.log('Order created:', data);
+  
+      // Kiểm tra phản hồi từ backend
+      if (!data || !data.order) {
+        throw new Error('Không thể tạo đơn hàng');
+      }
+  
+      // Nếu là COD, điều hướng đến trang chi tiết đơn hàng
+      if (values.paymentMethod === PaymentMethod.COD) {
         clearCart();
-        navigate(`/orders/${order.id}`);
+        navigate(`/orders/${data.order.id}`);
+      } else if (values.paymentMethod === PaymentMethod.VN_PAY) {
+        // Xử lý thanh toán VNPay
+        if (data.paymentUrl) {
+          setPaymentUrl(data.paymentUrl);
+        } else {
+          throw new Error('Không thể tạo URL thanh toán');
+        }
       }
     } catch (err) {
       console.error('Checkout error:', err);
@@ -152,7 +170,7 @@ const CheckoutPage: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <h2 className="text-xl font-bold mb-4">Thông tin giao hàng</h2>
+          <h2 className="text-xl font-bold mb-4">Thông tin nhận hàng</h2>
           <Form
             form={form}
             layout="vertical"
@@ -223,8 +241,8 @@ const CheckoutPage: React.FC = () => {
               rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán!' }]}
             >
               <Radio.Group>
-                <Radio value={PaymentMethod.VN_PAY}>VNPay</Radio>
                 <Radio value={PaymentMethod.COD}>Thanh toán khi nhận hàng</Radio>
+                <Radio value={PaymentMethod.VN_PAY}>VNPay</Radio>
                 <Radio value={PaymentMethod.BANK_TRANSFER}>Chuyển khoản ngân hàng</Radio>
               </Radio.Group>
             </Form.Item>

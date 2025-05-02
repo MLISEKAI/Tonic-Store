@@ -1,14 +1,14 @@
-import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-import { v4 as uuidv4 } from 'uuid';
-import { ParsedQs } from 'qs';
-import { createPaymentUrl } from '../services/vnpayService';
+import { Request, Response } from "express";
+import { PrismaClient, OrderStatus } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
+import { ParsedQs } from "qs";
+import { createPaymentUrl } from "../services/vnpayService";
 
 const prisma = new PrismaClient();
 
-type OrderStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
-type PaymentMethod = 'COD' | 'VN_PAY' | 'BANK_TRANSFER';
-type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED';
+type PaymentMethod = "COD" | "VN_PAY" | "BANK_TRANSFER";
+type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELED";
+type LocalOrderStatus = "PENDING" | "COMPLETED" | "CANCELED";
 
 interface OrderItem {
   productId: number;
@@ -20,15 +20,33 @@ export const OrderController = {
   // Create new order
   async createOrder(req: Request, res: Response) {
     try {
-      const { userId, items, shippingAddress, shippingPhone, shippingName, note, paymentMethod } = req.body;
+      const {
+        userId,
+        items,
+        shippingAddress,
+        shippingPhone,
+        shippingName,
+        note,
+        paymentMethod,
+      } = req.body;
 
       // Validate input
-      if (!userId || !items || !shippingAddress || !shippingPhone || !shippingName || !paymentMethod) {
-        return res.status(400).json({ error: 'Missing required fields' });
+      if (
+        !userId ||
+        !items ||
+        !shippingAddress ||
+        !shippingPhone ||
+        !shippingName ||
+        !paymentMethod
+      ) {
+        return res.status(400).json({ error: "Missing required fields" });
       }
 
       // Calculate total price
-      const totalPrice = items.reduce((sum: number, item: OrderItem) => sum + item.price * item.quantity, 0);
+      const totalPrice = items.reduce(
+        (sum: number, item: OrderItem) => sum + item.price * item.quantity,
+        0
+      );
 
       // Create order
       const order = await prisma.order.create({
@@ -39,34 +57,39 @@ export const OrderController = {
           shippingPhone,
           shippingName,
           note,
-          status: 'PENDING' as OrderStatus,
+          status: "PENDING",
           items: {
             create: items.map((item: OrderItem) => ({
               productId: item.productId,
               quantity: item.quantity,
-              price: item.price
-            }))
-          }
+              price: item.price,
+            })),
+          },
         },
         include: {
           items: {
             include: {
-              product: true
-            }
-          }
-        }
+              product: true,
+            },
+          },
+        },
       });
 
-      // If payment method is VNPay, create payment URL
-      if (paymentMethod === 'VN_PAY') {
-        const paymentUrl = createPaymentUrl(order.id, totalPrice);
-        return res.json({ ...order, paymentUrl });
+      // Nếu phương thức thanh toán là COD, không cần tạo URL thanh toán
+      if (paymentMethod === "COD") {
+        return res.json({ success: true, order });
       }
 
-      return res.json(order);
+      // Nếu là phương thức khác (ví dụ: VNPay), xử lý tiếp
+      if (paymentMethod === "VN_PAY") {
+        const paymentUrl = createPaymentUrl(order.id, totalPrice);
+        return res.json({ success: true, order, paymentUrl });
+      }
+
+      return res.json({ success: true, order });
     } catch (error) {
-      console.error('Error creating order:', error);
-      return res.status(500).json({ error: 'Failed to create order' });
+      console.error("Error creating order:", error);
+      return res.status(500).json({ error: "Failed to create order" });
     }
   },
 
@@ -79,21 +102,79 @@ export const OrderController = {
         include: {
           items: {
             include: {
-              product: true
-            }
+              product: true,
+            },
           },
           payment: true,
-          user: true
-        }
+          user: true,
+        },
       });
 
       if (!order) {
-        return res.status(404).json({ error: 'Order not found' });
+        return res.status(404).json({ error: "Order not found" });
       }
 
       res.json(order);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to get order' });
+      res.status(500).json({ error: "Failed to get order" });
+    }
+  },
+
+  // Get cancel orders
+  async cancelOrder(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res
+          .status(401)
+          .json({ success: false, message: "Unauthorized" });
+      }
+
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      // Tìm đơn hàng
+      const order = await prisma.order.findUnique({
+        where: { id: Number(id) },
+      });
+
+      if (!order) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Đơn hàng không tồn tại" });
+      }
+
+      // Kiểm tra quyền hủy đơn hàng
+      if (order.userId !== userId) {
+        return res
+          .status(403)
+          .json({
+            success: false,
+            message: "Bạn không có quyền hủy đơn hàng này",
+          });
+      }
+
+      // Kiểm tra trạng thái đơn hàng (chỉ cho phép hủy nếu trạng thái là "PENDING")
+      if (order.status !== "PENDING") {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "Chỉ có thể hủy đơn hàng ở trạng thái PENDING",
+          });
+      }
+
+      // Cập nhật trạng thái đơn hàng thành "CANCELED"
+      const canceledOrder = await prisma.order.update({
+        where: { id: Number(id) },
+        data: { status: "CANCELLED" },
+      });
+
+      return res.json({ success: true, order: canceledOrder });
+    } catch (error) {
+      console.error("Error canceling order:", error);
+      return res
+        .status(500)
+        .json({ success: false, message: "Không thể hủy đơn hàng" });
     }
   },
 
@@ -106,19 +187,19 @@ export const OrderController = {
         include: {
           items: {
             include: {
-              product: true
-            }
+              product: true,
+            },
           },
-          payment: true
+          payment: true,
         },
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: "desc",
+        },
       });
 
       res.json(orders);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to get user orders' });
+      res.status(500).json({ error: "Failed to get user orders" });
     }
   },
 
@@ -130,12 +211,12 @@ export const OrderController = {
 
       const order = await prisma.order.update({
         where: { id: Number(id) },
-        data: { status }
+        data: { status },
       });
 
       res.json(order);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to update order status' });
+      res.status(500).json({ error: "Failed to update order status" });
     }
   },
 
@@ -150,13 +231,13 @@ export const OrderController = {
         data: {
           status,
           transactionId,
-          paymentDate: status === 'COMPLETED' ? new Date() : undefined
-        }
+          paymentDate: status === "COMPLETED" ? new Date() : undefined,
+        },
       });
 
       res.json(payment);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to update payment status' });
+      res.status(500).json({ error: "Failed to update payment status" });
     }
   },
 
@@ -164,28 +245,28 @@ export const OrderController = {
   async getAllOrders(req: Request, res: Response) {
     try {
       const { status, page = 1, limit = 10 } = req.query;
-      
+
       const where = status ? { status: status as OrderStatus } : {};
-      
+
       const [orders, total] = await Promise.all([
         prisma.order.findMany({
           where,
           include: {
             items: {
               include: {
-                product: true
-              }
+                product: true,
+              },
             },
             payment: true,
-            user: true
+            user: true,
           },
           orderBy: {
-            createdAt: 'desc'
+            createdAt: "desc",
           },
           skip: (Number(page) - 1) * Number(limit),
-          take: Number(limit)
+          take: Number(limit),
         }),
-        prisma.order.count({ where })
+        prisma.order.count({ where }),
       ]);
 
       res.json({
@@ -193,10 +274,10 @@ export const OrderController = {
         total,
         page: Number(page),
         limit: Number(limit),
-        totalPages: Math.ceil(total / Number(limit))
+        totalPages: Math.ceil(total / Number(limit)),
       });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to get orders' });
+      res.status(500).json({ error: "Failed to get orders" });
     }
-  }
-}; 
+  },
+};
