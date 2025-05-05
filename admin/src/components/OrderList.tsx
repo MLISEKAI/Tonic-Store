@@ -2,12 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Select, message, Spin } from 'antd';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import OrderService, { Order, OrderResponse } from '../services/orderservice';
-
-const { Option } = Select;
+import OrderService, { Order, OrderResponse } from '../services/orderService';
 
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+
+const orderStatusOptions = [
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'PROCESSING', label: 'Processing' },
+  { value: 'SHIPPED', label: 'Shipped' },
+  { value: 'DELIVERED', label: 'Delivered' },
+  { value: 'CANCELLED', label: 'Cancelled' },
+];
+
+const paymentStatusOptions = [
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'PAID', label: 'Paid' },
+  { value: 'FAILED', label: 'Failed' },
+  { value: 'REFUNDED', label: 'Refunded' },
+];
 
 const OrderList: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -92,13 +105,8 @@ const OrderList: React.FC = () => {
           value={status}
           onChange={(value: OrderStatus) => handleStatusChange(record.id, value)}
           style={{ width: 120 }}
-        >
-          <Option value="PENDING">Pending</Option>
-          <Option value="PROCESSING">Processing</Option>
-          <Option value="SHIPPED">Shipped</Option>
-          <Option value="DELIVERED">Delivered</Option>
-          <Option value="CANCELLED">Cancelled</Option>
-        </Select>
+          options={orderStatusOptions}
+        />
       ),
     },
     {
@@ -110,12 +118,8 @@ const OrderList: React.FC = () => {
           value={status}
           onChange={(value: PaymentStatus) => handlePaymentStatusChange(record.id, value)}
           style={{ width: 120 }}
-        >
-          <Option value="PENDING">Pending</Option>
-          <Option value="PAID">Paid</Option>
-          <Option value="FAILED">Failed</Option>
-          <Option value="REFUNDED">Refunded</Option>
-        </Select>
+          options={paymentStatusOptions}
+        />
       ),
     },
     {
@@ -148,14 +152,11 @@ const OrderList: React.FC = () => {
           onChange={(value: OrderStatus | '') => setStatus(value)}
           style={{ width: 200 }}
           placeholder="Filter by status"
-        >
-          <Option value="">All Status</Option>
-          <Option value="PENDING">Pending</Option>
-          <Option value="PROCESSING">Processing</Option>
-          <Option value="SHIPPED">Shipped</Option>
-          <Option value="DELIVERED">Delivered</Option>
-          <Option value="CANCELLED">Cancelled</Option>
-        </Select>
+          options={[
+            { value: '', label: 'All Status' },
+            ...orderStatusOptions
+          ]}
+        />
       </div>
 
       <Table
@@ -172,4 +173,4 @@ const OrderList: React.FC = () => {
   );
 };
 
-export default OrderList; 
+export default OrderList;

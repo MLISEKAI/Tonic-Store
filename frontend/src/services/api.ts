@@ -388,3 +388,24 @@ export const setDefaultShippingAddress = async (token: string, id: number) => {
   });
   return handleResponse(response);
 };
+
+export const sendContactMessage = async (data: {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+}) => {
+  const response = await fetch(`${API_URL}/contact`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to send contact message');
+  }
+
+  return response.json();
+};

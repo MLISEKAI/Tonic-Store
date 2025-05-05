@@ -17,7 +17,7 @@ interface Category {
 const CACHE_KEY = 'products_cache';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-const Home = () => {
+const HomePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,42 +182,8 @@ const Home = () => {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* New Arrivals Section */}
-      <div className="py-12">
-        <div className="container mx-auto px-4">
-          <h2 className="text-center mb-12 text-3xl font-bold">Sản phẩm mới</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {newProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Most Viewed Products Section */}
-      <div className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-center mb-12 text-3xl font-bold">Sản phẩm được xem nhiều nhất</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {mostViewed.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* Best Sellers Section */}
-      <div className="py-12">
         <div className="container mx-auto px-4">
           <h2 className="text-center mb-12 text-3xl font-bold">Sản phẩm bán chạy</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -252,4 +218,4 @@ const Home = () => {
   );
 };
 
-export default Home; 
+export default HomePage; 

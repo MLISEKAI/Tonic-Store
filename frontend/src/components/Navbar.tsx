@@ -7,7 +7,8 @@ import {
   Badge,
   Dropdown,
   Avatar,
-  notification
+  notification,
+  Popover
 } from 'antd';
 import {
   MenuOutlined,
@@ -15,19 +16,21 @@ import {
   ShoppingCartOutlined,
   UserOutlined,
   HeartOutlined,
-  LogoutOutlined
+  LogoutOutlined,
+  DeleteOutlined
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useAuth } from '../contexts/AuthContext';
 import * as api from '../services/api';
 import { useCart } from '../contexts/CartContext';
+import { formatPrice } from '../utils/format';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const { isAuthenticated, token, logout } = useAuth();
-  const { totalItems } = useCart();
+  const { cart, totalItems, removeFromCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -43,7 +46,7 @@ const Navbar = () => {
     {
       key: 'profile',
       label: (
-        <Link to="/profile" className="flex items-center">
+        <Link to="/user/profile" className="flex items-center">
           <UserOutlined className="mr-2" />
           Hồ sơ
         </Link>
@@ -52,7 +55,7 @@ const Navbar = () => {
     {
       key: 'orders',
       label: (
-        <Link to="/orders" className="flex items-center">
+        <Link to="/user/orders" className="flex items-center">
           <ShoppingCartOutlined className="mr-2" />
           Đơn hàng của tôi
         </Link>
@@ -76,7 +79,6 @@ const Navbar = () => {
           Đăng xuất
         </span>
       ),
-      danger: true
     }
   ];
 
@@ -100,10 +102,53 @@ const Navbar = () => {
     }
   };
 
+  const cartContent = (
+    <div className="w-80 max-h-96 overflow-y-auto">
+      {cart.items.length === 0 ? (
+        <div className="p-4 text-center text-gray-500">
+          Giỏ hàng trống
+        </div>
+      ) : (
+        <div className="divide-y">
+          {cart.items.map((item) => (
+            <div key={item.id} className="p-4 flex items-center space-x-4">
+              <img
+                src={item.product.imageUrl || 'https://via.placeholder.com/50'}
+                alt={item.product.name}
+                className="w-12 h-12 object-cover rounded"
+              />
+              <div className="flex-1">
+                <div className="font-medium">{item.product.name}</div>
+                <div className="text-gray-500">
+                  {formatPrice(item.product.price)} x {item.quantity}
+                </div>
+              </div>
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => removeFromCart(item.id)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+      {cart.items.length > 0 && (
+        <div className="p-4 border-t">
+          <Button
+            type="primary"
+            block
+            onClick={() => navigate('/cart')}
+          >
+            Xem giỏ hàng
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <nav
-      className={`sticky top-0 z-50 transition-all duration-300 bg-white shadow-md`}
-    >
+    <nav className="sticky top-0 z-50 transition-all duration-300 bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 w-full overflow-visible">
           {/* Logo */}
@@ -151,15 +196,21 @@ const Navbar = () => {
                       icon={<HeartOutlined className="text-xl" />}
                     />
                   </Link>
-                  <Link to="/cart">
-                    <Badge count={totalItems} size="small" offset={[-2, 2]}>
-                      <Button
-                        type="text"
-                        className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
-                        icon={<ShoppingCartOutlined className="text-xl" />}
-                      />
-                    </Badge>
-                  </Link>
+                  <Popover
+                    content={cartContent}
+                    trigger="hover"
+                    placement="bottomRight"
+                  >
+                    <Link to="/cart">
+                      <Badge count={totalItems} size="small" offset={[-2, 2]}>
+                        <Button
+                          type="text"
+                          className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
+                          icon={<ShoppingCartOutlined className="text-xl" />}
+                        />
+                      </Badge>
+                    </Link>
+                  </Popover>
                   <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                     <Button
                       type="text"
@@ -196,58 +247,20 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         <div
-          className={`md:hidden transition-all duration-500 transform origin-top ${isMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'
-            }`}
+          className={`md:hidden transition-all duration-500 transform origin-top ${
+            isMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'
+          }`}
         >
-          <div className="py-4">
-            <Input
-              placeholder="Tìm kiếm sản phẩm..."
-              prefix={<SearchOutlined className={`text-gray-400 ${isSearching ? 'animate-spin' : ''}`} />}
-              className="w-full px-4 py-1.5 rounded-full border border-gray-300 hover:border-blue-500 focus:border-blue-500 transition-all"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={handleSearch}
-              disabled={isSearching}
-            />
-          </div>
           <Menu
-            mode="vertical"
             selectedKeys={[selectedKey]}
-            className="border-0 bg-transparent"
+            mode="vertical"
+            className="border-t"
           >
             {menuItems.map((item) => (
-              <Menu.Item key={item.key} className="!px-4">
-                <Link
-                  to={item.path}
-                  className={`text-gray-600 font-semibold hover:text-blue-600 transition-colors${selectedKey === item.key
-                      ? 'text-blue-600'
-                      : ''
-                    }`}
-                >
-                  {item.label}
-                </Link>
+              <Menu.Item key={item.key}>
+                <Link to={item.path}>{item.label}</Link>
               </Menu.Item>
             ))}
-            {!isAuthenticated && (
-              <>
-                <Menu.Item key="login" className="!px-4">
-                  <Link
-                    to="/login"
-                    className="text-gray-600 font-semibold hover:text-blue-600 transition-colors"
-                  >
-                    Đăng nhập
-                  </Link>
-                </Menu.Item>
-                <Menu.Item key="register" className="!px-4">
-                  <Link
-                    to="/register"
-                    className="text-gray-600 font-semibold hover:text-blue-600 transition-colors"
-                  >
-                    Đăng ký
-                  </Link>
-                </Menu.Item>
-              </>
-            )}
           </Menu>
         </div>
       </div>
