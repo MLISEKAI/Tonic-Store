@@ -21,7 +21,7 @@ const OrderList: FC<OrderListProps> = ({ orders, onCancel }) => {
         <div
           key={order.id}
           className="bg-white shadow overflow-hidden sm:rounded-lg cursor-pointer hover:bg-gray-100 transition"
-          onClick={() => navigate(`/orders/${order.id}`)}
+          onClick={() => navigate(`/user/orders/${order.id}`)}
         >
           <div className="px-4 py-5 sm:px-6">
             <h3 className="text-lg leading-6 font-medium text-gray-900">Đơn hàng #{order.id}</h3>

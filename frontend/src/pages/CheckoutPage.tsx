@@ -124,7 +124,7 @@ const CheckoutPage: React.FC = () => {
       // Nếu là COD, điều hướng đến trang chi tiết đơn hàng
       if (values.paymentMethod === PaymentMethod.COD) {
         clearCart();
-        navigate(`/orders/${data.order.id}`);
+        navigate(`/user/orders/${data.order.id}`);
       } else if (values.paymentMethod === PaymentMethod.VN_PAY) {
         // Xử lý thanh toán VNPay
         if (data.paymentUrl) {
