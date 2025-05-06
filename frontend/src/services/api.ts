@@ -409,3 +409,20 @@ export const sendContactMessage = async (data: {
 
   return response.json();
 };
+
+export const updatePaymentStatus = async (token: string, orderId: string, status: string) => {
+  const response = await fetch(`${API_URL}/orders/${orderId}/payment`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ status })
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update payment status');
+  }
+
+  return response.json();
+};

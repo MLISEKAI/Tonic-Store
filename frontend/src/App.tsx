@@ -17,6 +17,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ContactPage from './pages/ContactPage';
+import FeaturedProducts from './pages/FeaturedProducts';
+import BestSellingProducts from './pages/BestSellingProducts';
 
 const App = () => {
   return (
@@ -41,6 +43,8 @@ const App = () => {
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/featured-products" element={<FeaturedProducts />} />
+                <Route path="/best-selling" element={<BestSellingProducts />} />
               </Routes>
             </main>
             <Footer />
