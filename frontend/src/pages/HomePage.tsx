@@ -1,11 +1,16 @@
 import { Button, notification, Carousel, Spin } from 'antd';
-import { ArrowRightOutlined, StarOutlined, EyeOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined, RightOutlined, StarOutlined, EyeOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { getProducts, getCategories } from '../services/api';
 import { Product } from '../types';
 import { useCart } from '../contexts/CartContext';
 import ProductCard from '../components/ProductCard';
+import TopBar from '../components/home/TopBar';
+import FlashSale from '../components/home/FlashSale';
+import WhyChooseUs from '../components/home/WhyChooseUs';
+import CustomerReviews from '../components/home/CustomerReviews';
+import LiveChat from '../components/home/LiveChat';
 
 interface Category {
   id: number;
@@ -150,28 +155,73 @@ const HomePage = () => {
     .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
     .slice(0, 4);
 
+  const bannerItems = [
+    {
+      id: 1,
+      image: 'https://via.placeholder.com/1920x600/2563eb/ffffff?text=Khuyến+Mãi+Hè',
+      title: 'Khuyến Mãi Hè',
+      description: 'Giảm giá lên đến 50% cho các sản phẩm được chọn'
+    },
+    {
+      id: 2,
+      image: 'https://via.placeholder.com/1920x600/059669/ffffff?text=Sản+Phẩm+Mới',
+      title: 'Sản Phẩm Mới',
+      description: 'Khám phá ngay những sản phẩm mới nhất'
+    },
+    {
+      id: 3,
+      image: 'https://via.placeholder.com/1920x600/dc2626/ffffff?text=Flash+Sale',
+      title: 'Flash Sale',
+      description: 'Chớp cơ hội mua sắm với giá sốc'
+    }
+  ];
+
   return (
     <div>
-      {/* Hero Section */}
-      <div className="bg-blue-600 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">Chào mừng đến với Tonic Store</h1>
-          <p className="text-xl mb-8">Khám phá những sản phẩm tuyệt vời với giá cả phải chăng</p>
-          <Button 
-            type="primary" 
-            size="large" 
-            className="bg-white text-blue-600"
-            onClick={() => navigate('/products')}
-          >
-            Mua sắm ngay <ArrowRightOutlined />
-          </Button>
-        </div>
-      </div>
+      <TopBar />
+      <LiveChat />
 
-      {/* Featured Products Section */}
+      {/* Banner Carousel */}
+      <Carousel autoplay className="mb-8">
+        {bannerItems.map((item) => (
+          <div key={item.id}>
+            <div
+              className="relative h-[400px] md:h-[600px] bg-cover bg-center"
+              style={{ backgroundImage: `url(${item.image})` }}
+            >
+              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center">
+                <div className="container mx-auto px-4 text-white">
+                  <h2 className="text-4xl md:text-6xl font-bold mb-4">{item.title}</h2>
+                  <p className="text-xl md:text-2xl mb-8">{item.description}</p>
+                  <Button 
+                    type="primary" 
+                    size="large"
+                    onClick={() => navigate('/products')}
+                  >
+                    Mua sắm ngay <ArrowRightOutlined />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </Carousel>
+
+      {/* Flash Sale Section */}
+      <FlashSale />
+
+      {/* Sản phẩm nổi bật */}
       <div className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-center mb-12 text-3xl font-bold">Sản phẩm nổi bật</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold">Sản phẩm nổi bật</h2>
+            <Link
+              to="/featured-products"
+              className="text-blue-500 flex items-center"
+            >
+              Xem tất cả <RightOutlined className="text-xs ml-1"/>
+            </Link>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (
               <ProductCard
@@ -182,10 +232,20 @@ const HomePage = () => {
             ))}
           </div>
         </div>
+      </div>
 
-      {/* Best Sellers Section */}
+      {/* Sản phẩm bán chạy */}
+      <div className="py-12 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-center mb-12 text-3xl font-bold">Sản phẩm bán chạy</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold">Sản phẩm bán chạy</h2>
+              <Link
+                to="/best-selling"
+                className="text-blue-500 flex items-center"
+              >
+                Xem tất cả <RightOutlined className="text-xs ml-1"/>
+              </Link>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {bestSellers.map((product) => (
               <ProductCard
@@ -198,22 +258,11 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Special Offers Banner */}
-      <div className="py-12 bg-blue-50">
-        <div className="container mx-auto px-4">
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <h2 className="text-3xl font-bold mb-4">Khuyến mãi đặc biệt</h2>
-            <p className="text-xl mb-6">Giảm giá lên đến 50% cho các sản phẩm được chọn</p>
-            <Button 
-              type="primary" 
-              size="large"
-              onClick={() => navigate('/products')}
-            >
-              Xem ngay <ArrowRightOutlined />
-            </Button>
-          </div>
-        </div>
-      </div>
+      {/* Tại sao chúng tôi chọn*/}
+      <WhyChooseUs />
+
+      {/* Khách hàng đánh giá*/}
+      <CustomerReviews />
     </div>
   );
 };

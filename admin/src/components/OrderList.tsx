@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Select, message, Spin } from 'antd';
+import { Table, Button, Select, message, Spin, Modal, Input } from 'antd';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import OrderService, { Order, OrderResponse } from '../services/orderService';
 
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
 
 const orderStatusOptions = [
   { value: 'PENDING', label: 'Pending' },
@@ -17,7 +17,7 @@ const orderStatusOptions = [
 
 const paymentStatusOptions = [
   { value: 'PENDING', label: 'Pending' },
-  { value: 'PAID', label: 'Paid' },
+  { value: 'COMPLETED', label: 'Completed' },
   { value: 'FAILED', label: 'Failed' },
   { value: 'REFUNDED', label: 'Refunded' },
 ];
@@ -29,6 +29,9 @@ const OrderList: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [status, setStatus] = useState<OrderStatus | ''>('');
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [transactionId, setTransactionId] = useState('');
 
   useEffect(() => {
     fetchOrders();
@@ -58,13 +61,32 @@ const OrderList: React.FC = () => {
     }
   };
 
-  const handlePaymentStatusChange = async (orderId: string, newStatus: PaymentStatus, transactionId?: string) => {
+  const handlePaymentStatusChange = async (orderId: string, newStatus: PaymentStatus) => {
+    if (newStatus === 'COMPLETED') {
+      setSelectedOrder(orders.find(order => order.id === orderId) || null);
+      setConfirmModalVisible(true);
+    } else {
+      try {
+        await OrderService.updatePaymentStatus(orderId, newStatus);
+        message.success('Payment status updated successfully');
+        fetchOrders();
+      } catch (err) {
+        message.error('Failed to update payment status');
+      }
+    }
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!selectedOrder) return;
+    
     try {
-      await OrderService.updatePaymentStatus(orderId, newStatus, transactionId);
-      message.success('Payment status updated successfully');
+      await OrderService.updatePaymentStatus(selectedOrder.id, 'COMPLETED', transactionId);
+      message.success('Payment confirmed successfully');
+      setConfirmModalVisible(false);
+      setTransactionId('');
       fetchOrders();
     } catch (err) {
-      message.error('Failed to update payment status');
+      message.error('Failed to confirm payment');
     }
   };
 
@@ -97,7 +119,25 @@ const OrderList: React.FC = () => {
       ),
     },
     {
-      title: 'Status',
+      title: 'Payment Method',
+      dataIndex: ['payment', 'method'],
+      key: 'paymentMethod',
+    },
+    {
+      title: 'Payment Status',
+      dataIndex: ['payment', 'status'],
+      key: 'paymentStatus',
+      render: (status: PaymentStatus, record: Order) => (
+        <Select<PaymentStatus>
+          value={status}
+          onChange={(value: PaymentStatus) => handlePaymentStatusChange(record.id, value)}
+          style={{ width: 120 }}
+          options={paymentStatusOptions}
+        />
+      ),
+    },
+    {
+      title: 'Order Status',
       dataIndex: 'status',
       key: 'status',
       render: (status: OrderStatus, record: Order) => (
@@ -106,19 +146,6 @@ const OrderList: React.FC = () => {
           onChange={(value: OrderStatus) => handleStatusChange(record.id, value)}
           style={{ width: 120 }}
           options={orderStatusOptions}
-        />
-      ),
-    },
-    {
-      title: 'Payment Status',
-      dataIndex: 'paymentStatus',
-      key: 'paymentStatus',
-      render: (status: PaymentStatus, record: Order) => (
-        <Select<PaymentStatus>
-          value={status}
-          onChange={(value: PaymentStatus) => handlePaymentStatusChange(record.id, value)}
-          style={{ width: 120 }}
-          options={paymentStatusOptions}
         />
       ),
     },
@@ -169,6 +196,30 @@ const OrderList: React.FC = () => {
           onChange: (page: number) => setPage(page),
         }}
       />
+
+      <Modal
+        title="Xác nhận thanh toán"
+        open={confirmModalVisible}
+        onOk={handleConfirmPayment}
+        onCancel={() => {
+          setConfirmModalVisible(false);
+          setTransactionId('');
+        }}
+        okText="Xác nhận"
+        cancelText="Hủy"
+      >
+        <div className="space-y-4">
+          <p>Bạn có chắc chắn muốn xác nhận thanh toán cho đơn hàng #{selectedOrder?.id}?</p>
+          <div>
+            <p className="mb-2">Mã giao dịch (nếu có):</p>
+            <Input
+              value={transactionId}
+              onChange={(e) => setTransactionId(e.target.value)}
+              placeholder="Nhập mã giao dịch"
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

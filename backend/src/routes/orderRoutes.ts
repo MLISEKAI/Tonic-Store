@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
-import { createOrder, getOrder, updateOrderStatus, getAllOrders, cancelOrder } from '../services/orderservice';
+import { createOrder, getOrder, updateOrderStatus, getAllOrders, cancelOrder } from '../services/orderService';
 import { createPayment, updatePaymentStatus } from '../services/paymentService';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
 import { PaymentMethod, PaymentStatus, PrismaClient } from '@prisma/client';
@@ -35,6 +35,22 @@ router.patch('/:id/status', authenticate, async (req: Request, res: Response) =>
   } catch (error) {
     console.error('Error updating order status:', error);
     res.status(500).json({ error: 'Failed to update order status' });
+  }
+});
+
+// Update payment status (admin only)
+router.patch('/:id/payment', authenticate, async (req: Request, res: Response) => {
+  try {
+    if (req.user!.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const { status, transactionId } = req.body;
+    const payment = await updatePaymentStatus(Number(req.params.id), status, transactionId);
+    res.json(payment);
+  } catch (error) {
+    console.error('Error updating payment status:', error);
+    res.status(500).json({ error: 'Failed to update payment status' });
   }
 });
 

@@ -3,7 +3,8 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { formatPrice, formatDate } from '../../utils/format';
 import * as api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { message } from 'antd';
+import { message, Button, Modal } from 'antd';
+import { CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
 
 interface OrderItem {
   id: number;
@@ -153,6 +154,32 @@ const OrderDetailPage: React.FC = () => {
     verifyPayment();
   }, [searchParams, token]);
 
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case 'COMPLETED':
+        return 'text-green-600';
+      case 'FAILED':
+        return 'text-red-600';
+      case 'REFUNDED':
+        return 'text-orange-600';
+      default:
+        return 'text-yellow-600';
+    }
+  };
+
+  const getPaymentStatusIcon = (status: string) => {
+    switch (status) {
+      case 'COMPLETED':
+        return <CheckCircleOutlined className="text-green-600" />;
+      case 'FAILED':
+        return <CloseCircleOutlined className="text-red-600" />;
+      case 'REFUNDED':
+        return <CloseCircleOutlined className="text-orange-600" />;
+      default:
+        return <ClockCircleOutlined className="text-yellow-600" />;
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
   if (!order) return <div>Không tìm thấy đơn hàng</div>;
@@ -172,12 +199,23 @@ const OrderDetailPage: React.FC = () => {
               {order.payment && (
                 <>
                   <p><span className="font-medium">Phương thức thanh toán:</span> {order.payment.method}</p>
-                  <p><span className="font-medium">Trạng thái thanh toán:</span> {order.payment.status}</p>
+                  <p className="flex items-center gap-2">
+                    <span className="font-medium">Trạng thái thanh toán:</span>
+                    <span className={getPaymentStatusColor(order.payment.status)}>
+                      {getPaymentStatusIcon(order.payment.status)}
+                      {order.payment.status}
+                    </span>
+                  </p>
                   {order.payment.transactionId && (
                     <p><span className="font-medium">Mã giao dịch:</span> {order.payment.transactionId}</p>
                   )}
                   {order.payment.paymentDate && (
                     <p><span className="font-medium">Ngày thanh toán:</span> {formatDate(order.payment.paymentDate)}</p>
+                  )}
+                  {order.payment.status === 'PENDING' && (
+                    <p className="text-yellow-600 mt-2">
+                      Đơn hàng đang chờ xác nhận thanh toán từ admin
+                    </p>
                   )}
                 </>
               )}
