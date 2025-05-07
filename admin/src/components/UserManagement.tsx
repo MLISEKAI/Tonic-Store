@@ -1,43 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  IconButton,
-  Checkbox,
-  FormControlLabel,
+  Table,
+  Modal,
+  Form,
+  Input,
   Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+  Checkbox,
+  Space,
+  Card,
+  Typography,
+} from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { userService, User, CreateUserData, UpdateUserData } from '../services/userService';
+
+const { Title } = Typography;
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [openDialog, setOpenDialog] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [changePassword, setChangePassword] = useState(false);
-  const [formData, setFormData] = useState<CreateUserData>({
-    name: '',
-    email: '',
-    password: '',
-    role: 'CUSTOMER',
-    phone: '',
-    address: '',
-  });
+  const [form] = Form.useForm();
 
   useEffect(() => {
     fetchUsers();
@@ -52,10 +36,10 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  const handleOpenDialog = (user?: User) => {
+  const showModal = (user?: User) => {
     if (user) {
       setSelectedUser(user);
-      setFormData({
+      form.setFieldsValue({
         name: user.name,
         email: user.email,
         password: '',
@@ -66,46 +50,41 @@ const UserManagement: React.FC = () => {
       setChangePassword(false);
     } else {
       setSelectedUser(null);
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        role: 'CUSTOMER',
-        phone: '',
-        address: '',
-      });
+      form.resetFields();
       setChangePassword(true);
     }
-    setOpenDialog(true);
+    setIsModalVisible(true);
   };
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    form.resetFields();
   };
 
   const handleSubmit = async () => {
     try {
+      const values = await form.validateFields();
       if (selectedUser) {
         // Update user info
         const updateData: UpdateUserData = {
-          name: formData.name,
-          email: formData.email,
-          role: formData.role,
-          phone: formData.phone,
-          address: formData.address,
+          name: values.name,
+          email: values.email,
+          role: values.role,
+          phone: values.phone,
+          address: values.address,
         };
         
         await userService.updateUser(selectedUser.id, updateData);
         
         // If password change is requested
-        if (changePassword && formData.password) {
-          await userService.changeUserPassword(selectedUser.id, formData.password);
+        if (changePassword && values.password) {
+          await userService.changeUserPassword(selectedUser.id, values.password);
         }
       } else {
-        await userService.createUser(formData);
+        await userService.createUser(values);
       }
       fetchUsers();
-      handleCloseDialog();
+      handleCancel();
     } catch (error) {
       console.error('Error saving user:', error);
     }
@@ -120,122 +99,150 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+    },
+    {
+      title: 'Role',
+      dataIndex: 'role',
+      key: 'role',
+    },
+    {
+      title: 'Phone',
+      dataIndex: 'phone',
+      key: 'phone',
+      render: (phone: string) => phone || '-',
+    },
+    {
+      title: 'Address',
+      dataIndex: 'address',
+      key: 'address',
+      render: (address: string) => address || '-',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: User) => (
+        <Space>
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => showModal(record)}
+          />
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record.id)}
+          />
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button variant="contained" onClick={() => handleOpenDialog()}>
+    <Card>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+        <Title level={2}>User Management</Title>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => showModal()}
+        >
           Add User
         </Button>
-      </Box>
+      </div>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Role</TableCell>
-              <TableCell>Phone</TableCell>
-              <TableCell>Address</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.role}</TableCell>
-                <TableCell>{user.phone || '-'}</TableCell>
-                <TableCell>{user.address || '-'}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleOpenDialog(user)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(user.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Table
+        columns={columns}
+        dataSource={users}
+        rowKey="id"
+      />
 
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>{selectedUser ? 'Edit User' : 'Add User'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
+      <Modal
+        title={selectedUser ? 'Edit User' : 'Add User'}
+        open={isModalVisible}
+        onCancel={handleCancel}
+        onOk={handleSubmit}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+        >
+          <Form.Item
+            name="name"
             label="Name"
-            fullWidth
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="email"
             label="Email"
-            type="email"
-            fullWidth
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
+            rules={[
+              { required: true },
+              { type: 'email' }
+            ]}
+          >
+            <Input />
+          </Form.Item>
+
           {selectedUser && (
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={changePassword}
-                  onChange={(e) => setChangePassword(e.target.checked)}
-                />
-              }
-              label="Change Password"
-            />
+            <Form.Item>
+              <Checkbox
+                checked={changePassword}
+                onChange={(e) => setChangePassword(e.target.checked)}
+              >
+                Change Password
+              </Checkbox>
+            </Form.Item>
           )}
+
           {(changePassword || !selectedUser) && (
-            <TextField
-              margin="dense"
+            <Form.Item
+              name="password"
               label="Password"
-              type="password"
-              fullWidth
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            />
-          )}
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Role</InputLabel>
-            <Select
-              value={formData.role}
-              label="Role"
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              rules={[{ required: !selectedUser }]}
             >
-              <MenuItem value="CUSTOMER">Customer</MenuItem>
-              <MenuItem value="ADMIN">Admin</MenuItem>
+              <Input.Password />
+            </Form.Item>
+          )}
+
+          <Form.Item
+            name="role"
+            label="Role"
+            rules={[{ required: true }]}
+          >
+            <Select>
+              <Select.Option value="CUSTOMER">Customer</Select.Option>
+              <Select.Option value="ADMIN">Admin</Select.Option>
             </Select>
-          </FormControl>
-          <TextField
-            margin="dense"
+          </Form.Item>
+
+          <Form.Item
+            name="phone"
             label="Phone"
-            fullWidth
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="address"
             label="Address"
-            fullWidth
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {selectedUser ? 'Update' : 'Add'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          >
+            <Input.TextArea rows={4} />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </Card>
   );
 };
 

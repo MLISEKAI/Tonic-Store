@@ -1,56 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  IconButton,
-  FormControl,
-  InputLabel,
+  Table,
+  Modal,
+  Form,
+  Input,
+  InputNumber,
   Select,
-  MenuItem,
-  FormControlLabel,
   Checkbox,
-} from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+  Space,
+  Card,
+  Typography,
+} from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { productService, Product, CreateProductData, UpdateProductData } from '../services/productService';
+
+const { Title } = Typography;
+const { TextArea } = Input;
 
 const ProductManagement: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [openDialog, setOpenDialog] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState<CreateProductData>({
-    name: '',
-    description: '',
-    price: 0,
-    stock: 0,
-    imageUrl: '',
-    categoryId: 0,
-    sku: '',
-    barcode: '',
-    weight: 0,
-    dimensions: '',
-    material: '',
-    origin: '',
-    warranty: '',
-    status: 'ACTIVE',
-    seoTitle: '',
-    seoDescription: '',
-    seoUrl: '',
-    isFeatured: false,
-    isNew: false,
-    isBestSeller: false,
-  });
+  const [form] = Form.useForm();
 
   useEffect(() => {
     fetchProducts();
@@ -60,7 +32,6 @@ const ProductManagement: React.FC = () => {
     try {
       const data = await productService.getAllProducts();
       console.log('Raw data from API:', data);
-      // Ensure data is an array and has the correct structure
       const formattedProducts = Array.isArray(data) ? data.map(product => {
         console.log('Processing product:', product);
         return {
@@ -85,10 +56,10 @@ const ProductManagement: React.FC = () => {
     }
   };
 
-  const handleOpenDialog = (product?: Product) => {
+  const showModal = (product?: Product) => {
     if (product) {
       setSelectedProduct(product);
-      setFormData({
+      form.setFieldsValue({
         name: product.name,
         description: product.description,
         price: product.price,
@@ -112,45 +83,26 @@ const ProductManagement: React.FC = () => {
       });
     } else {
       setSelectedProduct(null);
-      setFormData({
-        name: '',
-        description: '',
-        price: 0,
-        stock: 0,
-        imageUrl: '',
-        categoryId: 0,
-        sku: '',
-        barcode: '',
-        weight: 0,
-        dimensions: '',
-        material: '',
-        origin: '',
-        warranty: '',
-        status: 'ACTIVE',
-        seoTitle: '',
-        seoDescription: '',
-        seoUrl: '',
-        isFeatured: false,
-        isNew: false,
-        isBestSeller: false,
-      });
+      form.resetFields();
     }
-    setOpenDialog(true);
+    setIsModalVisible(true);
   };
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    form.resetFields();
   };
 
   const handleSubmit = async () => {
     try {
+      const values = await form.validateFields();
       if (selectedProduct) {
-        await productService.updateProduct(selectedProduct.id, formData);
+        await productService.updateProduct(selectedProduct.id, values);
       } else {
-        await productService.createProduct(formData);
+        await productService.createProduct(values);
       }
       fetchProducts();
-      handleCloseDialog();
+      handleCancel();
     } catch (error) {
       console.error('Error saving product:', error);
     }
@@ -165,233 +117,281 @@ const ProductManagement: React.FC = () => {
     }
   };
 
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'SKU',
+      dataIndex: 'sku',
+      key: 'sku',
+    },
+    {
+      title: 'Price',
+      dataIndex: 'price',
+      key: 'price',
+    },
+    {
+      title: 'Stock',
+      dataIndex: 'stock',
+      key: 'stock',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+    },
+    {
+      title: 'Category',
+      dataIndex: ['category', 'name'],
+      key: 'category',
+    },
+    {
+      title: 'Featured',
+      dataIndex: 'isFeatured',
+      key: 'isFeatured',
+      render: (isFeatured: boolean) => isFeatured ? 'Yes' : 'No',
+    },
+    {
+      title: 'New',
+      dataIndex: 'isNew',
+      key: 'isNew',
+      render: (isNew: boolean) => isNew ? 'Yes' : 'No',
+    },
+    {
+      title: 'Best Seller',
+      dataIndex: 'isBestSeller',
+      key: 'isBestSeller',
+      render: (isBestSeller: boolean) => isBestSeller ? 'Yes' : 'No',
+    },
+    {
+      title: 'Views',
+      dataIndex: 'viewCount',
+      key: 'viewCount',
+    },
+    {
+      title: 'Sold',
+      dataIndex: 'soldCount',
+      key: 'soldCount',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: Product) => (
+        <Space>
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => showModal(record)}
+          />
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record.id)}
+          />
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button variant="contained" onClick={() => handleOpenDialog()}>
+    <Card>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+        <Title level={2}>Product Management</Title>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => showModal()}
+        >
           Add Product
         </Button>
-      </Box>
+      </div>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>SKU</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Stock</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Featured</TableCell>
-              <TableCell>New</TableCell>
-              <TableCell>Best Seller</TableCell>
-              <TableCell>Views</TableCell>
-              <TableCell>Sold</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {products.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell>{String(product.name)}</TableCell>
-                <TableCell>{String(product.sku || '-')}</TableCell>
-                <TableCell>{String(Number(product.price))}</TableCell>
-                <TableCell>{String(product.stock)}</TableCell>
-                <TableCell>{String(product.status || 'ACTIVE')}</TableCell>
-                <TableCell>{product.category.name}</TableCell>
-                <TableCell>{product.isFeatured ? 'Yes' : 'No'}</TableCell>
-                <TableCell>{product.isNew ? 'Yes' : 'No'}</TableCell>
-                <TableCell>{product.isBestSeller ? 'Yes' : 'No'}</TableCell>
-                <TableCell>{String(product.viewCount || 0)}</TableCell>
-                <TableCell>{String(product.soldCount || 0)}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleOpenDialog(product)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(product.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Table
+        columns={columns}
+        dataSource={products}
+        rowKey="id"
+      />
 
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>{selectedProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
+      <Modal
+        title={selectedProduct ? 'Edit Product' : 'Add Product'}
+        open={isModalVisible}
+        onCancel={handleCancel}
+        onOk={handleSubmit}
+        width={800}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+        >
+          <Form.Item
+            name="name"
             label="Name"
-            fullWidth
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="description"
             label="Description"
-            fullWidth
-            multiline
-            rows={4}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+          >
+            <TextArea rows={4} />
+          </Form.Item>
+
+          <Form.Item
+            name="price"
             label="Price"
-            type="number"
-            fullWidth
-            value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-          />
-          <TextField
-            margin="dense"
+            rules={[{ required: true }]}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0}
+              precision={2}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="stock"
             label="Stock"
-            type="number"
-            fullWidth
-            value={formData.stock}
-            onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
-          />
-          <TextField
-            margin="dense"
+            rules={[{ required: true }]}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="imageUrl"
             label="Image URL"
-            fullWidth
-            value={formData.imageUrl}
-            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="categoryId"
             label="Category ID"
-            type="number"
-            fullWidth
-            value={formData.categoryId}
-            onChange={(e) => setFormData({ ...formData, categoryId: Number(e.target.value) })}
-          />
-          <TextField
-            margin="dense"
+            rules={[{ required: true }]}
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              min={1}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="sku"
             label="SKU"
-            fullWidth
-            value={formData.sku}
-            onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="barcode"
             label="Barcode"
-            fullWidth
-            value={formData.barcode}
-            onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="weight"
             label="Weight (kg)"
-            type="number"
-            fullWidth
-            value={formData.weight}
-            onChange={(e) => setFormData({ ...formData, weight: Number(e.target.value) })}
-          />
-          <TextField
-            margin="dense"
+          >
+            <InputNumber
+              style={{ width: '100%' }}
+              min={0}
+              precision={2}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="dimensions"
             label="Dimensions"
-            fullWidth
-            value={formData.dimensions}
-            onChange={(e) => setFormData({ ...formData, dimensions: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="material"
             label="Material"
-            fullWidth
-            value={formData.material}
-            onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="origin"
             label="Origin"
-            fullWidth
-            value={formData.origin}
-            onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="warranty"
             label="Warranty"
-            fullWidth
-            value={formData.warranty}
-            onChange={(e) => setFormData({ ...formData, warranty: e.target.value })}
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={formData.status}
-              label="Status"
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            >
-              <MenuItem value="ACTIVE">Active</MenuItem>
-              <MenuItem value="INACTIVE">Inactive</MenuItem>
-              <MenuItem value="OUT_OF_STOCK">Out of Stock</MenuItem>
-              <MenuItem value="COMING_SOON">Coming Soon</MenuItem>
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true }]}
+          >
+            <Select>
+              <Select.Option value="ACTIVE">Active</Select.Option>
+              <Select.Option value="INACTIVE">Inactive</Select.Option>
+              <Select.Option value="OUT_OF_STOCK">Out of Stock</Select.Option>
+              <Select.Option value="COMING_SOON">Coming Soon</Select.Option>
             </Select>
-          </FormControl>
-          <TextField
-            margin="dense"
+          </Form.Item>
+
+          <Form.Item
+            name="seoTitle"
             label="SEO Title"
-            fullWidth
-            value={formData.seoTitle}
-            onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="seoDescription"
             label="SEO Description"
-            fullWidth
-            multiline
-            rows={2}
-            value={formData.seoDescription}
-            onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
-          />
-          <TextField
-            margin="dense"
+          >
+            <TextArea rows={2} />
+          </Form.Item>
+
+          <Form.Item
+            name="seoUrl"
             label="SEO URL"
-            fullWidth
-            value={formData.seoUrl}
-            onChange={(e) => setFormData({ ...formData, seoUrl: e.target.value })}
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formData.isFeatured}
-                onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-              />
-            }
-            label="Featured Product"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formData.isNew}
-                onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
-              />
-            }
-            label="New Product"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formData.isBestSeller}
-                onChange={(e) => setFormData({ ...formData, isBestSeller: e.target.checked })}
-              />
-            }
-            label="Best Seller"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {selectedProduct ? 'Update' : 'Add'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="isFeatured"
+            valuePropName="checked"
+          >
+            <Checkbox>Featured Product</Checkbox>
+          </Form.Item>
+
+          <Form.Item
+            name="isNew"
+            valuePropName="checked"
+          >
+            <Checkbox>New Product</Checkbox>
+          </Form.Item>
+
+          <Form.Item
+            name="isBestSeller"
+            valuePropName="checked"
+          >
+            <Checkbox>Best Seller</Checkbox>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </Card>
   );
 };
 

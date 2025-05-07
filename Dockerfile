@@ -5,15 +5,22 @@ ENV NPM_CONFIG_PRODUCTION=false
 
 WORKDIR /app
 
+# Copy package files
 COPY package.json yarn.lock ./
-COPY . .
+COPY frontend/package.json ./frontend/
+COPY backend/package.json ./backend/
 
-# Cài đặt deps
+# Install dependencies
 RUN yarn install
 
-# Build toàn bộ project (frontend + backend)
-RUN yarn run build
-RUN yarn run build:back
+# Copy source code
+COPY . .
+
+# Build frontend
+RUN cd frontend && yarn build
+
+# Build backend
+RUN cd backend && yarn build
 
 # Start server
 CMD ["yarn", "prd:serve"]

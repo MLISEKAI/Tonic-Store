@@ -4,7 +4,7 @@ export interface Order {
     id: string;
     userId: string;
     status: string;
-    totalAmount: number;
+    totalPrice: number;
     createdAt: string;
     updatedAt: string;
     user: {
@@ -12,6 +12,7 @@ export interface Order {
         email: string;
     };
     items: {
+        id: string;
         productId: string;
         quantity: number;
         price: number;
@@ -20,6 +21,12 @@ export interface Order {
             image: string;
         };
     }[];
+    payment?: {
+        method: string;
+        status: string;
+        transactionId?: string;
+        paymentDate?: string;
+    };
 }
 
 export interface OrderResponse {
@@ -66,6 +73,18 @@ class OrderService {
         return response.json();
     }
 
+    async getOrder(id: string): Promise<Order> {
+        const response = await fetch(`${API_URL}/orders/${id}`, {
+            headers: this.getHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch order');
+        }
+
+        return response.json();
+    }
+
     async updateOrderStatus(orderId: string, status: string): Promise<void> {
         const response = await fetch(`${API_URL}/orders/${orderId}/status`, {
             method: 'PATCH',
@@ -91,4 +110,4 @@ class OrderService {
     }
 }
 
-export default OrderService.getInstance(); 
+export default OrderService.getInstance();

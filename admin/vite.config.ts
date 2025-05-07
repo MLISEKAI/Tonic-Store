@@ -10,6 +10,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['antd', '@ant-design/icons'],
+  },
   server: {
     port: 3001,
     host: true,
