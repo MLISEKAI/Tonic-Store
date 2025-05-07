@@ -4,10 +4,19 @@ import * as shippingAddressService from '../services/shippingAddressService';
 export const getShippingAddresses = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
+    const userRole = req.user?.role;
+    
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    // Nếu là admin, lấy tất cả địa chỉ
+    if (userRole === 'ADMIN') {
+      const addresses = await shippingAddressService.getAllShippingAddresses();
+      return res.json(addresses);
+    }
+
+    // Nếu là user thường, chỉ lấy địa chỉ của họ
     const addresses = await shippingAddressService.getShippingAddresses(userId);
     res.json(addresses);
   } catch (error) {

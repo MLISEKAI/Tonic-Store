@@ -2,6 +2,24 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+export const getAllShippingAddresses = async () => {
+  return prisma.shippingAddress.findMany({
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true
+        }
+      }
+    },
+    orderBy: [
+      { isDefault: 'desc' },
+      { createdAt: 'desc' }
+    ]
+  });
+};
+
 export const getShippingAddresses = async (userId: number) => {
   return prisma.shippingAddress.findMany({
     where: { userId },

@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Tabs, Button, message } from 'antd';
+import { Tabs, Button, notification } from 'antd';
 import { Order, OrderStatus } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import * as api from '../../services/api';
@@ -31,7 +31,12 @@ export const OrdersPage: FC = () => {
   
       const data = await response.json();
       if (data.success) {
-        message.success('Đơn hàng đã được hủy thành công');
+        notification.success({
+          message: 'Thành công',
+          description: 'Đơn hàng đã được hủy thành công',
+          placement: 'topRight',
+          duration: 2,
+        });
         setOrders((prevOrders) =>
           prevOrders.map((order) =>
             order.id === orderId ? { ...order, status: OrderStatus.CANCELLED } : order
@@ -42,7 +47,12 @@ export const OrdersPage: FC = () => {
       }
     } catch (error: any) {
       console.error('Error canceling order:', error);
-      message.error(error.message || 'Có lỗi xảy ra khi hủy đơn hàng');
+      notification.error({
+        message: 'Lỗi',
+        description: error.message || 'Có lỗi xảy ra khi hủy đơn hàng',
+        placement: 'topRight',
+        duration: 2,
+      });
     }
   };
 

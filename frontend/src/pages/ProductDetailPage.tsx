@@ -33,6 +33,7 @@ const ProductDetailPage = () => {
           message: 'Lỗi',
           description: 'Không thể tải thông tin sản phẩm',
           placement: 'topRight',
+          duration: 2,
         });
       } finally {
         setLoading(false);
@@ -54,12 +55,14 @@ const ProductDetailPage = () => {
         message: 'Thành công',
         description: 'Đã thêm sản phẩm vào giỏ hàng',
         placement: 'topRight',
+        duration: 2,
       });
     } catch (error) {
       notification.error({
         message: 'Lỗi',
         description: 'Không thể thêm sản phẩm vào giỏ hàng',
         placement: 'topRight',
+        duration: 2,
       });
     }
   };

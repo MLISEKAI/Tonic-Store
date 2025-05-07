@@ -92,6 +92,7 @@ const HomePage = () => {
         message: 'Thông báo',
         description: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
         placement: 'topRight',
+        duration: 2,
       });
       navigate('/login');
       return;
@@ -103,12 +104,14 @@ const HomePage = () => {
         message: 'Thành công',
         description: 'Đã thêm sản phẩm vào giỏ hàng',
         placement: 'topRight',
+        duration: 2,
       });
     } catch (error) {
       notification.error({
         message: 'Lỗi',
         description: 'Thêm sản phẩm vào giỏ hàng thất bại',
         placement: 'topRight',
+        duration: 2,
       });
       console.error('Error adding to cart:', error);
     }

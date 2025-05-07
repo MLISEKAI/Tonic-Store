@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Select, message, Spin, Modal, Input } from 'antd';
+import { Table, Button, Select, notification, Spin, Modal, Input, Card, Typography, Tag } from 'antd';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,8 @@ import OrderService, { Order, OrderResponse } from '../services/orderService';
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
 type PaymentMethod = 'COD' | 'BANK_TRANSFER' | 'VNPAY';
+
+const { Title } = Typography;
 
 const orderStatusOptions = [
   { value: 'PENDING', label: 'Pending' },
@@ -35,6 +37,48 @@ const OrderList: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [transactionId, setTransactionId] = useState('');
   const navigate = useNavigate();
+
+  const getNextValidStatusOptions = (order: Order) => {
+    const current = order.status;
+    const paid = order.payment?.status === 'COMPLETED';
+
+    switch (current) {
+      case 'PENDING':
+        return paid
+          ? [] // Không cho phép thay đổi trạng thái nếu đã thanh toán
+          : orderStatusOptions.filter(o => o.value === 'CANCELLED');
+      case 'PROCESSING':
+        return orderStatusOptions.filter(o => o.value === 'SHIPPED' || o.value === 'CANCELLED');
+      case 'SHIPPED':
+        return orderStatusOptions.filter(o => o.value === 'DELIVERED');
+      case 'DELIVERED':
+      case 'CANCELLED':
+        return [];
+      default:
+        return [];
+    }
+  };
+
+  const getStatusColor = (status: OrderStatus) => {
+    switch (status) {
+      case 'PENDING':
+        return 'warning';
+      case 'PROCESSING':
+        return 'processing';
+      case 'SHIPPED':
+        return 'purple';
+      case 'DELIVERED':
+        return 'success';
+      case 'CANCELLED':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
+
+  const getStatusLabel = (status: OrderStatus) => {
+    return orderStatusOptions.find(opt => opt.value === status)?.label || status;
+  };
 
   useEffect(() => {
     fetchOrders();
@@ -64,7 +108,12 @@ const OrderList: React.FC = () => {
     } catch (err) {
       console.error('Error fetching orders:', err);
       setError('Failed to fetch orders');
-      message.error('Failed to fetch orders');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Failed to fetch orders',
+        placement: 'topRight',
+        duration: 2,
+      });
     } finally {
       setLoading(false);
     }
@@ -73,10 +122,20 @@ const OrderList: React.FC = () => {
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     try {
       await OrderService.updateOrderStatus(orderId, newStatus);
-      message.success('Order status updated successfully');
+      notification.success({
+        message: 'Thành công',
+        description: 'Order status updated successfully',
+        placement: 'topRight',
+        duration: 2,
+      });
       fetchOrders();
     } catch (err) {
-      message.error('Failed to update order status');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Failed to update order status',
+        placement: 'topRight',
+        duration: 2,
+      });
     }
   };
 
@@ -87,10 +146,20 @@ const OrderList: React.FC = () => {
     } else {
     try {
         await OrderService.updatePaymentStatus(orderId, newStatus);
-      message.success('Payment status updated successfully');
+      notification.success({
+        message: 'Thành công',
+        description: 'Payment status updated successfully',
+        placement: 'topRight',
+        duration: 2,
+      });
       fetchOrders();
     } catch (err) {
-      message.error('Failed to update payment status');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Failed to update payment status',
+        placement: 'topRight',
+        duration: 2,
+      });
       }
     }
   };
@@ -100,18 +169,40 @@ const OrderList: React.FC = () => {
     
     // Kiểm tra mã giao dịch nếu là chuyển khoản
     if (selectedOrder.payment?.method === 'BANK_TRANSFER' && !transactionId) {
-      message.error('Vui lòng nhập mã giao dịch chuyển khoản');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Vui lòng nhập mã giao dịch chuyển khoản',
+        placement: 'topRight',
+        duration: 2,
+      });
       return;
     }
     
     try {
+      // Cập nhật trạng thái thanh toán
       await OrderService.updatePaymentStatus(selectedOrder.id, 'COMPLETED', transactionId);
-      message.success('Xác nhận thanh toán thành công');
+      
+      // Tự động cập nhật trạng thái đơn hàng sang PROCESSING nếu đang ở PENDING
+      if (selectedOrder.status === 'PENDING') {
+        await OrderService.updateOrderStatus(selectedOrder.id, 'PROCESSING');
+      }
+      
+      notification.success({
+        message: 'Thành công',
+        description: 'Xác nhận thanh toán thành công',
+        placement: 'topRight',
+        duration: 2,
+      });
       setConfirmModalVisible(false);
       setTransactionId('');
       fetchOrders();
     } catch (err) {
-      message.error('Không thể xác nhận thanh toán');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể xác nhận thanh toán',
+        placement: 'topRight',
+        duration: 2,
+      });
     }
   };
 
@@ -180,13 +271,10 @@ const OrderList: React.FC = () => {
       title: 'Order Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status: OrderStatus, record: Order) => (
-        <Select<OrderStatus>
-          value={status}
-          onChange={(value: OrderStatus) => handleStatusChange(record.id, value)}
-          style={{ width: 120 }}
-          options={orderStatusOptions}
-        />
+      render: (status: OrderStatus) => (
+        <Tag color={getStatusColor(status)}>
+          {getStatusLabel(status)}
+        </Tag>
       ),
     },
     {
@@ -213,9 +301,19 @@ const OrderList: React.FC = () => {
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Order Management</h1>
+    <Card>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16,
+        }}
+      >
+        <Title level={2} style={{ margin: 0 }}>
+          Order Management
+        </Title>
+
         <Select<OrderStatus | ''>
           value={status}
           onChange={(value: OrderStatus | '') => {
@@ -227,61 +325,61 @@ const OrderList: React.FC = () => {
             { value: '', label: 'All Status' },
             ...orderStatusOptions
           ]}
-        />
-      </div>
-
-      {orders.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">No orders found</div>
-      ) : (
-        <Table
-          columns={columns}
-          dataSource={orders}
-          rowKey="id"
-          pagination={{
-            current: page,
-            total: totalPages * 10,
-            onChange: (page: number) => setPage(page),
-            showSizeChanger: false,
-          }}
-          loading={loading}
-        />
-      )}
-
-      <Modal
-        title={selectedOrder?.payment?.method === 'BANK_TRANSFER' ? "Xác nhận chuyển khoản" : "Xác nhận thanh toán"}
-        open={confirmModalVisible}
-        onOk={handleConfirmPayment}
-        onCancel={() => {
-          setConfirmModalVisible(false);
-          setTransactionId('');
-        }}
-        okText="Xác nhận"
-        cancelText="Hủy"
-      >
-        <div className="space-y-4">
-          <p>
-            {selectedOrder?.payment?.method === 'BANK_TRANSFER' 
-              ? `Bạn có chắc chắn muốn xác nhận chuyển khoản cho đơn hàng #${selectedOrder?.id}?`
-              : `Bạn có chắc chắn muốn xác nhận thanh toán cho đơn hàng #${selectedOrder?.id}?`
-            }
-          </p>
-          {selectedOrder?.payment?.method === 'BANK_TRANSFER' && (
-            <div>
-              <p className="mb-2">Mã giao dịch chuyển khoản <span className="text-red-500">*</span></p>
-              <Input
-                value={transactionId}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTransactionId(e.target.value)}
-                placeholder="Nhập mã giao dịch chuyển khoản"
-                required
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Mã giao dịch này được cung cấp bởi ngân hàng khi khách hàng thực hiện chuyển khoản
-              </p>
-            </div>
-          )}
+          />
         </div>
-      </Modal>
-    </div>
+
+        {orders.length === 0 ? (
+          <div className="text-center text-gray-500 py-8">No orders found</div>
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={orders}
+            rowKey="id"
+            pagination={{
+              current: page,
+              total: totalPages * 10,
+              onChange: (page: number) => setPage(page),
+              showSizeChanger: false,
+            }}
+            loading={loading}
+          />
+        )}
+
+        <Modal
+          title={selectedOrder?.payment?.method === 'BANK_TRANSFER' ? "Xác nhận chuyển khoản" : "Xác nhận thanh toán"}
+          open={confirmModalVisible}
+          onOk={handleConfirmPayment}
+          onCancel={() => {
+            setConfirmModalVisible(false);
+            setTransactionId('');
+          }}
+          okText="Xác nhận"
+          cancelText="Hủy"
+        >
+          <div className="space-y-4">
+            <p>
+              {selectedOrder?.payment?.method === 'BANK_TRANSFER' 
+                ? `Bạn có chắc chắn muốn xác nhận chuyển khoản cho đơn hàng #${selectedOrder?.id}?`
+                : `Bạn có chắc chắn muốn xác nhận thanh toán cho đơn hàng #${selectedOrder?.id}?`
+              }
+            </p>
+            {selectedOrder?.payment?.method === 'BANK_TRANSFER' && (
+              <div>
+                <p className="mb-2">Mã giao dịch chuyển khoản <span className="text-red-500">*</span></p>
+                <Input
+                  value={transactionId}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTransactionId(e.target.value)}
+                  placeholder="Nhập mã giao dịch chuyển khoản"
+                  required
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Mã giao dịch này được cung cấp bởi ngân hàng khi khách hàng thực hiện chuyển khoản
+                </p>
+              </div>
+            )}
+          </div>
+        </Modal>
+    </Card>
   );
 };
 

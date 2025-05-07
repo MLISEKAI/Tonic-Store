@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Rate, Button, Input, message, List, Avatar } from 'antd';
+import { Rate, Button, Input, notification, List, Avatar } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import * as api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -26,7 +26,12 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
       const data = await api.getProductReviews(productId);
       setReviews(data);
     } catch (error) {
-      message.error('Không thể tải đánh giá');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể tải đánh giá',
+        placement: 'topRight',
+        duration: 2,
+      });
     } finally {
       setLoading(false);
     }
@@ -34,12 +39,22 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
 
   const handleSubmit = async () => {
     if (!isAuthenticated) {
-      message.warning('Vui lòng đăng nhập để đánh giá');
+      notification.warning({
+        message: 'Thông báo',
+        description: 'Vui lòng đăng nhập để đánh giá',
+        placement: 'topRight',
+        duration: 2,
+      });
       return;
     }
 
     if (!comment.trim()) {
-      message.warning('Vui lòng nhập nội dung đánh giá');
+      notification.warning({
+        message: 'Thông báo',
+        description: 'Vui lòng nhập nội dung đánh giá',
+        placement: 'topRight',
+        duration: 2,
+      });
       return;
     }
 
@@ -50,11 +65,21 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
         rating,
         comment: comment.trim()
       });
-      message.success('Đánh giá thành công');
+      notification.success({
+        message: 'Thành công',
+        description: 'Đánh giá thành công',
+        placement: 'topRight',
+        duration: 2,
+      });
       setComment('');
       fetchReviews();
     } catch (error) {
-      message.error('Không thể gửi đánh giá');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể gửi đánh giá',
+        placement: 'topRight',
+        duration: 2,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -63,10 +88,20 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
   const handleDelete = async (reviewId: number) => {
     try {
       await api.deleteReview(token!, reviewId);
-      message.success('Xóa đánh giá thành công');
+      notification.success({
+        message: 'Thành công',
+        description: 'Xóa đánh giá thành công',
+        placement: 'topRight',
+        duration: 2,
+      });
       fetchReviews();
     } catch (error) {
-      message.error('Không thể xóa đánh giá');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể xóa đánh giá',
+        placement: 'topRight',
+        duration: 2,
+      });
     }
   };
 

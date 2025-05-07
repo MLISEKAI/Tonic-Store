@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Form, Input, Button, Typography, message } from 'antd';
+import { Card, Form, Input, Button, Typography, notification } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/api';
 
@@ -24,7 +24,12 @@ const Login: React.FC = () => {
             localStorage.setItem('user', JSON.stringify(data.user));
             navigate('/');
         } catch (error) {
-            message.error(error instanceof Error ? error.message : 'Invalid email or password');
+            notification.error({
+                message: 'Lỗi',
+                description: error instanceof Error ? error.message : 'Invalid email or password',
+                placement: 'topRight',
+                duration: 2,
+            });
         } finally {
             setLoading(false);
         }

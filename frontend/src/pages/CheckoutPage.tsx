@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { createOrder, createPaymentUrl, getShippingAddresses } from '../services/api';
+import { createOrder, createPaymentUrl, getShippingAddresses, createShippingAddress } from '../services/api';
 import { formatPrice } from '../utils/format';
 import VNPayPayment from '../components/VNPayPayment';
 import { Order, PaymentMethod, PaymentStatus } from '../types';
-import { message, Form, Input, Select, Button, Radio, Spin } from 'antd';
+import { message, Form, Input, Select, Button, Radio, Spin, Checkbox } from 'antd';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -74,6 +74,21 @@ const CheckoutPage: React.FC = () => {
         setError('Giỏ hàng trống');
         setLoading(false);
         return;
+      }
+
+      // Nếu người dùng chọn lưu địa chỉ
+      if (values.saveAddress) {
+        try {
+          await createShippingAddress(token, {
+            name: values.name,
+            phone: values.phone,
+            address: values.address,
+            isDefault: shippingAddresses.length === 0 // Nếu là địa chỉ đầu tiên thì set làm mặc định
+          });
+        } catch (error) {
+          console.error('Failed to save shipping address:', error);
+          // Không dừng quá trình checkout nếu lưu địa chỉ thất bại
+        }
       }
   
       // Chuẩn bị dữ liệu đơn hàng
@@ -233,6 +248,13 @@ const CheckoutPage: React.FC = () => {
               label="Ghi chú"
             >
               <Input.TextArea />
+            </Form.Item>
+
+            <Form.Item
+              name="saveAddress"
+              valuePropName="checked"
+            >
+              <Checkbox>Lưu địa chỉ này cho lần sau</Checkbox>
             </Form.Item>
 
             <Form.Item

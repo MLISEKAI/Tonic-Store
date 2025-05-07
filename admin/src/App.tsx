@@ -1,18 +1,21 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import AdminDashboard from './pages/AdminDashboard'
 import Login from './pages/Login'
-import ShippingAddressesPage from './components/ShippingAddressesPage'
-import OrderList from './components/OrderList'
 import OrderDetail from './pages/OrderDetail'
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<AdminDashboard />} />
-      <Route path="/shipping-addresses" element={<ShippingAddressesPage />} />
-      <Route path="/orders" element={<OrderList />} />
+      <Route path="/admin" element={<AdminDashboard />}>
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="products" element={<AdminDashboard />} />
+        <Route path="users" element={<AdminDashboard />} />
+        <Route path="orders" element={<AdminDashboard />} />
+        <Route path="shipping" element={<AdminDashboard />} />
+      </Route>
       <Route path="/orders/:id" element={<OrderDetail />} />
+      <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
     </Routes>
   )
 }

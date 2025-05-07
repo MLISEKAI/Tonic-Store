@@ -27,6 +27,7 @@ const SearchPage = () => {
           message: 'Lỗi',
           description: 'Có lỗi xảy ra khi tìm kiếm sản phẩm',
           placement: 'topRight',
+          duration: 2,
         });
       } finally {
         setLoading(false);
@@ -45,6 +46,7 @@ const SearchPage = () => {
           message: 'Thông báo',
           description: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
           placement: 'topRight',
+          duration: 2,
         });
         navigate('/login');
         return;
@@ -54,12 +56,14 @@ const SearchPage = () => {
         message: 'Thông báo',
         description: 'Đã thêm sản phẩm vào giỏ hàng',
         placement: 'topRight',
+        duration: 2,
       });
     } catch (error) {
       notification.error({
         message: 'Lỗi',
         description: 'Có lỗi xảy ra khi thêm vào giỏ hàng',
         placement: 'topRight',
+        duration: 2,
       });
     }
   };

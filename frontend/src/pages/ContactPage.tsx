@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Form, Input, Button, message, Row, Col, Card } from 'antd';
+import { Form, Input, Button, notification, Row, Col, Card } from 'antd';
 import { MailOutlined, PhoneOutlined, EnvironmentOutlined, SendOutlined } from '@ant-design/icons';
 import * as api from '../services/api';
 
@@ -14,10 +14,20 @@ const ContactPage: FC = () => {
       setLoading(true);
       // Gửi thông tin liên hệ đến server
       await api.sendContactMessage(values);
-      message.success('Gửi thông tin liên hệ thành công!');
+      notification.success({
+        message: 'Thành công',
+        description: 'Gửi thông tin liên hệ thành công!',
+        placement: 'topRight',
+        duration: 2,
+      });
       form.resetFields();
     } catch (error) {
-      message.error('Có lỗi xảy ra khi gửi thông tin liên hệ');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Có lỗi xảy ra khi gửi thông tin liên hệ',
+        placement: 'topRight',
+        duration: 2,
+      });
     } finally {
       setLoading(false);
     }
