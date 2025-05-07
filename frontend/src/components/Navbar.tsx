@@ -95,6 +95,7 @@ const Navbar = () => {
           message: 'Lỗi',
           description: 'Có lỗi xảy ra khi tìm kiếm sản phẩm',
           placement: 'topRight',
+          duration: 2,
         });
       } finally {
         setIsSearching(false);

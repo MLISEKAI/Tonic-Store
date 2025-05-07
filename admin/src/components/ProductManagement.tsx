@@ -198,8 +198,17 @@ const ProductManagement: React.FC = () => {
 
   return (
     <Card>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Title level={2}>Product Management</Title>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16,
+        }}
+      >
+        <Title level={2} style={{ margin: 0 }}>
+          Product Management
+        </Title>
         <Button
           type="primary"
           icon={<PlusOutlined />}

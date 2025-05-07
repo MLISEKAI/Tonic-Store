@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { formatPrice, formatDate } from '../../utils/format';
 import * as api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { message, Button, Modal } from 'antd';
+import { message, Button, Modal, notification } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
 
 interface OrderItem {
@@ -141,12 +141,27 @@ const OrderDetailPage: React.FC = () => {
           });
 
           if (data.success) {
-            message.success('Thanh toán thành công!');
+            notification.success({
+              message: 'Thành công',
+              description: 'Thanh toán thành công!',
+              placement: 'topRight',
+              duration: 2,
+            });
           } else {
-            message.error('Thanh toán thất bại. Vui lòng thử lại.');
+            notification.error({
+              message: 'Lỗi',
+              description: 'Thanh toán thất bại. Vui lòng thử lại.',
+              placement: 'topRight',
+              duration: 2,
+            });
           }
         } catch (error) {
-          message.error('Có lỗi xảy ra khi xác thực thanh toán');
+          notification.error({
+            message: 'Lỗi',
+            description: 'Có lỗi xảy ra khi xác thực thanh toán',
+            placement: 'topRight',
+            duration: 2,
+          });
         }
       }
     };

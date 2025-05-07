@@ -6,7 +6,9 @@ const handleResponse = async (response: Response) => {
     const errorMessage = errorData.error || errorData.details || 'Something went wrong';
     throw new Error(errorMessage);
   }
-  return response.json();
+  const text = await response.text();
+  if (!text) return null;
+  return JSON.parse(text);
 };
 
 // Auth API
@@ -23,13 +25,26 @@ export const login = async (email: string, password: string) => {
 
 // Shipping Address API
 export const getShippingAddresses = async () => {
-  const response = await fetch(`${API_URL}/shipping-addresses`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      'Content-Type': 'application/json'
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
     }
-  });
-  return handleResponse(response);
+
+    console.log('Fetching shipping addresses...');
+    const response = await fetch(`${API_URL}/shipping-addresses`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await handleResponse(response);
+    return data;
+  } catch (error) {
+    console.error('Error in getShippingAddresses:', error);
+    throw error;
+  }
 };
 
 export const createShippingAddress = async (data: {

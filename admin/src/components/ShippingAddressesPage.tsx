@@ -155,11 +155,6 @@ const ShippingAddressesPage: React.FC = () => {
       key: 'address',
     },
     {
-      title: 'User ID',
-      dataIndex: 'userId',
-      key: 'userId',
-    },
-    {
       title: 'Default',
       dataIndex: 'isDefault',
       key: 'isDefault',
@@ -204,12 +199,16 @@ const ShippingAddressesPage: React.FC = () => {
 
   return (
     <Card>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Title level={2}>
-          <Space>
-            <HomeOutlined />
-            Shipping Addresses Management
-          </Space>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16,
+        }}
+      >
+        <Title level={2} style={{ margin: 0 }}>
+          Shipping Addresses Management
         </Title>
         <Button
           type="primary"

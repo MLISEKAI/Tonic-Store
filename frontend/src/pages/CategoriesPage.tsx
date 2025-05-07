@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Spin, message } from 'antd';
+import { Spin, message, notification } from 'antd';
 import { getCategories, getProducts } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 import ProductCard from '../components/ProductCard';
@@ -38,7 +38,12 @@ const CategoriesPage: FC = () => {
         setCategories(categoriesWithCount);
         setProducts(productsData);
       } catch (error) {
-        message.error('Không thể tải danh sách danh mục');
+        notification.error({
+          message: 'Lỗi',
+          description: 'Không thể tải danh sách danh mục',
+          placement: 'topRight',
+          duration: 2,
+        });
       } finally {
         setLoading(false);
       }
@@ -50,9 +55,19 @@ const CategoriesPage: FC = () => {
   const handleAddToCart = async (product: Product) => {
     try {
       await addToCart(product, 1);
-      message.success('Đã thêm sản phẩm vào giỏ hàng');
+      notification.success({
+        message: 'Thành công',
+        description: 'Đã thêm sản phẩm vào giỏ hàng',
+        placement: 'topRight',
+        duration: 2,
+      });
     } catch (error) {
-      message.error('Không thể thêm sản phẩm vào giỏ hàng');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể thêm sản phẩm vào giỏ hàng',
+        placement: 'topRight',
+        duration: 2,
+      });
     }
   };
 

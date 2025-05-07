@@ -10,7 +10,7 @@ import {
   CarOutlined,
   LogoutOutlined,
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ProductManagement from '../components/ProductManagement';
 import UserManagement from '../components/UserManagement';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
@@ -42,10 +42,14 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  const [selectedKey, setSelectedKey] = useState('dashboard');
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Get current path and set selected key
+  const path = location.pathname.split('/').pop() || 'dashboard';
+  const [selectedKey, setSelectedKey] = useState(path);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -79,6 +83,15 @@ const AdminDashboard: React.FC = () => {
     navigate('/login');
   };
 
+  const handleMenuClick = (key: string) => {
+    if (key === 'logout') {
+      handleLogout();
+      return;
+    }
+    setSelectedKey(key);
+    navigate(`/admin/${key}`);
+  };
+
   const menuItems = [
     {
       key: 'dashboard',
@@ -109,7 +122,6 @@ const AdminDashboard: React.FC = () => {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: 'Logout',
-      onClick: handleLogout,
     },
   ];
 
@@ -210,7 +222,7 @@ const AdminDashboard: React.FC = () => {
           mode="inline"
           selectedKeys={[selectedKey]}
           items={menuItems}
-          onClick={({ key }) => setSelectedKey(key)}
+          onClick={({ key }) => handleMenuClick(key)}
         />
       </Sider>
       <Layout>
@@ -223,7 +235,7 @@ const AdminDashboard: React.FC = () => {
           />
           <Avatar style={{ float: 'right', margin: '16px' }} icon={<UserOutlined />} />
         </Header>
-        <Content style={{ margin: '24px 16px', padding: 24, background: '#fff', minHeight: 280 }}>
+        <Content style={{ padding: 24, background: '#fff', minHeight: 280 }}>
           {selectedKey === 'dashboard' && <Dashboard />}
           {selectedKey === 'products' && <ProductManagement />}
           {selectedKey === 'users' && <UserManagement />}
