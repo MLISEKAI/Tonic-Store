@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { Box, Paper, Typography, TextField, Button, Container } from '@mui/material';
+import { Card, Form, Input, Button, Typography, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/api';
 
-const Login: React.FC = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
+const { Title } = Typography;
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+const Login: React.FC = () => {
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const [form] = Form.useForm();
+
+    const handleSubmit = async (values: { email: string; password: string }) => {
         try {
-            const data = await login(email, password);
+            setLoading(true);
+            const data = await login(values.email, values.password);
             
             // Check if user is admin
             if (data.user.role !== 'ADMIN') {
@@ -23,75 +24,62 @@ const Login: React.FC = () => {
             localStorage.setItem('user', JSON.stringify(data.user));
             navigate('/');
         } catch (error) {
-            setError(error instanceof Error ? error.message : 'Invalid email or password');
+            message.error(error instanceof Error ? error.message : 'Invalid email or password');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <Container maxWidth="sm">
-            <Box
-                sx={{
-                    marginTop: 8,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                }}
-            >
-                <Paper
-                    elevation={3}
-                    sx={{
-                        padding: 4,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        width: '100%',
-                    }}
+        <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            background: '#f0f2f5'
+        }}>
+            <Card style={{ width: 400, padding: '24px' }}>
+                <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                    <Title level={2}>Admin Login</Title>
+                </div>
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleSubmit}
                 >
-                    <Typography component="h1" variant="h5">
-                        Admin Login
-                    </Typography>
-                    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            id="email"
-                            label="Email"
-                            name="email"
-                            autoComplete="email"
-                            autoFocus
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            name="password"
-                            label="Password"
-                            type="password"
-                            id="password"
-                            autoComplete="current-password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        {error && (
-                            <Typography color="error" sx={{ mt: 2 }}>
-                                {error}
-                            </Typography>
-                        )}
+                    <Form.Item
+                        name="email"
+                        label="Email"
+                        rules={[
+                            { required: true, message: 'Please input your email!' },
+                            { type: 'email', message: 'Please enter a valid email!' }
+                        ]}
+                    >
+                        <Input size="large" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="password"
+                        label="Password"
+                        rules={[{ required: true, message: 'Please input your password!' }]}
+                    >
+                        <Input.Password size="large" />
+                    </Form.Item>
+
+                    <Form.Item>
                         <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            sx={{ mt: 3, mb: 2 }}
+                            type="primary"
+                            htmlType="submit"
+                            size="large"
+                            block
+                            loading={loading}
                         >
                             Sign In
                         </Button>
-                    </Box>
-                </Paper>
-            </Box>
-        </Container>
+                    </Form.Item>
+                </Form>
+            </Card>
+        </div>
     );
 };
 

@@ -1,37 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { Layout, Menu, Button, Card, Row, Col, Statistic, Avatar, Typography, Spin } from 'antd';
 import {
-  Box,
-  AppBar,
-  Toolbar,
-  Typography,
-  CssBaseline,
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  IconButton,
-  Avatar,
-  Grid,
-  Paper,
-  Divider,
-  useTheme
-} from '@mui/material';
-import {
-  Menu as MenuIcon,
-  Logout,
-  Inventory2,
-  People,
-  Dashboard as DashboardIcon,
-  LocalShipping as ShippingIcon,
-} from '@mui/icons-material';
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  DashboardOutlined,
+  ShoppingOutlined,
+  UserOutlined,
+  ShoppingCartOutlined,
+  CarOutlined,
+  LogoutOutlined,
+} from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import ProductManagement from '../components/ProductManagement';
 import UserManagement from '../components/UserManagement';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, Label } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import OrderList from '../components/OrderList';
+import ShippingAddressesPage from '../components/ShippingAddressesPage';
 
-const drawerWidth = 240;
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
+const { Header, Sider, Content } = Layout;
+const { Title } = Typography;
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface StatsData {
@@ -51,13 +38,14 @@ interface StatsData {
   }>;
 }
 
-const Layout: React.FC = () => {
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
+
+const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [tabIndex, setTabIndex] = useState('dashboard');
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [selectedKey, setSelectedKey] = useState('dashboard');
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const theme = useTheme();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -91,44 +79,43 @@ const Layout: React.FC = () => {
     navigate('/login');
   };
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const drawer = (
-    <Box>
-      <Toolbar>
-        <Typography variant="h6">🛒 Tonic Admin</Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        <ListItem button selected={tabIndex === 'dashboard'} onClick={() => setTabIndex('dashboard')}>
-          <ListItemIcon><DashboardIcon /></ListItemIcon>
-          <ListItemText primary="Dashboard" />
-        </ListItem>
-        <ListItem button selected={tabIndex === 'products'} onClick={() => setTabIndex('products')}>
-          <ListItemIcon><Inventory2 /></ListItemIcon>
-          <ListItemText primary="Products" />
-        </ListItem>
-        <ListItem button selected={tabIndex === 'users'} onClick={() => setTabIndex('users')}>
-          <ListItemIcon><People /></ListItemIcon>
-          <ListItemText primary="Users" />
-        </ListItem>
-        <ListItem button selected={tabIndex === 'shipping'} onClick={() => navigate('/shipping-addresses')}>
-          <ListItemIcon><ShippingIcon /></ListItemIcon>
-          <ListItemText primary="Shipping Addresses" />
-        </ListItem>
-        <ListItem button onClick={handleLogout}>
-          <ListItemIcon><Logout /></ListItemIcon>
-          <ListItemText primary="Logout" />
-        </ListItem>
-      </List>
-    </Box>
-  );
+  const menuItems = [
+    {
+      key: 'dashboard',
+      icon: <DashboardOutlined />,
+      label: 'Dashboard',
+    },
+    {
+      key: 'products',
+      icon: <ShoppingOutlined />,
+      label: 'Products',
+    },
+    {
+      key: 'users',
+      icon: <UserOutlined />,
+      label: 'Users',
+    },
+    {
+      key: 'orders',
+      icon: <ShoppingCartOutlined />,
+      label: 'Orders',
+    },
+    {
+      key: 'shipping',
+      icon: <CarOutlined />,
+      label: 'Shipping Addresses',
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Logout',
+      onClick: handleLogout,
+    },
+  ];
 
   const Dashboard = () => {
     if (loading) {
-      return <Typography>Loading...</Typography>;
+      return <Spin size="large" />;
     }
 
     if (!stats) {
@@ -136,31 +123,32 @@ const Layout: React.FC = () => {
     }
 
     const statCards = [
-      { title: 'Total Products', value: stats.totalProducts.toString(), change: '+0%', color: '#4caf50' },
-      { title: 'Total Users', value: stats.totalUsers.toString(), change: '+0%', color: '#2196f3' },
-      { title: 'Total Orders', value: stats.totalOrders.toString(), change: '+0%', color: '#f44336' },
-      { title: 'Total Revenue', value: `$${stats.totalRevenue.toFixed(2)}`, change: '+0%', color: '#ff9800' },
+      { title: 'Total Products', value: stats.totalProducts, color: '#4caf50' },
+      { title: 'Total Users', value: stats.totalUsers, color: '#2196f3' },
+      { title: 'Total Orders', value: stats.totalOrders, color: '#f44336' },
+      { title: 'Total Revenue', value: `$${stats.totalRevenue.toFixed(2)}`, color: '#ff9800' },
     ];
 
     return (
-      <Box>
-        <Grid container spacing={2}>
+      <div>
+        <Row gutter={[16, 16]}>
           {statCards.map((card, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <Paper sx={{ p: 2, backgroundColor: card.color, color: '#fff' }}>
-                <Typography variant="subtitle2">{card.title}</Typography>
-                <Typography variant="h5">{card.value}</Typography>
-                <Typography variant="caption">{card.change}</Typography>
-              </Paper>
-            </Grid>
+            <Col xs={24} sm={12} md={6} key={index}>
+              <Card>
+                <Statistic
+                  title={card.title}
+                  value={card.value}
+                  valueStyle={{ color: card.color }}
+                />
+              </Card>
+            </Col>
           ))}
-        </Grid>
+        </Row>
 
-        <Grid container spacing={2} sx={{ mt: 2 }}>
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, height: 300 }}>
-              <Typography variant="subtitle1">Orders by Status</Typography>
-              <ResponsiveContainer width="100%" height="90%">
+        <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+          <Col xs={24} md={12}>
+            <Card title="Orders by Status">
+              <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
                     data={stats.ordersByStatus.map(status => ({
@@ -183,12 +171,11 @@ const Layout: React.FC = () => {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, height: 300 }}>
-              <Typography variant="subtitle1">Top Selling Products</Typography>
-              <ResponsiveContainer width="100%" height="90%">
+            </Card>
+          </Col>
+          <Col xs={24} md={12}>
+            <Card title="Top Selling Products">
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={stats.topProducts}>
                   <XAxis 
                     dataKey="name" 
@@ -202,65 +189,50 @@ const Layout: React.FC = () => {
                   <Tooltip />
                   <Bar 
                     dataKey="value" 
-                    fill={theme.palette.primary.main}
+                    fill="#1890ff"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
               </ResponsiveContainer>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Box>
+            </Card>
+          </Col>
+        </Row>
+      </div>
     );
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Admin
-          </Typography>
-          <Avatar alt="Admin" src="/admin-avatar.png" />
-        </Toolbar>
-      </AppBar>
-
-      <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{ display: { xs: 'block', sm: 'none' }, '& .MuiDrawer-paper': { width: drawerWidth } }}
-        >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{ display: { xs: 'none', sm: 'block' }, '& .MuiDrawer-paper': { width: drawerWidth } }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box>
-
-      <Box component="main" sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}>
-        <Toolbar />
-        {tabIndex === 'dashboard' && <Dashboard />}
-        {tabIndex === 'products' && <ProductManagement />}
-        {tabIndex === 'users' && <UserManagement />}
-      </Box>
-    </Box>
+    <Layout style={{ minHeight: '100vh' }}>
+      <Sider trigger={null} collapsible collapsed={collapsed}>
+        <div style={{ height: 32, margin: 16, background: 'rgba(255, 255, 255, 0.2)' }} />
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[selectedKey]}
+          items={menuItems}
+          onClick={({ key }) => setSelectedKey(key)}
+        />
+      </Sider>
+      <Layout>
+        <Header style={{ padding: 0, background: '#fff' }}>
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{ fontSize: '16px', width: 64, height: 64 }}
+          />
+          <Avatar style={{ float: 'right', margin: '16px' }} icon={<UserOutlined />} />
+        </Header>
+        <Content style={{ margin: '24px 16px', padding: 24, background: '#fff', minHeight: 280 }}>
+          {selectedKey === 'dashboard' && <Dashboard />}
+          {selectedKey === 'products' && <ProductManagement />}
+          {selectedKey === 'users' && <UserManagement />}
+          {selectedKey === 'orders' && <OrderList />}
+          {selectedKey === 'shipping' && <ShippingAddressesPage />}
+        </Content>
+      </Layout>
+    </Layout>
   );
 };
 
-export default Layout;
+export default AdminDashboard;
