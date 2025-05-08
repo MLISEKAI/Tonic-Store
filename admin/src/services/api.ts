@@ -31,7 +31,6 @@ export const getShippingAddresses = async () => {
       throw new Error('No authentication token found');
     }
 
-    console.log('Fetching shipping addresses...');
     const response = await fetch(`${API_URL}/shipping-addresses`, {
       headers: {
         'Authorization': `Bearer ${token}`,

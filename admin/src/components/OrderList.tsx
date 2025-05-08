@@ -1,13 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Select, notification, Spin, Modal, Input, Card, Typography, Tag } from 'antd';
+import { Table, Button, Select, notification, Spin, Modal, Input, Card, Typography, Tag, Descriptions, Divider } from 'antd';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { useNavigate } from 'react-router-dom';
-import OrderService, { Order, OrderResponse } from '../services/orderService';
+import OrderService, { Order } from '../services/orderService';
 
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
 type PaymentMethod = 'COD' | 'BANK_TRANSFER' | 'VNPAY';
+
+interface OrderDetail extends Omit<Order, 'status' | 'items'> {
+  status: OrderStatus;
+  items: Array<{
+    id: string;
+    productId: string;
+    quantity: number;
+    price: number;
+    product: {
+      name: string;
+      image: string;
+    };
+  }>;
+  shippingAddress: string;
+  shippingPhone: string;
+  shippingName: string;
+}
 
 const { Title } = Typography;
 
@@ -27,18 +43,19 @@ const paymentStatusOptions = [
 ];
 
 const OrderList: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [status, setStatus] = useState<OrderStatus | ''>('');
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderDetail | null>(null);
   const [transactionId, setTransactionId] = useState('');
-  const navigate = useNavigate();
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedOrderDetail, setSelectedOrderDetail] = useState<OrderDetail | null>(null);
 
-  const getNextValidStatusOptions = (order: Order) => {
+  const getNextValidStatusOptions = (order: OrderDetail) => {
     const current = order.status;
     const paid = order.payment?.status === 'COMPLETED';
 
@@ -94,13 +111,13 @@ const OrderList: React.FC = () => {
       
       // Lọc orders theo status nếu có
       const filteredOrders = status 
-        ? ordersArray.filter((order: Order) => order.status === status)
+        ? ordersArray.filter((order: OrderDetail) => order.status === status)
         : ordersArray;
       
-      const formattedOrders = filteredOrders.map((order: Order) => ({
+      const formattedOrders = filteredOrders.map((order: OrderDetail) => ({
         ...order,
         id: order.id.toString(),
-        totalAmount: Number(order.totalPrice),
+        totalPrice: Number(order.totalPrice),
       }));
       
       setOrders(formattedOrders);
@@ -144,22 +161,22 @@ const OrderList: React.FC = () => {
       setSelectedOrder(orders.find(order => order.id === orderId) || null);
       setConfirmModalVisible(true);
     } else {
-    try {
+      try {
         await OrderService.updatePaymentStatus(orderId, newStatus);
-      notification.success({
-        message: 'Thành công',
-        description: 'Payment status updated successfully',
-        placement: 'topRight',
-        duration: 2,
-      });
-      fetchOrders();
-    } catch (err) {
-      notification.error({
-        message: 'Lỗi',
-        description: 'Failed to update payment status',
-        placement: 'topRight',
-        duration: 2,
-      });
+        notification.success({
+          message: 'Thành công',
+          description: 'Payment status updated successfully',
+          placement: 'topRight',
+          duration: 2,
+        });
+        fetchOrders();
+      } catch (err) {
+        notification.error({
+          message: 'Lỗi',
+          description: 'Failed to update payment status',
+          placement: 'topRight',
+          duration: 2,
+        });
       }
     }
   };
@@ -206,6 +223,11 @@ const OrderList: React.FC = () => {
     }
   };
 
+  const handleViewDetails = (order: OrderDetail) => {
+    setSelectedOrderDetail(order);
+    setDetailModalVisible(true);
+  };
+
   const columns = [
     {
       title: 'Order ID',
@@ -216,7 +238,7 @@ const OrderList: React.FC = () => {
       title: 'Customer',
       dataIndex: ['user', 'name'],
       key: 'customer',
-      render: (text: string, record: Order) => (
+      render: (text: string, record: OrderDetail) => (
         <div>
           <div>{text}</div>
           <div className="text-gray-500">{record.user.email}</div>
@@ -225,8 +247,8 @@ const OrderList: React.FC = () => {
     },
     {
       title: 'Total Amount',
-      dataIndex: 'totalAmount',
-      key: 'totalAmount',
+      dataIndex: 'totalPrice',
+      key: 'totalPrice',
       render: (amount: number) => (
         new Intl.NumberFormat('vi-VN', {
           style: 'currency',
@@ -243,7 +265,7 @@ const OrderList: React.FC = () => {
       title: 'Payment Status',
       dataIndex: ['payment', 'status'],
       key: 'paymentStatus',
-      render: (status: PaymentStatus, record: Order) => (
+      render: (status: PaymentStatus, record: OrderDetail) => (
         <div className="flex items-center gap-2">
           <span className={status === 'PENDING' ? 'text-yellow-600' : 
                           status === 'COMPLETED' ? 'text-green-600' : 
@@ -286,10 +308,10 @@ const OrderList: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (text: string, record: Order) => (
+      render: (text: string, record: OrderDetail) => (
         <Button 
           type="link" 
-          onClick={() => navigate(`/orders/${record.id}`)}
+          onClick={() => handleViewDetails(record)}
         >
           View Details
         </Button>
@@ -325,60 +347,157 @@ const OrderList: React.FC = () => {
             { value: '', label: 'All Status' },
             ...orderStatusOptions
           ]}
-          />
-        </div>
+        />
+      </div>
 
-        {orders.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">No orders found</div>
-        ) : (
-          <Table
-            columns={columns}
-            dataSource={orders}
-            rowKey="id"
-            pagination={{
-              current: page,
-              total: totalPages * 10,
-              onChange: (page: number) => setPage(page),
-              showSizeChanger: false,
-            }}
-            loading={loading}
-          />
-        )}
-
-        <Modal
-          title={selectedOrder?.payment?.method === 'BANK_TRANSFER' ? "Xác nhận chuyển khoản" : "Xác nhận thanh toán"}
-          open={confirmModalVisible}
-          onOk={handleConfirmPayment}
-          onCancel={() => {
-            setConfirmModalVisible(false);
-            setTransactionId('');
+      {orders.length === 0 ? (
+        <div className="text-center text-gray-500 py-8">No orders found</div>
+      ) : (
+        <Table
+          columns={columns}
+          dataSource={orders}
+          rowKey="id"
+          pagination={{
+            current: page,
+            total: totalPages * 10,
+            onChange: (page: number) => setPage(page),
+            showSizeChanger: false,
           }}
-          okText="Xác nhận"
-          cancelText="Hủy"
-        >
-          <div className="space-y-4">
-            <p>
-              {selectedOrder?.payment?.method === 'BANK_TRANSFER' 
-                ? `Bạn có chắc chắn muốn xác nhận chuyển khoản cho đơn hàng #${selectedOrder?.id}?`
-                : `Bạn có chắc chắn muốn xác nhận thanh toán cho đơn hàng #${selectedOrder?.id}?`
-              }
-            </p>
-            {selectedOrder?.payment?.method === 'BANK_TRANSFER' && (
-              <div>
-                <p className="mb-2">Mã giao dịch chuyển khoản <span className="text-red-500">*</span></p>
-                <Input
-                  value={transactionId}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTransactionId(e.target.value)}
-                  placeholder="Nhập mã giao dịch chuyển khoản"
-                  required
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Mã giao dịch này được cung cấp bởi ngân hàng khi khách hàng thực hiện chuyển khoản
-                </p>
+          loading={loading}
+        />
+      )}
+
+      <Modal
+        title={selectedOrder?.payment?.method === 'BANK_TRANSFER' ? "Xác nhận chuyển khoản" : "Xác nhận thanh toán"}
+        open={confirmModalVisible}
+        onOk={handleConfirmPayment}
+        onCancel={() => {
+          setConfirmModalVisible(false);
+          setTransactionId('');
+        }}
+        okText="Xác nhận"
+        cancelText="Hủy"
+      >
+        <div className="space-y-4">
+          <p>
+            {selectedOrder?.payment?.method === 'BANK_TRANSFER' 
+              ? `Bạn có chắc chắn muốn xác nhận chuyển khoản cho đơn hàng #${selectedOrder?.id}?`
+              : `Bạn có chắc chắn muốn xác nhận thanh toán cho đơn hàng #${selectedOrder?.id}?`
+            }
+          </p>
+          {selectedOrder?.payment?.method === 'BANK_TRANSFER' && (
+            <div>
+              <p className="mb-2">Mã giao dịch chuyển khoản <span className="text-red-500">*</span></p>
+              <Input
+                value={transactionId}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTransactionId(e.target.value)}
+                placeholder="Nhập mã giao dịch chuyển khoản"
+                required
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Mã giao dịch này được cung cấp bởi ngân hàng khi khách hàng thực hiện chuyển khoản
+              </p>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      <Modal
+        title={`Order Details #${selectedOrderDetail?.id}`}
+        open={detailModalVisible}
+        onCancel={() => setDetailModalVisible(false)}
+        width={800}
+        footer={null}
+      >
+        {selectedOrderDetail && (
+          <div className="space-y-6">
+            <Descriptions title="Customer Information" bordered>
+              <Descriptions.Item label="Name">{selectedOrderDetail.user.name}</Descriptions.Item>
+              <Descriptions.Item label="Email">{selectedOrderDetail.user.email}</Descriptions.Item>
+              <Descriptions.Item label="Phone">{selectedOrderDetail.shippingPhone}</Descriptions.Item>
+            </Descriptions>
+
+            <Descriptions title="Shipping Information" bordered>
+              <Descriptions.Item label="Name">{selectedOrderDetail.shippingName}</Descriptions.Item>
+              <Descriptions.Item label="Phone">{selectedOrderDetail.shippingPhone}</Descriptions.Item>
+              <Descriptions.Item label="Address" span={3}>{selectedOrderDetail.shippingAddress}</Descriptions.Item>
+            </Descriptions>
+
+            <Descriptions title="Order Information" bordered>
+              <Descriptions.Item label="Order Date">
+                {format(new Date(selectedOrderDetail.createdAt), 'dd/MM/yyyy HH:mm', { locale: vi })}
+              </Descriptions.Item>
+              <Descriptions.Item label="Status">
+                <Tag color={getStatusColor(selectedOrderDetail.status)}>
+                  {getStatusLabel(selectedOrderDetail.status)}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Payment Method">
+                {selectedOrderDetail.payment?.method}
+              </Descriptions.Item>
+              <Descriptions.Item label="Payment Status">
+                <Tag color={selectedOrderDetail.payment?.status === 'COMPLETED' ? 'success' : 'warning'}>
+                  {selectedOrderDetail.payment?.status}
+                </Tag>
+              </Descriptions.Item>
+            </Descriptions>
+
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold mb-4">Order Items</h3>
+              <Table
+                dataSource={selectedOrderDetail.items}
+                pagination={false}
+                columns={[
+                  {
+                    title: 'Product',
+                    dataIndex: ['product', 'name'],
+                    key: 'product',
+                  },
+                  {
+                    title: 'Price',
+                    dataIndex: 'price',
+                    key: 'price',
+                    render: (price: number) => (
+                      new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND'
+                      }).format(price)
+                    ),
+                  },
+                  {
+                    title: 'Quantity',
+                    dataIndex: 'quantity',
+                    key: 'quantity',
+                  },
+                  {
+                    title: 'Total',
+                    key: 'total',
+                    render: (_, record) => (
+                      new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND'
+                      }).format(record.price * record.quantity)
+                    ),
+                  },
+                ]}
+              />
+            </div>
+
+            <Divider />
+
+            <div className="flex justify-end">
+              <div className="text-right">
+                <div className="text-lg font-semibold">
+                  Total Amount: {new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND'
+                  }).format(selectedOrderDetail.totalPrice)}
+                </div>
               </div>
-            )}
+            </div>
           </div>
-        </Modal>
+        )}
+      </Modal>
     </Card>
   );
 };
