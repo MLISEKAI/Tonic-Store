@@ -1,5 +1,13 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
+const getAuthToken = () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+  return token;
+};
+
 export interface Order {
     id: string;
     userId: string;
@@ -34,80 +42,112 @@ export interface OrderResponse {
     totalPages: number;
 }
 
-class OrderService {
-    private static instance: OrderService;
-    private token: string | null;
-
-    private constructor() {
-        this.token = localStorage.getItem('token');
-    }
-
-    public static getInstance(): OrderService {
-        if (!OrderService.instance) {
-            OrderService.instance = new OrderService();
+const OrderService = {
+    // Create new order
+    async createOrder(orderData: any) {
+        try {
+            const token = getAuthToken();
+            const response = await fetch(`${API_URL}/orders`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(orderData),
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            throw error;
         }
-        return OrderService.instance;
-    }
+    },
 
-    private getHeaders(): HeadersInit {
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.token}`
-        };
-    }
-
-    async getAllOrders(page: number = 1, status?: string): Promise<OrderResponse> {
-        const queryParams = new URLSearchParams({
-            page: page.toString(),
-            ...(status && { status })
-        });
-
-        const response = await fetch(`${API_URL}/orders?${queryParams}`, {
-            headers: this.getHeaders()
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch orders');
+    // Get order by ID
+    async getOrder(id: string) {
+        try {
+            const token = getAuthToken();
+            const response = await fetch(`${API_URL}/orders/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            throw error;
         }
+    },
 
-        return response.json();
-    }
-
-    async getOrder(id: string): Promise<Order> {
-        const response = await fetch(`${API_URL}/orders/${id}`, {
-            headers: this.getHeaders()
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch order');
+    // Get user's orders
+    async getUserOrders(userId: string) {
+        try {
+            const token = getAuthToken();
+            const response = await fetch(`${API_URL}/orders/user/${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            throw error;
         }
+    },
 
-        return response.json();
-    }
+    // Get all orders (admin)
+    async getAllOrders(params: any) {
+        try {
+            const token = getAuthToken();
+            const queryString = new URLSearchParams(params).toString();
+            const response = await fetch(`${API_URL}/orders?${queryString}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            throw error;
+        }
+    },
 
-    async updateOrderStatus(orderId: string, status: string): Promise<void> {
-        const response = await fetch(`${API_URL}/orders/${orderId}/status`, {
-            method: 'PATCH',
-            headers: this.getHeaders(),
-            body: JSON.stringify({ status })
-        });
+    // Update order status (admin)
+    async updateOrderStatus(id: string, status: string) {
+        try {
+            const token = getAuthToken();
+            const response = await fetch(`${API_URL}/orders/${id}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ status }),
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            throw error;
+        }
+    },
 
-        if (!response.ok) {
-            throw new Error('Failed to update order status');
+    // Update payment status (admin)
+    async updatePaymentStatus(id: string, status: string, transactionId?: string) {
+        try {
+            const token = getAuthToken();
+            const response = await fetch(`${API_URL}/orders/${id}/payment`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ status, transactionId }),
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            return await response.json();
+        } catch (error) {
+            throw error;
         }
     }
+};
 
-    async updatePaymentStatus(orderId: string, status: string, transactionId?: string): Promise<void> {
-        const response = await fetch(`${API_URL}/orders/${orderId}/payment`, {
-            method: 'PATCH',
-            headers: this.getHeaders(),
-            body: JSON.stringify({ status, transactionId })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to update payment status');
-        }
-    }
-}
-
-export default OrderService.getInstance();
+export default OrderService;

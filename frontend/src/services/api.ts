@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL;
+export const API_URL = import.meta.env.VITE_API_URL;
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
@@ -41,21 +41,18 @@ export const getUserProfile = async (token: string) => {
 
 // Products API
 export const getProducts = async (category?: string) => {
-  const url = new URL(`${API_URL}/products`);
-  if (category) {
-    url.searchParams.append('category', category);
-  }
-  const response = await fetch(url.toString());
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to fetch products');
-  }
+  const url = category 
+    ? `${API_URL}/products?category=${encodeURIComponent(category)}`
+    : `${API_URL}/products`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to fetch products');
   return response.json();
 };
 
 export const getProduct = async (id: number) => {
   const response = await fetch(`${API_URL}/products/${id}`);
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Failed to fetch product');
+  return response.json();
 };
 
 export const searchProducts = async (query: string) => {
@@ -69,94 +66,99 @@ export const searchProducts = async (query: string) => {
 };
 
 // Cart API
-export const getCart = async (token: string) => {
+export const getCart = async () => {
   const response = await fetch(`${API_URL}/cart`, {
-    headers: { 
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
     }
   });
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Failed to fetch cart');
+  return response.json();
 };
 
-export const addToCart = async (token: string, productId: number, quantity: number) => {
-  const response = await fetch(`${API_URL}/cart/add`, {
+export const addToCart = async (productId: number, quantity: number) => {
+  const response = await fetch(`${API_URL}/cart/items`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
     },
     body: JSON.stringify({ productId, quantity }),
   });
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Failed to add to cart');
+  return response.json();
 };
 
-export const updateCartItem = async (token: string, itemId: number, quantity: number) => {
-  const response = await fetch(`${API_URL}/cart/update/${itemId}`, {
+export const updateCartItem = async (itemId: number, quantity: number) => {
+  const response = await fetch(`${API_URL}/cart/items/${itemId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
     },
     body: JSON.stringify({ quantity }),
   });
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Failed to update cart item');
+  return response.json();
 };
 
-export const removeFromCart = async (token: string, itemId: number) => {
-  const response = await fetch(`${API_URL}/cart/remove/${itemId}`, {
+export const removeCartItem = async (itemId: number) => {
+  const response = await fetch(`${API_URL}/cart/items/${itemId}`, {
     method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` }
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
   });
-  return handleResponse(response);
-};
-
-export const clearCart = async (token: string) => {
-  const response = await fetch(`${API_URL}/cart/clear`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Failed to remove cart item');
+  return response.json();
 };
 
 // Orders API
-export const createOrder = async (token: string, orderData: {
-  items: Array<{
-    productId: number;
-    quantity: number;
-    price: number;
-  }>;
-  totalPrice: number;
-  shippingAddress: string;
-  shippingPhone: string;
-  shippingName: string;
-  note?: string;
-  paymentMethod: string;
-  userId: number;
-}) => {
+export const createOrder = async (orderData: any) => {
   const response = await fetch(`${API_URL}/orders`, {
     method: 'POST',
-    headers: { 
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
     },
-    body: JSON.stringify(orderData)
+    body: JSON.stringify(orderData),
   });
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Failed to create order');
+  return response.json();
 };
 
-export const getOrders = async (token: string) => {
-  const response = await fetch(`${API_URL}/orders/user`, {
-    headers: { Authorization: `Bearer ${token}` }
+export const getOrders = async (page = 1, status?: string) => {
+  const url = status 
+    ? `${API_URL}/orders?page=${page}&status=${status}`
+    : `${API_URL}/orders?page=${page}`;
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
   });
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Failed to fetch orders');
+  return response.json();
 };
 
-export const getOrder = async (token: string, orderId: number) => {
-  const response = await fetch(`${API_URL}/orders/${orderId}`, {
-    headers: { Authorization: `Bearer ${token}` }
+export const getOrder = async (token: string, id: number) => {
+  const response = await fetch(`${API_URL}/orders/${id}`, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
   });
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Failed to fetch order');
+  return response.json();
+};
+
+export const cancelOrder = async (id: number) => {
+  const response = await fetch(`${API_URL}/orders/${id}/cancel`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
+  });
+  if (!response.ok) throw new Error('Failed to cancel order');
+  return response.json();
 };
 
 export const updateUserProfile = async (token: string, data: {
@@ -178,10 +180,7 @@ export const updateUserProfile = async (token: string, data: {
 // Categories API
 export const getCategories = async () => {
   const response = await fetch(`${API_URL}/categories`);
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to fetch categories');
-  }
+  if (!response.ok) throw new Error('Failed to fetch categories');
   return response.json();
 };
 
@@ -196,55 +195,47 @@ export const getCategoryById = async (id: number) => {
 
 export const incrementProductView = async (id: number) => {
   const response = await fetch(`${API_URL}/products/${id}/view`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' }
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
   });
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Failed to increment view');
+  return response.json();
 };
 
 // Reviews API
-export const getProductReviews = async (productId: number) => {
-  const response = await fetch(`${API_URL}/reviews/product/${productId}`);
-  return handleResponse(response);
+export const getProductReviews = async (productId: number, page = 1) => {
+  const response = await fetch(`${API_URL}/products/${productId}/reviews?page=${page}`);
+  if (!response.ok) throw new Error('Failed to fetch reviews');
+  return response.json();
 };
 
-export const createReview = async (token: string, data: {
-  productId: number;
+export const createReview = async (productId: number, reviewData: {
   rating: number;
   comment: string;
 }) => {
-  const response = await fetch(`${API_URL}/reviews`, {
+  const response = await fetch(`${API_URL}/products/${productId}/reviews`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify(reviewData),
   });
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Failed to create review');
+  return response.json();
 };
 
-export const updateReview = async (token: string, reviewId: number, data: {
-  rating?: number;
-  comment?: string;
-}) => {
-  const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  });
-  return handleResponse(response);
-};
-
-export const deleteReview = async (token: string, reviewId: number) => {
-  const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
+export const deleteReview = async (productId: number, reviewId: number) => {
+  const response = await fetch(`${API_URL}/products/${productId}/reviews/${reviewId}`, {
     method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` }
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
   });
-  return handleResponse(response);
+  if (!response.ok) throw new Error('Failed to delete review');
+  return response.json();
 };
 
 // Stats API
@@ -389,10 +380,10 @@ export const setDefaultShippingAddress = async (token: string, id: number) => {
   return handleResponse(response);
 };
 
-export const sendContactMessage = async (data: {
+export const sendContactMessage = async (messageData: {
   name: string;
   email: string;
-  phone: string;
+  subject: string;
   message: string;
 }) => {
   const response = await fetch(`${API_URL}/contact`, {
@@ -400,13 +391,9 @@ export const sendContactMessage = async (data: {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(messageData),
   });
-
-  if (!response.ok) {
-    throw new Error('Failed to send contact message');
-  }
-
+  if (!response.ok) throw new Error('Failed to send message');
   return response.json();
 };
 

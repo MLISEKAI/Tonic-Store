@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, message } from 'antd';
+import { Card, Form, Input, Button, notification } from 'antd';
+import { UserOutlined, MailOutlined, PhoneOutlined, HomeOutlined } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
-import * as userApi from '../../services/user/api';
+import { UserService } from '../../services/user/userService';
 
 interface ProfileFormData {
   name: string;
@@ -26,15 +27,27 @@ const ShipperProfilePage: React.FC = () => {
     }
   }, [user, form]);
 
-  const handleSubmit = async (values: ProfileFormData) => {
+  const onFinish = async (values: {
+    fullName: string;
+    email: string;
+    phone: string;
+    address: string;
+  }) => {
     try {
-      setLoading(true);
-      await userApi.updateUserProfile(token!, values);
-      message.success('Cập nhật hồ sơ thành công');
+      await UserService.updateProfile(values);
+      notification.success({
+        message: 'Thành công',
+        description: 'Cập nhật thông tin thành công',
+        placement: 'topRight',
+        duration: 2,
+      });
     } catch (error) {
-      message.error('Cập nhật hồ sơ thất bại');
-    } finally {
-      setLoading(false);
+      notification.error({
+        message: 'Lỗi',
+        description: 'Cập nhật thông tin thất bại',
+        placement: 'topRight',
+        duration: 2,
+      });
     }
   };
 
@@ -43,7 +56,7 @@ const ShipperProfilePage: React.FC = () => {
       <Form
         form={form}
         layout="vertical"
-        onFinish={handleSubmit}
+        onFinish={onFinish}
       >
         <Form.Item
           name="name"

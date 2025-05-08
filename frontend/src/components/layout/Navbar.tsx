@@ -20,10 +20,10 @@ import {
   DeleteOutlined
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { useAuth } from '../contexts/AuthContext';
-import * as api from '../services/api';
-import { useCart } from '../contexts/CartContext';
-import { formatPrice } from '../utils/format';
+import { useAuth } from '../../contexts/AuthContext';
+import * as api from '../../services/api';
+import { useCart } from '../../contexts/CartContext';
+import { formatPrice } from '../../utils/format';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

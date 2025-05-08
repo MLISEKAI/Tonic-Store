@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useProducts } from '../hooks';
 import { Product } from '../types';
 import { useCart } from '../contexts/CartContext';
-import ProductCard from '../components/ProductCard';
+import ProductCard from '../components/product/ProductCard';
 import TopBar from '../components/home/TopBar';
 import FlashSale from '../components/home/FlashSale';
 import WhyChooseUs from '../components/home/WhyChooseUs';
@@ -26,9 +26,23 @@ const HomePage = () => {
   const { products, categories, loading, error } = useProducts();
   const { addToCart } = useCart();
 
-  // Wrapper function to add to cart with default quantity of 1
-  const handleAddToCart = (product: Product) => {
-    addToCart(product, 1);
+  const handleAddToCart = async (product: Product) => {
+    try {
+      await addToCart(product, 1);
+      notification.success({
+        message: 'Thành công',
+        description: 'Đã thêm sản phẩm vào giỏ hàng',
+        placement: 'topRight',
+        duration: 2,
+      });
+    } catch (error) {
+      notification.error({
+        message: 'Lỗi',
+        description: 'Thêm sản phẩm vào giỏ hàng thất bại',
+        placement: 'topRight',
+        duration: 2,
+      });
+    }
   };
 
   if (error) {

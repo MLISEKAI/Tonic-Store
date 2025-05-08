@@ -1,10 +1,10 @@
 import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { message, Spin } from 'antd';
+import { message, Spin, notification } from 'antd';
 import { useAuth } from '../../contexts/AuthContext';
-import * as userApi from '../../services/user/api';
 import { UserProfile, UpdateUserProfileData } from '../../types/user';
 import ProfileForm from '../../components/user/ProfileForm';
+import { UserService } from '../../services/user/userService';
 
 const ProfilePage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -22,23 +22,34 @@ const ProfilePage: FC = () => {
 
   const fetchProfile = async () => {
     try {
-      const data = await userApi.getUserProfile(token!);
+      const data = await UserService.getProfile();
       setProfile(data);
     } catch (error) {
       message.error('Không thể tải thông tin hồ sơ');
     }
   };
 
-  const handleSubmit = async (values: UpdateUserProfileData) => {
+  const onFinish = async (values: {
+    fullName: string;
+    email: string;
+    phone: string;
+    address: string;
+  }) => {
     try {
-      setLoading(true);
-      await userApi.updateUserProfile(token!, values);
-      message.success('Cập nhật hồ sơ thành công');
-      fetchProfile();
+      await UserService.updateProfile(values);
+      notification.success({
+        message: 'Thành công',
+        description: 'Cập nhật thông tin thành công',
+        placement: 'topRight',
+        duration: 2,
+      });
     } catch (error) {
-      message.error('Cập nhật hồ sơ thất bại');
-    } finally {
-      setLoading(false);
+      notification.error({
+        message: 'Lỗi',
+        description: 'Cập nhật thông tin thất bại',
+        placement: 'topRight',
+        duration: 2,
+      });
     }
   };
 
@@ -58,7 +69,7 @@ const ProfilePage: FC = () => {
           <ProfileForm
             initialValues={profile}
             loading={loading}
-            onSubmit={handleSubmit}
+            onSubmit={onFinish}
           />
         </div>
       </div>

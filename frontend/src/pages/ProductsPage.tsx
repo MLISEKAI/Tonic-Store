@@ -1,16 +1,16 @@
-import { Button, Input, Select, message, Spin } from 'antd';
+import { Button, Input, Select, notification, Spin } from 'antd';
 import { SearchOutlined, FilterOutlined, ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
-import { getProducts } from '../services/productService';
+import { ProductService } from '../services/product/productService';
 import { Product } from '../types';
-import ProductCard from '../components/ProductCard';
+import ProductCard from '../components/product/ProductCard';
 
 const ProductsPage = () => {
   const [searchParams] = useSearchParams();
-  const category = searchParams.get('category');
+  const categoryId = searchParams.get('category');
   const [sortBy, setSortBy] = useState('featured');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,17 +23,22 @@ const ProductsPage = () => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const data = await getProducts(category ? decodeURIComponent(category) : undefined);
+        const data = await ProductService.getProducts(categoryId ? parseInt(categoryId) : undefined);
         setProducts(data);
       } catch (error) {
-        message.error('Không thể tải danh sách sản phẩm');
+        notification.error({
+          message: 'Lỗi',
+          description: 'Không thể tải danh sách sản phẩm',
+          placement: 'topRight',
+          duration: 2,
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-  }, [category]);
+  }, [categoryId]);
 
   const handleSearch = (value: string) => {
     setSearchText(value);
@@ -62,16 +67,31 @@ const ProductsPage = () => {
 
   const handleAddToCart = async (product: Product) => {
     if (!isAuthenticated || !token) {
-      message.warning('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
+      notification.warning({
+        message: 'Thông báo',
+        description: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
+        placement: 'topRight',
+        duration: 2,
+      });
       navigate('/login');
       return;
     }
 
     try {
       await addToCart(product, 1);
-      message.success('Đã thêm sản phẩm vào giỏ hàng');
+      notification.success({
+        message: 'Thành công',
+        description: 'Đã thêm sản phẩm vào giỏ hàng',
+        placement: 'topRight',
+        duration: 2,
+      });
     } catch (error) {
-      message.error('Không thể thêm sản phẩm vào giỏ hàng');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Thêm sản phẩm vào giỏ hàng thất bại',
+        placement: 'topRight',
+        duration: 2,
+      });
     }
   };
 
@@ -79,7 +99,7 @@ const ProductsPage = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <h1 className="text-3xl font-bold mb-4 md:mb-0">
-          {category ? decodeURIComponent(category) : 'Tất cả sản phẩm'}
+          {categoryId ? decodeURIComponent(categoryId) : 'Tất cả sản phẩm'}
         </h1>
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
           <Input
