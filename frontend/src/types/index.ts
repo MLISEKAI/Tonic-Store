@@ -1,16 +1,15 @@
 export enum Role {
   CUSTOMER = 'CUSTOMER',
-  ADMIN = 'ADMIN'
+  ADMIN = 'ADMIN',
+  DELIVERY = 'DELIVERY'
 }
 
 export enum OrderStatus {
   PENDING = 'PENDING',
-  CONFIRMED = 'CONFIRMED',
   PROCESSING = 'PROCESSING',
   SHIPPED = 'SHIPPED',
   DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED',
-  REFUNDED = 'REFUNDED'
+  CANCELLED = 'CANCELLED'
 }
 
 export enum PaymentStatus {

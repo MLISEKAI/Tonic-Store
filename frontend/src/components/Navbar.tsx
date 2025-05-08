@@ -29,7 +29,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const { isAuthenticated, token, logout } = useAuth();
+  const { isAuthenticated, token, logout, user } = useAuth();
   const { cart, totalItems, removeFromCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
@@ -70,6 +70,15 @@ const Navbar = () => {
         </Link>
       )
     },
+    ...(user?.role === 'DELIVERY' ? [{
+      key: 'shipper-orders',
+      label: (
+        <Link to="/shipper/orders" className="flex items-center">
+          <ShoppingCartOutlined className="mr-2" />
+          Quản lý giao hàng
+        </Link>
+      )
+    }] : []),
     { type: 'divider' },
     {
       key: 'logout',

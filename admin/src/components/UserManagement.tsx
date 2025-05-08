@@ -233,6 +233,7 @@ const UserManagement: React.FC = () => {
             <Select>
               <Select.Option value="CUSTOMER">Customer</Select.Option>
               <Select.Option value="ADMIN">Admin</Select.Option>
+              <Select.Option value="DELIVERY">Delivery</Select.Option>
             </Select>
           </Form.Item>
 

@@ -1,12 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  getShippingAddresses, 
-  createShippingAddress, 
-  updateShippingAddress, 
-  deleteShippingAddress,
-  setDefaultShippingAddress
-} from '../services/api';
+import { useShippingAddress } from '../hooks';
 import { Button, Form, Input, Modal, Table, message, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, StarOutlined } from '@ant-design/icons';
 
@@ -20,146 +14,121 @@ interface ShippingAddress {
 
 const ShippingAddressManager: React.FC = () => {
   const { token } = useAuth();
-  const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<ShippingAddress | null>(null);
+  const { 
+    addresses, 
+    loading, 
+    addAddress, 
+    updateAddress, 
+    deleteAddress, 
+    setDefaultAddress 
+  } = useShippingAddress(token);
+  
+  const [isModalVisible, setIsModalVisible] = React.useState(false);
+  const [editingAddress, setEditingAddress] = React.useState<ShippingAddress | null>(null);
   const [form] = Form.useForm();
 
-  const fetchAddresses = async () => {
-    try {
-      setLoading(true);
-      const data = await getShippingAddresses(token);
-      setAddresses(data);
-    } catch (error) {
-      message.error('Failed to fetch shipping addresses');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAddresses();
-  }, []);
-
   const handleSubmit = async (values: any) => {
-    try {
-      if (editingAddress) {
-        await updateShippingAddress(token, editingAddress.id, values);
-        message.success('Address updated successfully');
-      } else {
-        await createShippingAddress(token, values);
-        message.success('Address created successfully');
-      }
-      setIsModalVisible(false);
-      form.resetFields();
-      fetchAddresses();
-    } catch (error) {
-      message.error('Failed to save address');
+    if (editingAddress) {
+      await updateAddress(editingAddress.id, values);
+    } else {
+      await addAddress(values);
     }
+    setIsModalVisible(false);
+    form.resetFields();
   };
 
   const handleDelete = async (id: number) => {
-    try {
-      await deleteShippingAddress(token, id);
-      message.success('Address deleted successfully');
-      fetchAddresses();
-    } catch (error) {
-      message.error('Failed to delete address');
-    }
+    await deleteAddress(id);
   };
 
   const handleSetDefault = async (id: number) => {
-    try {
-      await setDefaultShippingAddress(token, id);
-      message.success('Default address updated successfully');
-      fetchAddresses();
-    } catch (error) {
-      message.error('Failed to set default address');
-    }
+    await setDefaultAddress(id);
   };
-
-  const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Phone',
-      dataIndex: 'phone',
-      key: 'phone',
-    },
-    {
-      title: 'Address',
-      dataIndex: 'address',
-      key: 'address',
-    },
-    {
-      title: 'Default',
-      key: 'isDefault',
-      render: (record: ShippingAddress) => (
-        record.isDefault ? <StarOutlined style={{ color: '#1890ff' }} /> : null
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (record: ShippingAddress) => (
-        <div>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => {
-              setEditingAddress(record);
-              form.setFieldsValue(record);
-              setIsModalVisible(true);
-            }}
-          />
-          <Button
-            type="text"
-            icon={<StarOutlined />}
-            onClick={() => handleSetDefault(record.id)}
-            disabled={record.isDefault}
-          />
-          <Popconfirm
-            title="Are you sure you want to delete this address?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="text" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </div>
-      ),
-    },
-  ];
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setEditingAddress(null);
-            form.resetFields();
-            setIsModalVisible(true);
-          }}
-        >
-          Add New Address
-        </Button>
-      </div>
+      <Button 
+        type="primary" 
+        icon={<PlusOutlined />} 
+        onClick={() => {
+          setEditingAddress(null);
+          setIsModalVisible(true);
+        }}
+      >
+        Thêm địa chỉ mới
+      </Button>
 
       <Table
-        columns={columns}
         dataSource={addresses}
-        rowKey="id"
         loading={loading}
+        columns={[
+          {
+            title: 'Tên',
+            dataIndex: 'name',
+            key: 'name',
+          },
+          {
+            title: 'Số điện thoại',
+            dataIndex: 'phone',
+            key: 'phone',
+          },
+          {
+            title: 'Địa chỉ',
+            dataIndex: 'address',
+            key: 'address',
+          },
+          {
+            title: 'Mặc định',
+            key: 'isDefault',
+            render: (_, record) => (
+              record.isDefault ? 
+                <StarOutlined style={{ color: '#1890ff' }} /> : 
+                <Button 
+                  type="link" 
+                  onClick={() => handleSetDefault(record.id)}
+                >
+                  Đặt làm mặc định
+                </Button>
+            ),
+          },
+          {
+            title: 'Thao tác',
+            key: 'action',
+            render: (_, record) => (
+              <>
+                <Button 
+                  type="link" 
+                  icon={<EditOutlined />}
+                  onClick={() => {
+                    setEditingAddress(record);
+                    form.setFieldsValue(record);
+                    setIsModalVisible(true);
+                  }}
+                >
+                  Sửa
+                </Button>
+                <Popconfirm
+                  title="Bạn có chắc muốn xóa địa chỉ này?"
+                  onConfirm={() => handleDelete(record.id)}
+                  okText="Có"
+                  cancelText="Không"
+                >
+                  <Button 
+                    type="link" 
+                    danger 
+                    icon={<DeleteOutlined />}
+                  >
+                    Xóa
+                  </Button>
+                </Popconfirm>
+              </>
+            ),
+          },
+        ]}
       />
 
       <Modal
-        title={editingAddress ? 'Edit Address' : 'Add New Address'}
+        title={editingAddress ? "Sửa địa chỉ" : "Thêm địa chỉ mới"}
         open={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false);
@@ -169,43 +138,33 @@ const ShippingAddressManager: React.FC = () => {
       >
         <Form
           form={form}
-          layout="vertical"
           onFinish={handleSubmit}
+          layout="vertical"
         >
           <Form.Item
             name="name"
-            label="Name"
-            rules={[{ required: true, message: 'Please input name!' }]}
+            label="Tên"
+            rules={[{ required: true, message: 'Vui lòng nhập tên' }]}
           >
             <Input />
           </Form.Item>
-
           <Form.Item
             name="phone"
-            label="Phone"
-            rules={[{ required: true, message: 'Please input phone!' }]}
+            label="Số điện thoại"
+            rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
           >
             <Input />
           </Form.Item>
-
           <Form.Item
             name="address"
-            label="Address"
-            rules={[{ required: true, message: 'Please input address!' }]}
+            label="Địa chỉ"
+            rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
           >
             <Input.TextArea />
           </Form.Item>
-
-          <Form.Item
-            name="isDefault"
-            valuePropName="checked"
-          >
-            <Input type="checkbox" /> Set as default address
-          </Form.Item>
-
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              {editingAddress ? 'Update' : 'Create'}
+              {editingAddress ? "Cập nhật" : "Thêm mới"}
             </Button>
           </Form.Item>
         </Form>
