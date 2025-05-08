@@ -32,6 +32,11 @@ interface ShippingAddress {
   address: string;
   isDefault: boolean;
   userId: number;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+  };
 }
 
 const ShippingAddressesPage: React.FC = () => {
@@ -139,6 +144,17 @@ const ShippingAddressesPage: React.FC = () => {
   };
 
   const columns = [
+    {
+      title: 'Customer',
+      dataIndex: ['user', 'name'],
+      key: 'customer',
+      render: (text: string, record: ShippingAddress) => (
+        <div>
+          <div>{text}</div>
+          <div className="text-gray-500">{record.user?.email}</div>
+        </div>
+      ),
+    },
     {
       title: 'Name',
       dataIndex: 'name',

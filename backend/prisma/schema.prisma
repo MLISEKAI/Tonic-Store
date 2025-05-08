@@ -24,6 +24,8 @@ model User {
   passwordChangesMade     PasswordChangeLog[] @relation("AdminPasswordChanges")
   reviews   Review[]
   shippingAddresses ShippingAddress[]
+  deliveryLogs DeliveryLog[]
+  shipperOrders Order[] @relation("OrderShipper")
 }
 
 model Category {
@@ -112,9 +114,13 @@ model Order {
   payment    Payment?
   shippingAddressId Int?
   shippingAddressRef ShippingAddress? @relation(fields: [shippingAddressId], references: [id])
+  shipperId  Int?
+  shipper    User?       @relation("OrderShipper", fields: [shipperId], references: [id])
+  deliveryLogs DeliveryLog[]
 
   @@index([userId], map: "Order_userId_fkey")
   @@index([shippingAddressId])
+  @@index([shipperId])
 }
 
 model OrderItem {
@@ -189,9 +195,26 @@ model ShippingAddress {
   @@index([userId])
 }
 
+model DeliveryLog {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  deliveryId Int
+  status    OrderStatus
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order     Order @relation(fields: [orderId], references: [id])
+  delivery  User  @relation(fields: [deliveryId], references: [id])
+
+  @@index([orderId])
+  @@index([deliveryId])
+}
+
 enum Role {
   CUSTOMER
   ADMIN
+  DELIVERY
 }
 
 enum OrderStatus {
