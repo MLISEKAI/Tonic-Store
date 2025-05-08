@@ -1,8 +1,7 @@
 import { Button, notification, Carousel, Spin } from 'antd';
 import { ArrowRightOutlined, RightOutlined, StarOutlined, EyeOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
-import { getProducts, getCategories } from '../services/api';
+import { useProducts } from '../hooks';
 import { Product } from '../types';
 import { useCart } from '../contexts/CartContext';
 import ProductCard from '../components/ProductCard';
@@ -23,117 +22,22 @@ const CACHE_KEY = 'products_cache';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const HomePage = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const navigate = useNavigate();
+  const { products, categories, loading, error } = useProducts();
   const { addToCart } = useCart();
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Check cache first
-      const cachedData = localStorage.getItem(CACHE_KEY);
-      if (cachedData) {
-        const { data, timestamp } = JSON.parse(cachedData);
-        if (Date.now() - timestamp < CACHE_DURATION) {
-          setProducts(data);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // If no cache or cache expired, fetch from API
-      const [productsData, categoriesData] = await Promise.all([
-        getProducts(),
-        getCategories()
-      ]);
-
-      // Calculate product count for each category
-      const categoriesWithCount = categoriesData.map((category: Category) => ({
-        ...category,
-        productCount: productsData.filter((product: Product) => 
-          product.category?.name === category.name
-        ).length
-      }));
-
-      setProducts(productsData);
-      setCategories(categoriesWithCount);
-
-      // Update cache
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data: productsData,
-        timestamp: Date.now()
-      }));
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Throttle the request by adding a delay
-    const timer = setTimeout(() => {
-      fetchData();
-    }, 1000); // Wait 1 second before making the request
-
-    return () => clearTimeout(timer);
-  }, [fetchData]);
-
-  const handleAddToCart = async (product: Product) => {
-    if (!token) {
-      notification.warning({
-        message: 'Thông báo',
-        description: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
-        placement: 'topRight',
-        duration: 2,
-      });
-      navigate('/login');
-      return;
-    }
-
-    try {
-      await addToCart(product, 1);
-      notification.success({
-        message: 'Thành công',
-        description: 'Đã thêm sản phẩm vào giỏ hàng',
-        placement: 'topRight',
-        duration: 2,
-      });
-    } catch (error) {
-      notification.error({
-        message: 'Lỗi',
-        description: 'Thêm sản phẩm vào giỏ hàng thất bại',
-        placement: 'topRight',
-        duration: 2,
-      });
-      console.error('Error adding to cart:', error);
-    }
+  // Wrapper function to add to cart with default quantity of 1
+  const handleAddToCart = (product: Product) => {
+    addToCart(product, 1);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spin size="large" />
-      </div>
-    );
-  }
-
   if (error) {
-    return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-red-500 mb-4">{error}</h2>
-        <Button type="primary" onClick={fetchData}>
-          Thử lại
-        </Button>
-      </div>
-    );
+    notification.error({
+      message: 'Lỗi',
+      description: 'Thêm sản phẩm vào giỏ hàng thất bại',
+      placement: 'topRight',
+      duration: 2,
+    });
   }
 
   // Get random products if no featured products
