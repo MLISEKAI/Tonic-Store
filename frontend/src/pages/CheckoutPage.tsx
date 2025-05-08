@@ -4,7 +4,7 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { createOrder, createPaymentUrl, getShippingAddresses, createShippingAddress } from '../services/api';
 import { formatPrice } from '../utils/format';
-import VNPayPayment from '../components/VNPayPayment';
+import VNPayPayment from '../components/payment/VNPayPayment';
 import { Order, PaymentMethod, PaymentStatus } from '../types';
 import { message, Form, Input, Select, Button, Radio, Spin, Checkbox } from 'antd';
 

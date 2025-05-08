@@ -3,7 +3,7 @@ import { Button, Spin, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import * as api from '../../services/api';
 import { Product } from '../../types';
-import ProductCard from '../ProductCard';
+import ProductCard from '../product/ProductCard';
 
 const BestSellingProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);

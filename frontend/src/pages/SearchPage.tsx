@@ -53,7 +53,7 @@ const SearchPage = () => {
       }
       await api.addToCart(token, productId, 1);
       notification.success({
-        message: 'Thông báo',
+        message: 'Thành công',
         description: 'Đã thêm sản phẩm vào giỏ hàng',
         placement: 'topRight',
         duration: 2,
@@ -61,7 +61,7 @@ const SearchPage = () => {
     } catch (error) {
       notification.error({
         message: 'Lỗi',
-        description: 'Có lỗi xảy ra khi thêm vào giỏ hàng',
+        description: 'Thêm sản phẩm vào giỏ hàng thất bại',
         placement: 'topRight',
         duration: 2,
       });

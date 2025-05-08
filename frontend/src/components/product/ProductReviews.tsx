@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Rate, Button, Input, notification, List, Avatar } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
-import * as api from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
-import { Review } from '../types';
+import * as api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { Review } from '../../types';
 
 interface ProductReviewsProps {
   productId: number;

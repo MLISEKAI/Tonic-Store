@@ -2,9 +2,13 @@ import { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import { Button } from 'antd';
 
 const formatPrice = (price: number) => {
-  return price.toLocaleString('vi-VN') + 'đ';
+  return price.toLocaleString('vi-VN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }) + 'đ';
 };
 
 export const CartPage: FC = () => {
@@ -121,12 +125,15 @@ export const CartPage: FC = () => {
                 <span>{formatPrice(calculateTotal())}</span>
               </div>
             </div>
-            <button
+            <Button
+              type="primary"
+              size="large"
+              block
               onClick={handleCheckout}
-              className="w-full bg-blue-600 text-white py-2 rounded mt-4"
+              className="mt-4"
             >
               Thanh toán
-            </button>
+            </Button>
           </div>
         </div>
       </div>

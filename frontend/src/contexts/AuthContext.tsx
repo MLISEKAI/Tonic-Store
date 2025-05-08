@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, FC, ReactNode } from 'react';
 import { User, AuthResponse } from '../types';
-import * as api from '../services/api';
+import { UserService } from '../services/user/userService';
 
 interface AuthContextType {
   user: User | null;
@@ -22,6 +22,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -34,6 +35,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
           if (parsedUser) {
             setToken(storedToken);
             setUser(parsedUser);
+            setIsAuthenticated(true);
           }
         }
       } catch (error) {
@@ -50,13 +52,13 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response: AuthResponse = await api.login(email, password);
-      if (response && response.token && response.user) {
-        setToken(response.token);
-        setUser(response.user);
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-      }
+      const response = await UserService.login({ username: email, password });
+      setToken(response.token);
+      localStorage.setItem('token', response.token);
+      setIsAuthenticated(true);
+      setUser(response.user);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      return response;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -65,13 +67,19 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (name: string, email: string, password: string) => {
     try {
-      const response: AuthResponse = await api.register(name, email, password);
-      if (response && response.token && response.user) {
-        setToken(response.token);
-        setUser(response.user);
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-      }
+      const response = await UserService.register({
+        username: email,
+        email,
+        password,
+        fullName: name,
+        phone: ''
+      });
+      setToken(response.token);
+      localStorage.setItem('token', response.token);
+      setIsAuthenticated(true);
+      setUser(response.user);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      return response;
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -83,6 +91,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    setIsAuthenticated(false);
   };
 
   const value: AuthContextType = {
@@ -91,7 +100,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
-    isAuthenticated: !!token,
+    isAuthenticated,
     isLoading
   };
 

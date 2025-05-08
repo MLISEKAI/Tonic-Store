@@ -3,8 +3,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import { useAuth } from "./contexts/AuthContext";
 import Home from "./pages/HomePage";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import ProductsPage from "./pages/ProductsPage";
 import { CartPage } from "./pages/CartPage";
 import { OrdersPage } from "./pages/user/OrdersPage";
@@ -16,8 +16,6 @@ import CheckoutPage from "./pages/CheckoutPage";
 import SearchPage from "./pages/SearchPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ContactPage from './pages/ContactPage';
-import FeaturedProducts from './pages/FeaturedProducts';
-import BestSellingProducts from './pages/BestSellingProducts';
 import ShipperOrders from './pages/shipper/OrdersPage';
 import ShipperLayout from './layouts/ShipperLayout';
 import ShipperProfilePage from './pages/shipper/ProfilePage';
@@ -92,16 +90,6 @@ const App = () => {
             <Route path="/contact" element={
               <DefaultLayout>
                 <ContactPage />
-              </DefaultLayout>
-            } />
-            <Route path="/featured-products" element={
-              <DefaultLayout>
-                <FeaturedProducts />
-              </DefaultLayout>
-            } />
-            <Route path="/best-selling" element={
-              <DefaultLayout>
-                <BestSellingProducts />
               </DefaultLayout>
             } />
 

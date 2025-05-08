@@ -233,7 +233,6 @@ const AdminDashboard: React.FC = () => {
             onClick={() => setCollapsed(!collapsed)}
             style={{ fontSize: '16px', width: 64, height: 64 }}
           />
-          <Avatar style={{ float: 'right', margin: '16px' }} icon={<UserOutlined />} />
         </Header>
         <Content style={{ padding: 24, background: '#fff', minHeight: 280 }}>
           {selectedKey === 'dashboard' && <Dashboard />}

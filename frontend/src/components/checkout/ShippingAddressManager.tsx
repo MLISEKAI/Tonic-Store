@@ -1,6 +1,6 @@
 import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useShippingAddress } from '../hooks';
+import { useAuth } from '../../contexts/AuthContext';
+import { useShippingAddress } from '../../hooks';
 import { Button, Form, Input, Modal, Table, message, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, StarOutlined } from '@ant-design/icons';
 
