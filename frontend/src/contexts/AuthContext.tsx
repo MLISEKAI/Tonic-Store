@@ -1,115 +1,96 @@
-import { createContext, useContext, useState, useEffect, FC, ReactNode } from 'react';
-import { User, AuthResponse } from '../types';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserService } from '../services/user/userService';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
   isAuthenticated: boolean;
-  isLoading: boolean;
+  login: (credentials: { email: string; password: string }) => Promise<void>;
+  register: (data: {
+    name: string;
+    email: string;
+    password: string;
+    phone: string;
+  }) => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const storedToken = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
-        
-        if (storedToken && storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          if (parsedUser) {
-            setToken(storedToken);
-            setUser(parsedUser);
-            setIsAuthenticated(true);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading auth state:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeAuth();
+    // Kiểm tra token và lấy thông tin user khi component mount
+    const token = localStorage.getItem('token');
+    if (token) {
+      checkAuth();
+    }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const checkAuth = async () => {
     try {
-      const response = await UserService.login({ username: email, password });
-      setToken(response.token);
-      localStorage.setItem('token', response.token);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const userData = await UserService.getProfile();
+      setUser(userData);
       setIsAuthenticated(true);
-      setUser(response.user);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      return response;
     } catch (error) {
-      console.error('Login error:', error);
+      // Nếu có lỗi, xóa token và reset state
+      localStorage.removeItem('token');
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  };
+
+  const login = async (credentials: { email: string; password: string }) => {
+    try {
+      const response = await UserService.login(credentials);
+      if (response.token) {
+        localStorage.setItem('token', response.token.trim());
+        await checkAuth(); // Lấy thông tin user sau khi đăng nhập
+      } else {
+        throw new Error('No token received from server');
+      }
+    } catch (error) {
+      localStorage.removeItem('token');
+      setUser(null);
+      setIsAuthenticated(false);
       throw error;
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (data: {
+    name: string;
+    email: string;
+    password: string;
+    phone: string;
+  }) => {
     try {
-      const response = await UserService.register({
-        username: email,
-        email,
-        password,
-        fullName: name,
-        phone: ''
-      });
-      setToken(response.token);
-      localStorage.setItem('token', response.token);
-      setIsAuthenticated(true);
-      setUser(response.user);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      return response;
+      await UserService.register(data);
     } catch (error) {
-      console.error('Registration error:', error);
       throw error;
     }
   };
 
   const logout = () => {
-    setToken(null);
-    setUser(null);
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    setUser(null);
     setIsAuthenticated(false);
   };
 
-  const value: AuthContextType = {
-    user,
-    token,
-    login,
-    register,
-    logout,
-    isAuthenticated,
-    isLoading
-  };
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

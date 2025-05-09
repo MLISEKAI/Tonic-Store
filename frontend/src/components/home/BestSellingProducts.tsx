@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Spin, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import * as api from '../../services/api';
+import { ProductService } from '../../services/product/productService';
 import { Product } from '../../types';
 import ProductCard from '../product/ProductCard';
 
@@ -13,7 +13,7 @@ const BestSellingProducts = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const allProducts = await api.getProducts();
+        const allProducts = await ProductService.getProducts();
         // Sắp xếp sản phẩm theo số lượng đã bán
         const bestSellingProducts = allProducts
           .filter((product: Product) => product.soldCount && product.soldCount > 0)

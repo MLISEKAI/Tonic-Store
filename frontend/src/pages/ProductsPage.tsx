@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { ProductService } from '../services/product/productService';
+import { CartService } from '../services/cart/cartService';
 import { Product } from '../types';
 import ProductCard from '../components/product/ProductCard';
 
@@ -16,14 +17,14 @@ const ProductsPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const navigate = useNavigate();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const data = await ProductService.getProducts(categoryId ? parseInt(categoryId) : undefined);
+        const data = await ProductService.getProducts(categoryId ? categoryId : undefined);
         setProducts(data);
       } catch (error) {
         notification.error({
@@ -66,7 +67,7 @@ const ProductsPage = () => {
   });
 
   const handleAddToCart = async (product: Product) => {
-    if (!isAuthenticated || !token) {
+    if (!isAuthenticated) {
       notification.warning({
         message: 'Thông báo',
         description: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Rate, Avatar, Spin, message } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
-import * as api from '../../services/api';
 import { Review } from '../../types';
+import { ProductService } from '../../services/product/productService';
+import { ReviewService } from '../../services/product/reviewService';
 
 const CustomerReviews = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -13,11 +14,11 @@ const CustomerReviews = () => {
     try {
       setError(null);
       // Lấy tất cả sản phẩm
-      const products = await api.getProducts();
+      const products = await ProductService.getProducts();
       
       // Lấy reviews của tất cả sản phẩm
       const allReviewsPromises = products.map((product: { id: number; }) => 
-        api.getProductReviews(product.id)
+        ReviewService.getProductReviews(product.id)
       );
       
       const allReviewsArrays = await Promise.all(allReviewsPromises);

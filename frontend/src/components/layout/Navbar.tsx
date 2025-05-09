@@ -21,15 +21,15 @@ import {
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useAuth } from '../../contexts/AuthContext';
-import * as api from '../../services/api';
 import { useCart } from '../../contexts/CartContext';
 import { formatPrice } from '../../utils/format';
+import { ProductService } from '../../services/product/productService';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const { isAuthenticated, token, logout, user } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const { cart, totalItems, removeFromCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
@@ -97,7 +97,7 @@ const Navbar = () => {
     if (e.key === 'Enter' && searchQuery.trim()) {
       try {
         setIsSearching(true);
-        const results = await api.searchProducts(searchQuery.trim());
+        const results = await ProductService.searchProducts(searchQuery.trim());
         navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`, { state: { results } });
       } catch (error) {
         notification.error({

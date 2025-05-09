@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
 import { Form, Input, Button, notification, Row, Col, Card } from 'antd';
 import { MailOutlined, PhoneOutlined, EnvironmentOutlined, SendOutlined } from '@ant-design/icons';
-import * as api from '../services/api';
+import { ContactService } from '../services/contact/contactService';
 
 const { TextArea } = Input;
 
@@ -13,7 +13,7 @@ const ContactPage: FC = () => {
     try {
       setLoading(true);
       // Gửi thông tin liên hệ đến server
-      await api.sendContactMessage(values);
+      await ContactService.sendMessage(values);
       notification.success({
         message: 'Thành công',
         description: 'Gửi thông tin liên hệ thành công!',

@@ -2,18 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { createOrder, createPaymentUrl, getShippingAddresses, createShippingAddress } from '../services/api';
+import { OrderService } from '../services/order/orderService';
+import { ShippingAddressService } from '../services/shipping/shippingAddressService';
+import { PaymentService } from '../services/order/paymentService';
 import { formatPrice } from '../utils/format';
 import VNPayPayment from '../components/payment/VNPayPayment';
 import { Order, PaymentMethod, PaymentStatus } from '../types';
 import { message, Form, Input, Select, Button, Radio, Spin, Checkbox } from 'antd';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { cart, clearCart } = useCart();
-  const { token, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form] = Form.useForm();
@@ -22,14 +22,14 @@ const CheckoutPage: React.FC = () => {
   const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!token) {
+    if (!isAuthenticated) {
       navigate('/login');
       return;
     }
 
     const fetchAddresses = async () => {
       try {
-        const addresses = await getShippingAddresses(token);
+        const addresses = await ShippingAddressService.getShippingAddresses();
         setShippingAddresses(addresses);
         const defaultAddress = addresses.find((addr: any) => addr.isDefault);
         if (defaultAddress) {
@@ -49,14 +49,14 @@ const CheckoutPage: React.FC = () => {
     };
 
     fetchAddresses();
-  }, [token, navigate, form]);
+  }, [isAuthenticated, navigate, form]);
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
     setError(null);
   
     try {
-      if (!token || !user) {
+      if (!isAuthenticated || !user) {
         setError('Vui lòng đăng nhập để thanh toán');
         navigate('/login');
         return;
@@ -79,7 +79,7 @@ const CheckoutPage: React.FC = () => {
       // Nếu người dùng chọn lưu địa chỉ
       if (values.saveAddress) {
         try {
-          await createShippingAddress(token, {
+          await ShippingAddressService.createShippingAddress({
             name: values.name,
             phone: values.phone,
             address: values.address,
@@ -113,22 +113,8 @@ const CheckoutPage: React.FC = () => {
   
       console.log('Creating order with data:', orderData);
   
-      // Gửi yêu cầu tạo đơn hàng
-      const response = await fetch(`${API_URL}/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(orderData)
-      });
-  
-      // Kiểm tra phản hồi từ backend
-      if (!response.ok) {
-        throw new Error('Không thể tạo đơn hàng');
-      }
-  
-      const data = await response.json();
+      // Tạo đơn hàng
+      const data = await OrderService.createOrder(orderData);
       console.log('Order created:', data);
   
       // Kiểm tra phản hồi từ backend
@@ -142,8 +128,9 @@ const CheckoutPage: React.FC = () => {
         navigate(`/user/orders/${data.order.id}`);
       } else if (values.paymentMethod === PaymentMethod.VN_PAY) {
         // Xử lý thanh toán VNPay
-        if (data.paymentUrl) {
-          setPaymentUrl(data.paymentUrl);
+        const paymentData = await PaymentService.createPaymentUrl(data.order.id);
+        if (paymentData.paymentUrl) {
+          setPaymentUrl(paymentData.paymentUrl);
         } else {
           throw new Error('Không thể tạo URL thanh toán');
         }

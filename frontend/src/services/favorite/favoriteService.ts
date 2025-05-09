@@ -2,21 +2,18 @@ export const API_URL = import.meta.env.VITE_API_URL;
 
 export const FavoriteService = {
   // Lấy danh sách sản phẩm yêu thích
-  async getFavorites(page = 1, limit = 10) {
+  async getFavorites() {
     const token = localStorage.getItem('token');
-    const response = await fetch(
-      `${API_URL}/favorites?page=${page}&limit=${limit}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+    const response = await fetch(`${API_URL}/favorites`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-    );
+    });
     if (!response.ok) throw new Error('Failed to fetch favorites');
     return response.json();
   },
 
-  // Thêm sản phẩm vào danh sách yêu thích
+  // Thêm sản phẩm vào yêu thích
   async addToFavorites(productId: string) {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/favorites`, {
@@ -31,7 +28,7 @@ export const FavoriteService = {
     return response.json();
   },
 
-  // Xóa sản phẩm khỏi danh sách yêu thích
+  // Xóa sản phẩm khỏi yêu thích
   async removeFromFavorites(productId: string) {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/favorites/${productId}`, {

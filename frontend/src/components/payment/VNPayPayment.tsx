@@ -1,5 +1,5 @@
 import React from 'react';
-import VNPayQRCode from '../VNPayQRCode';
+import VNPayQRCode from './VNPayQRCode';
 
 interface VNPayPaymentProps {
   paymentUrl: string;

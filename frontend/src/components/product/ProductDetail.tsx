@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, notification, Spin, Image, Rate, InputNumber, Tabs, Tag, Space, Divider } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined, EyeOutlined, StarOutlined, FireOutlined, GiftOutlined } from '@ant-design/icons';
-import * as api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { Product, ProductStatus } from '../../types';
 import ProductReviews from './ProductReviews';
+import { ProductService } from '../../services/product/productService';
 
 const { TabPane } = Tabs;
 
@@ -19,7 +19,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -27,9 +27,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
       try {
         setLoading(true);
         if (productId) {
-          const data = await api.getProduct(parseInt(productId));
+          const data = await ProductService.getProduct(parseInt(productId));
           setProduct(data);
-          await api.incrementProductView(parseInt(productId));
+          await ProductService.incrementProductView(parseInt(productId));
         }
       } catch (error) {
         notification.error({
@@ -47,7 +47,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   }, [productId]);
 
   const handleAddToCart = async () => {
-    if (!token) {
+    if (!isAuthenticated) {
       navigate('/login');
       return;
     }

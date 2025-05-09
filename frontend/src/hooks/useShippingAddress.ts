@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
 import { message } from 'antd';
-import { 
-  getShippingAddresses, 
-  createShippingAddress, 
-  updateShippingAddress, 
-  deleteShippingAddress,
-  setDefaultShippingAddress
-} from '../services/api';
+import { ShippingAddressService } from '../services/shipping/shippingAddressService';
 
 interface ShippingAddress {
   id: number;
@@ -24,7 +18,7 @@ export function useShippingAddress(token: string | null) {
     if (!token) return;
     try {
       setLoading(true);
-      const data = await getShippingAddresses(token);
+      const data = await ShippingAddressService.getShippingAddresses();
       setAddresses(data);
     } catch (error) {
       message.error('Failed to fetch shipping addresses');
@@ -40,7 +34,7 @@ export function useShippingAddress(token: string | null) {
   const addAddress = async (values: Omit<ShippingAddress, 'id' | 'isDefault'>) => {
     if (!token) return;
     try {
-      await createShippingAddress(token, values);
+      await ShippingAddressService.createShippingAddress(values);
       message.success('Address created successfully');
       await fetchAddresses();
     } catch (error) {
@@ -51,7 +45,7 @@ export function useShippingAddress(token: string | null) {
   const updateAddress = async (id: number, values: Omit<ShippingAddress, 'id' | 'isDefault'>) => {
     if (!token) return;
     try {
-      await updateShippingAddress(token, id, values);
+      await ShippingAddressService.updateShippingAddress(id, values);
       message.success('Address updated successfully');
       await fetchAddresses();
     } catch (error) {
@@ -62,7 +56,7 @@ export function useShippingAddress(token: string | null) {
   const deleteAddress = async (id: number) => {
     if (!token) return;
     try {
-      await deleteShippingAddress(token, id);
+      await ShippingAddressService.deleteShippingAddress(id);
       message.success('Address deleted successfully');
       await fetchAddresses();
     } catch (error) {
@@ -73,7 +67,7 @@ export function useShippingAddress(token: string | null) {
   const setDefaultAddress = async (id: number) => {
     if (!token) return;
     try {
-      await setDefaultShippingAddress(token, id);
+      await ShippingAddressService.setDefaultShippingAddress(id);
       message.success('Default address updated successfully');
       await fetchAddresses();
     } catch (error) {

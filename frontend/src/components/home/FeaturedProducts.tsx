@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Spin, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import * as api from '../../services/api';
+import { ProductService } from '../../services/product/productService';
 import { Product } from '../../types';
-import ProductCard from '../ProductCard';
+import ProductCard from '../product/ProductCard';
 
 const FeaturedProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -13,7 +13,7 @@ const FeaturedProducts = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const allProducts = await api.getProducts();
+        const allProducts = await ProductService.getProducts();
         // Lọc và sắp xếp sản phẩm theo rating
         const featuredProducts = allProducts
           .filter((product: Product) => product.rating && product.rating >= 4)

@@ -9,18 +9,21 @@ export const CategoryService = {
   },
 
   // Lấy chi tiết danh mục
-  async getCategory(id: string) {
+  async getCategory(id: number) {
     const response = await fetch(`${API_URL}/categories/${id}`);
-    if (!response.ok) throw new Error('Failed to fetch category');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch category');
+    }
     return response.json();
   },
 
   // Lấy sản phẩm theo danh mục
-  async getProductsByCategory(categoryId: string, page = 1, limit = 10) {
+  async getCategoryProducts(id: number, page = 1, limit = 10) {
     const response = await fetch(
-      `${API_URL}/categories/${categoryId}/products?page=${page}&limit=${limit}`
+      `${API_URL}/categories/${id}/products?page=${page}&limit=${limit}`
     );
-    if (!response.ok) throw new Error('Failed to fetch products');
+    if (!response.ok) throw new Error('Failed to fetch category products');
     return response.json();
   }
 }; 

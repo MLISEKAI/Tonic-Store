@@ -1,7 +1,9 @@
 import { FC, useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Spin, message, notification } from 'antd';
-import { getCategories, getProducts } from '../services/api';
+import { CategoryService } from '../services/category/categoryService';
+import { ProductService } from '../services/product/productService';
+import { CartService } from '../services/cart/cartService';
 import { useCart } from '../contexts/CartContext';
 import ProductCard from '../components/product/ProductCard';
 import { Product } from '../types';
@@ -25,8 +27,8 @@ const CategoriesPage: FC = () => {
     const fetchData = async () => {
       try {
         const [categoriesData, productsData] = await Promise.all([
-          getCategories(),
-          getProducts()
+          CategoryService.getCategories(),
+          ProductService.getProducts()
         ]);
 
         // Calculate product count for each category
@@ -54,6 +56,7 @@ const CategoriesPage: FC = () => {
 
   const handleAddToCart = async (product: Product) => {
     try {
+      await CartService.addToCart(product.id, 1);
       await addToCart(product, 1);
       notification.success({
         message: 'Thành công',

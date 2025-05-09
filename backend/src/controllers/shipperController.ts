@@ -89,11 +89,23 @@ export const ShipperController = {
   // Lấy danh sách đơn hàng của shipper
   async getShipperOrders(req: Request, res: Response) {
     try {
-      if (req.user?.role !== 'DELIVERY') {
-        return res.status(403).json({ error: 'Unauthorized' });
+      console.log('Headers:', req.headers);
+      console.log('Authorization:', req.headers.authorization);
+      console.log('req.user:', req.user);
+
+      if (!req.user) {
+        console.log('No user attached to request');
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      if (req.user.role !== 'DELIVERY') {
+        console.log('User role is not DELIVERY:', req.user.role);
+        return res.status(403).json({ error: 'Forbidden' });
       }
 
       const { status } = req.query;
+      console.log('Getting orders for shipper:', req.user.id, 'with status:', status);
+      
       const orders = await shipperService.getShipperOrders(
         req.user.id,
         status as OrderStatus

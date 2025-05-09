@@ -9,7 +9,7 @@ import { UserService } from '../../services/user/userService';
 const ProfilePage: FC = () => {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const { token, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {

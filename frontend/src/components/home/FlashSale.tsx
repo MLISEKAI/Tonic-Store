@@ -3,7 +3,7 @@ import { ClockCircleOutlined, FireOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Product, ProductStatus } from '../../types';
-import ProductCard from '../ProductCard';
+import ProductCard from '../product/ProductCard';
 
 // Dữ liệu tĩnh cho Flash Sale
 const flashSaleProducts: Product[] = [

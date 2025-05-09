@@ -13,7 +13,7 @@ interface ShippingAddress {
 }
 
 const ShippingAddressManager: React.FC = () => {
-  const { token } = useAuth();
+  const token = localStorage.getItem('token');
   const { 
     addresses, 
     loading, 

@@ -9,14 +9,19 @@ const RegisterPage = () => {
   const { register } = useAuth();
 
   const onFinish = async (values: {
-    username: string;
+    fullName: string;
     email: string;
     password: string;
-    fullName: string;
     phone: string;
   }) => {
     try {
-      await UserService.register(values);
+      const response = await UserService.register({
+        name: values.fullName,
+        email: values.email,
+        password: values.password,
+        phone: values.phone
+      });
+      await register(response);
       notification.success({
         message: 'Thành công',
         description: 'Đăng ký thành công',
@@ -25,11 +30,19 @@ const RegisterPage = () => {
       });
       navigate('/login');
     } catch (error) {
+      let errorMessage = 'Đăng ký thất bại';
+      if (error instanceof Error) {
+        if (error.message.includes('user_email_key')) {
+          errorMessage = 'Email này đã được sử dụng. Vui lòng sử dụng email khác.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
       notification.error({
         message: 'Lỗi',
-        description: 'Đăng ký thất bại',
+        description: errorMessage,
         placement: 'topRight',
-        duration: 2,
+        duration: 3,
       });
     }
   };
@@ -61,7 +74,10 @@ const RegisterPage = () => {
             </Form.Item>
             <Form.Item
               name="email"
-              rules={[{ required: true, message: 'Vui lòng nhập email!' }]}
+              rules={[
+                { required: true, message: 'Vui lòng nhập email!' },
+                { type: 'email', message: 'Email không hợp lệ!' }
+              ]}
             >
               <Input
                 prefix={<MailOutlined className="site-form-item-icon" />}
@@ -70,7 +86,9 @@ const RegisterPage = () => {
             </Form.Item>
             <Form.Item
               name="password"
-              rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+              rules={[
+                { required: true, message: 'Vui lòng nhập mật khẩu!' },
+              ]}
             >
               <Input
                 prefix={<LockOutlined className="site-form-item-icon" />}
@@ -80,7 +98,9 @@ const RegisterPage = () => {
             </Form.Item>
             <Form.Item
               name="phone"
-              rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+              rules={[
+                { required: true, message: 'Vui lòng nhập số điện thoại!' },
+              ]}
             >
               <Input
                 prefix={<PhoneOutlined className="site-form-item-icon" />}
