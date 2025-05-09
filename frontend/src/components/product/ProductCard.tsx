@@ -2,8 +2,8 @@ import React from 'react';
 import { Card, Rate, Button, Tag } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { Product, ProductStatus } from '../types';
-import { formatPrice } from '../utils/format';
+import { Product, ProductStatus } from '../../types';
+import { formatPrice } from '../../utils/format';
 
 interface ProductCardProps {
   product: Product;
@@ -18,6 +18,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     if (onAddToCart) {
       onAddToCart(product);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Rate, Button, Input, notification, List, Avatar } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
-import * as api from '../../services/api';
+import { ReviewService } from '../../services/product/reviewService';
 import { useAuth } from '../../contexts/AuthContext';
 import { Review } from '../../types';
 
@@ -15,7 +15,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { token, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     fetchReviews();
@@ -23,7 +23,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
 
   const fetchReviews = async () => {
     try {
-      const data = await api.getProductReviews(productId);
+      const data = await ReviewService.getProductReviews(productId);
       setReviews(data);
     } catch (error) {
       notification.error({
@@ -60,7 +60,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
 
     setSubmitting(true);
     try {
-      await api.createReview(token!, {
+      await ReviewService.createReview({
         productId,
         rating,
         comment: comment.trim()
@@ -87,7 +87,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
 
   const handleDelete = async (reviewId: number) => {
     try {
-      await api.deleteReview(token!, reviewId);
+      await ReviewService.deleteReview(reviewId);
       notification.success({
         message: 'Thành công',
         description: 'Xóa đánh giá thành công',

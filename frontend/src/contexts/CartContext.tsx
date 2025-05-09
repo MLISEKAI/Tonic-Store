@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import * as api from '../services/api';
 import { useAuth } from './AuthContext';
+import { CartService } from '../services/cart/cartService';
 
 interface Product {
   id: number;
@@ -36,15 +36,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cart, setCart] = useState<Cart>({ items: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const totalItems = cart.items.reduce((total, item) => total + item.quantity, 0);
 
   const fetchCart = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
       setLoading(true);
-      const data = await api.getCart(token);
+      const data = await CartService.getCart();
       setCart(data);
     } catch (err) {
       setError('Không thể tải giỏ hàng');
@@ -56,17 +56,34 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     fetchCart();
-  }, [token]);
+  }, [isAuthenticated]);
 
   const addToCart = async (product: Product, quantity: number) => {
-    if (!token) {
+    if (!isAuthenticated) {
       setError('Vui lòng đăng nhập để thêm vào giỏ hàng');
       return;
     }
     try {
       setLoading(true);
-      await api.addToCart(token, product.id, quantity);
-      await fetchCart();
+      const result = await CartService.addToCart(product.id, quantity);
+      setCart(prevCart => {
+        const existingItem = prevCart.items.find(item => item.product.id === product.id);
+        if (existingItem) {
+          return {
+            ...prevCart,
+            items: prevCart.items.map(item =>
+              item.product.id === product.id
+                ? { ...item, quantity: item.quantity + quantity }
+                : item
+            )
+          };
+        } else {
+          return {
+            ...prevCart,
+            items: [...prevCart.items, { id: result.id, product, quantity }]
+          };
+        }
+      });
     } catch (err) {
       setError('Không thể thêm vào giỏ hàng');
       console.error('Error adding to cart:', err);
@@ -76,10 +93,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const removeFromCart = async (cartItemId: number) => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
       setLoading(true);
-      await api.removeFromCart(token, cartItemId);
+      await CartService.removeFromCart(cartItemId);
       await fetchCart();
     } catch (err) {
       setError('Không thể xóa sản phẩm');
@@ -90,10 +107,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateQuantity = async (cartItemId: number, quantity: number) => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
       setLoading(true);
-      await api.updateCartItem(token, cartItemId, quantity);
+      await CartService.updateCartItem(cartItemId, quantity);
       await fetchCart();
     } catch (err) {
       setError('Không thể cập nhật số lượng');
@@ -104,10 +121,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearCart = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
     try {
       setLoading(true);
-      await api.clearCart(token);
+      await CartService.clearCart();
       setCart({ items: [] });
     } catch (err) {
       setError('Không thể xóa giỏ hàng');

@@ -2,17 +2,18 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Empty, Spin, Card, Button, notification } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
-import * as api from '../services/api';
+import { ProductService } from '../services/product/productService';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { Product } from '../types';
+import { CartService } from '../services/cart/cartService';
 
 const SearchPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
   const query = new URLSearchParams(location.search).get('q') || '';
 
@@ -20,7 +21,7 @@ const SearchPage = () => {
     const fetchSearchResults = async () => {
       try {
         setLoading(true);
-        const results = await api.searchProducts(query);
+        const results = await ProductService.searchProducts(query);
         setProducts(results);
       } catch (error) {
         notification.error({
@@ -41,7 +42,7 @@ const SearchPage = () => {
 
   const handleAddToCart = async (productId: number) => {
     try {
-      if (!token) {
+      if (!isAuthenticated) {
         notification.warning({
           message: 'Thông báo',
           description: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
@@ -51,7 +52,7 @@ const SearchPage = () => {
         navigate('/login');
         return;
       }
-      await api.addToCart(token, productId, 1);
+      await CartService.addToCart(productId, 1);
       notification.success({
         message: 'Thành công',
         description: 'Đã thêm sản phẩm vào giỏ hàng',

@@ -1,4 +1,4 @@
-import { API_URL } from '../api';
+export const API_URL = import.meta.env.VITE_API_URL;
 
 export const DeliveryService = {
   // Lấy thông tin giao hàng của đơn hàng

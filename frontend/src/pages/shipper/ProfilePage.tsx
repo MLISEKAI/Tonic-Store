@@ -5,35 +5,40 @@ import { useAuth } from '../../contexts/AuthContext';
 import { UserService } from '../../services/user/userService';
 
 interface ProfileFormData {
-  name: string;
+  fullName: string;
   email: string;
   phone: string;
   address: string;
 }
 
+interface ExtendedUser {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+}
+
 const ShipperProfilePage: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const { user, token } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (user) {
+      const extendedUser = user as ExtendedUser;
       form.setFieldsValue({
-        name: user.name,
-        email: user.email,
-        phone: user.phone || '',
-        address: user.address || '',
+        fullName: extendedUser.name,
+        email: extendedUser.email,
+        phone: extendedUser.phone || '',
+        address: extendedUser.address || '',
       });
     }
   }, [user, form]);
 
-  const onFinish = async (values: {
-    fullName: string;
-    email: string;
-    phone: string;
-    address: string;
-  }) => {
+  const onFinish = async (values: ProfileFormData) => {
     try {
+      setLoading(true);
       await UserService.updateProfile(values);
       notification.success({
         message: 'Thành công',
@@ -48,6 +53,8 @@ const ShipperProfilePage: React.FC = () => {
         placement: 'topRight',
         duration: 2,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,11 +66,11 @@ const ShipperProfilePage: React.FC = () => {
         onFinish={onFinish}
       >
         <Form.Item
-          name="name"
+          name="fullName"
           label="Họ và tên"
           rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
         >
-          <Input />
+          <Input prefix={<UserOutlined />} />
         </Form.Item>
 
         <Form.Item
@@ -74,7 +81,7 @@ const ShipperProfilePage: React.FC = () => {
             { type: 'email', message: 'Email không hợp lệ' }
           ]}
         >
-          <Input disabled />
+          <Input prefix={<MailOutlined />} />
         </Form.Item>
 
         <Form.Item
@@ -82,7 +89,7 @@ const ShipperProfilePage: React.FC = () => {
           label="Số điện thoại"
           rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
         >
-          <Input />
+          <Input prefix={<PhoneOutlined />} />
         </Form.Item>
 
         <Form.Item

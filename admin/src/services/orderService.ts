@@ -59,7 +59,7 @@ const OrderService = {
             return await response.json();
         } catch (error) {
             throw error;
-        }
+    }
     },
 
     // Get order by ID
@@ -86,7 +86,7 @@ const OrderService = {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
-            });
+        });
             if (!response.ok) throw new Error('Network response was not ok');
             return await response.json();
         } catch (error) {
@@ -95,7 +95,7 @@ const OrderService = {
     },
 
     // Get all orders (admin)
-    async getAllOrders(params: any) {
+    async getAllOrders(params: any, status: string) {
         try {
             const token = getAuthToken();
             const queryString = new URLSearchParams(params).toString();
@@ -103,7 +103,7 @@ const OrderService = {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
-            });
+        });
             if (!response.ok) throw new Error('Network response was not ok');
             return await response.json();
         } catch (error) {
@@ -116,13 +116,13 @@ const OrderService = {
         try {
             const token = getAuthToken();
             const response = await fetch(`${API_URL}/orders/${id}/status`, {
-                method: 'PATCH',
+            method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ status }),
-            });
+        });
             if (!response.ok) throw new Error('Network response was not ok');
             return await response.json();
         } catch (error) {
@@ -135,19 +135,19 @@ const OrderService = {
         try {
             const token = getAuthToken();
             const response = await fetch(`${API_URL}/orders/${id}/payment`, {
-                method: 'PATCH',
+            method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ status, transactionId }),
-            });
+        });
             if (!response.ok) throw new Error('Network response was not ok');
             return await response.json();
         } catch (error) {
             throw error;
-        }
     }
+}
 };
 
 export default OrderService;

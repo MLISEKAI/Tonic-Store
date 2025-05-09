@@ -1,29 +1,33 @@
-import { API_URL } from '../api';
+export const API_URL = import.meta.env.VITE_API_URL;
 
 export const ContactService = {
   // Gửi tin nhắn liên hệ
   async sendMessage(data: {
     name: string;
     email: string;
-    subject: string;
+    phone: string;
     message: string;
   }) {
     const response = await fetch(`${API_URL}/contact`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to send message');
+
+    if (!response.ok) {
+      throw new Error('Failed to send contact message');
+    }
+
     return response.json();
   },
 
-  // Lấy danh sách tin nhắn liên hệ (cho admin)
+  // Lấy danh sách tin nhắn (admin only)
   async getMessages(page = 1, limit = 10) {
     const token = localStorage.getItem('token');
     const response = await fetch(
-      `${API_URL}/contact?page=${page}&limit=${limit}`,
+      `${API_URL}/contact/messages?page=${page}&limit=${limit}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`

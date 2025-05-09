@@ -2,7 +2,6 @@ import { Form, Input, Button, Card, notification } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { UserService } from '../services/user/userService';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -10,7 +9,13 @@ const LoginPage = () => {
 
   const onFinish = async (values: { email: string; password: string }) => {
     try {
-      await UserService.login({ username: values.email, password: values.password });
+      // Chuẩn hóa dữ liệu trước khi gửi
+      const loginData = {
+        email: values.email.toLowerCase().trim(),
+        password: values.password
+      };
+      
+      await login(loginData);
       notification.success({
         message: 'Thành công',
         description: 'Đăng nhập thành công',
@@ -21,7 +26,7 @@ const LoginPage = () => {
     } catch (error) {
       notification.error({
         message: 'Lỗi',
-        description: 'Đăng nhập thất bại',
+        description: error instanceof Error ? error.message : 'Đăng nhập thất bại',
         placement: 'topRight',
         duration: 2,
       });
@@ -46,28 +51,32 @@ const LoginPage = () => {
           >
             <Form.Item
               name="email"
-              rules={[{ required: true, message: 'Please input your Email!' }]}
+              rules={[
+                { required: true, message: 'Vui lòng nhập email!' },
+                { type: 'email', message: 'Email không hợp lệ!' }
+              ]}
             >
               <Input
                 prefix={<UserOutlined className="site-form-item-icon" />}
                 placeholder="Email"
+                autoComplete="email"
               />
             </Form.Item>
             <Form.Item
               name="password"
-              rules={[{ required: true, message: 'Please input your Password!' }]}
+              rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
             >
-              <Input
+              <Input.Password
                 prefix={<LockOutlined className="site-form-item-icon" />}
-                type="password"
-                placeholder="Password"
+                placeholder="Mật khẩu"
+                autoComplete="current-password"
               />
             </Form.Item>
             <Form.Item>
               <Button
                 type="primary"
                 htmlType="submit"
-                className="login-form-button"
+                className="login-form-button w-full"
               >
                 Đăng nhập
               </Button>

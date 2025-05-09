@@ -21,9 +21,9 @@ export const getAllShippers = async () => {
 
 // Lấy thông tin chi tiết shipper
 export const getShipperById = async (id: number) => {
-  return prisma.user.findUnique({
+  return prisma.user.findFirst({
     where: {
-      id,
+      id: id,
       role: 'DELIVERY'
     },
     select: {

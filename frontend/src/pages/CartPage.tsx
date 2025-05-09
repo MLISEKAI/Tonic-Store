@@ -2,7 +2,9 @@ import { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
-import { Button } from 'antd';
+import { Button, notification, Modal } from 'antd';
+import { CartService } from '../services/cart/cartService';
+import { ShippingAddressService } from '../services/shipping/shippingAddressService';
 
 const formatPrice = (price: number) => {
   return price.toLocaleString('vi-VN', {
@@ -13,11 +15,12 @@ const formatPrice = (price: number) => {
 
 export const CartPage: FC = () => {
   const { cart, updateQuantity, removeFromCart } = useCart();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const handleUpdateQuantity = async (cartItemId: number, quantity: number) => {
     try {
+      await CartService.updateCartItem(cartItemId, quantity);
       await updateQuantity(cartItemId, quantity);
     } catch (err) {
       console.error('Không thể cập nhật số lượng:', err);
@@ -26,6 +29,7 @@ export const CartPage: FC = () => {
 
   const handleRemoveItem = async (cartItemId: number) => {
     try {
+      await CartService.removeFromCart(cartItemId);
       await removeFromCart(cartItemId);
     } catch (err) {
       console.error('Không thể xóa sản phẩm:', err);
@@ -39,19 +43,45 @@ export const CartPage: FC = () => {
     }
 
     if (!cart.items || cart.items.length === 0) {
-      console.error('Giỏ hàng trống');
+      notification.error({
+        message: 'Giỏ hàng trống',
+        description: 'Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán',
+        placement: 'topRight',
+        duration: 3,
+      });
       return;
     }
 
-    // Check if shipping information is complete
-    if (!user?.address || !user?.phone || !user?.name) {
-      console.error('Vui lòng cập nhật Thông tin nhận hàng trong hồ sơ của bạn');
-      navigate('/user/profile');
-      return;
-    }
+    // Check if user has any shipping addresses
+    try {
+      const addresses = await ShippingAddressService.getShippingAddresses();
+      if (addresses.length === 0) {
+        Modal.confirm({
+          title: 'Thiếu địa chỉ giao hàng',
+          content: 'Bạn cần thêm địa chỉ giao hàng trước khi thanh toán. Bạn có muốn thêm địa chỉ ngay bây giờ không?',
+          okText: 'Thêm địa chỉ',
+          cancelText: 'Quay lại',
+          onOk: () => {
+            navigate('/user/profile');
+          },
+          onCancel: () => {
+            // Do nothing, stay on cart page
+          },
+        });
+        return;
+      }
 
-    // Navigate to checkout page
-    navigate('/checkout');
+      // If we have addresses, proceed to checkout
+      navigate('/checkout');
+    } catch (error) {
+      console.error('Error checking shipping addresses:', error);
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể kiểm tra địa chỉ giao hàng. Vui lòng thử lại sau.',
+        placement: 'topRight',
+        duration: 3,
+      });
+    }
   };
 
   const calculateTotal = () => {

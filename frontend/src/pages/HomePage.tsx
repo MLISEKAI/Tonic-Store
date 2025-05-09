@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useProducts } from '../hooks';
 import { Product } from '../types';
 import { useCart } from '../contexts/CartContext';
+import { CartService } from '../services/cart/cartService';
 import ProductCard from '../components/product/ProductCard';
 import TopBar from '../components/home/TopBar';
 import FlashSale from '../components/home/FlashSale';
@@ -23,7 +24,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { products, categories, loading, error } = useProducts();
+  const { products, categories, loading, error, filteredProducts } = useProducts();
   const { addToCart } = useCart();
 
   const handleAddToCart = async (product: Product) => {
@@ -60,21 +61,19 @@ const HomePage = () => {
     return shuffled.slice(0, count);
   };
 
-  const featuredProducts = products.filter(p => p.isFeatured).length > 0 
-    ? products.filter(p => p.isFeatured).slice(0, 4)
+  const featuredProducts = filteredProducts.featured.length > 0 
+    ? filteredProducts.featured
     : getRandomProducts(4);
 
-  const newProducts = products.filter(p => p.isNew).length > 0
-    ? products.filter(p => p.isNew).slice(0, 4)
+  const newProducts = filteredProducts.new.length > 0
+    ? filteredProducts.new
     : getRandomProducts(4);
 
-  const bestSellers = products.filter(p => p.isBestSeller).length > 0
-    ? products.filter(p => p.isBestSeller).slice(0, 4)
+  const bestSellers = filteredProducts.bestSellers.length > 0
+    ? filteredProducts.bestSellers
     : getRandomProducts(4);
 
-  const mostViewed = [...products]
-    .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
-    .slice(0, 4);
+  const mostViewed = filteredProducts.mostViewed;
 
   const bannerItems = [
     {
