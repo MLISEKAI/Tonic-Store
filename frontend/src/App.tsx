@@ -20,6 +20,7 @@ import ShipperOrders from './pages/shipper/OrdersPage';
 import ShipperLayout from './layouts/ShipperLayout';
 import ShipperProfilePage from './pages/shipper/ProfilePage';
 import DefaultLayout from './layouts/DefaultLayout';
+import WishlistPage from './pages/WishlistPage';
 
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -91,6 +92,13 @@ const App = () => {
               <DefaultLayout>
                 <ContactPage />
               </DefaultLayout>
+            } />
+            <Route path="/wishlist" element={
+              <ProtectedRoute>
+                <DefaultLayout>
+                  <WishlistPage />
+                </DefaultLayout>
+              </ProtectedRoute>
             } />
 
             {/* User routes */}

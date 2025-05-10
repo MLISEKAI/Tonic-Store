@@ -118,6 +118,11 @@ export const updateProduct = async (id: number, data: {
   isNew?: boolean;
   isBestSeller?: boolean;
 }) => {
+  // If stock is being updated, check if we need to update status
+  if (data.stock !== undefined) {
+    data.status = data.stock <= 0 ? 'OUT_OF_STOCK' : 'ACTIVE';
+  }
+
   return prisma.product.update({
     where: { id },
     data,
@@ -128,9 +133,54 @@ export const updateProduct = async (id: number, data: {
 };
 
 export const deleteProduct = async (id: number) => {
-  return prisma.product.delete({
-    where: { id }
-  });
+  try {
+    // Check if product exists
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        reviews: true,
+        orderItems: true,
+        wishlist: true,
+        cartItems: true
+      }
+    });
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // Delete related records first
+    await prisma.$transaction([
+      // Delete cart items
+      prisma.cartItem.deleteMany({
+        where: { productId: id }
+      }),
+      // Delete reviews
+      prisma.review.deleteMany({
+        where: { productId: id }
+      }),
+      // Delete order items
+      prisma.orderItem.deleteMany({
+        where: { productId: id }
+      }),
+      // Delete wishlist items
+      prisma.wishlist.deleteMany({
+        where: { productId: id }
+      }),
+      // Finally delete the product
+      prisma.product.delete({
+        where: { id }
+      })
+    ]);
+
+    return product;
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Failed to delete product');
+  }
 };
 
 export const updateProductStatus = async (id: number, status: ProductStatus) => {
@@ -217,16 +267,42 @@ export const incrementViewCount = async (productId: number) => {
   });
 };
 
+export const checkAndUpdateStock = async (productId: number, quantity: number) => {
+  const product = await prisma.product.findUnique({
+    where: { id: productId }
+  });
+
+  if (!product) {
+    throw new Error('Product not found');
+  }
+
+  if (product.stock < quantity) {
+    throw new Error(`Only ${product.stock} items available in stock`);
+  }
+
+  return product;
+};
+
 export const updateSoldCount = async (productId: number, quantity: number) => {
+  const product = await prisma.product.findUnique({
+    where: { id: productId }
+  });
+
+  if (!product) {
+    throw new Error('Product not found');
+  }
+
+  const newStock = product.stock - quantity;
+  const newStatus = newStock <= 0 ? 'OUT_OF_STOCK' : 'ACTIVE';
+
   return prisma.product.update({
     where: { id: productId },
     data: {
+      stock: newStock,
       soldCount: {
         increment: quantity
       },
-      stock: {
-        decrement: quantity
-      }
+      status: newStatus
     }
   });
 }; 

@@ -4,6 +4,7 @@ import { ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { Product, ProductStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
+import WishlistButton from '../WishlistButton';
 
 interface ProductCardProps {
   product: Product;
@@ -73,14 +74,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
           <span className="text-gray-500">
             Đã bán: {product.soldCount || 0}
           </span>
-          <Button
-            type="primary"
-            icon={<ShoppingCartOutlined />}
-            onClick={handleAddToCart}
-            disabled={product.status === ProductStatus.OUT_OF_STOCK}
-          >
-            {product.status === ProductStatus.OUT_OF_STOCK ? 'Hết hàng' : 'Thêm vào giỏ'}
-          </Button>
+          <div className="flex space-x-2">
+            <WishlistButton productId={product.id} showText={false} className="!p-2" />
+            <Button
+              type="primary"
+              icon={<ShoppingCartOutlined />}
+              onClick={handleAddToCart}
+              disabled={product.status === ProductStatus.OUT_OF_STOCK}
+            >
+              {product.status === ProductStatus.OUT_OF_STOCK ? 'Hết hàng' : 'Thêm vào giỏ'}
+            </Button>
+          </div>
         </div>
       </div>
     </Card>

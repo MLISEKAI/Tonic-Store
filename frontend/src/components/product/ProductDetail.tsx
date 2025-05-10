@@ -7,6 +7,7 @@ import { useCart } from '../../contexts/CartContext';
 import { Product, ProductStatus } from '../../types';
 import ProductReviews from './ProductReviews';
 import { ProductService } from '../../services/product/productService';
+import WishlistButton from '../WishlistButton';
 
 const { TabPane } = Tabs;
 
@@ -153,12 +154,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
             >
               {product.status === ProductStatus.OUT_OF_STOCK ? 'Hết hàng' : 'Thêm vào giỏ hàng'}
             </Button>
-            <Button
-              size="large"
-              icon={<HeartOutlined />}
-            >
-              Yêu thích
-            </Button>
+            <WishlistButton
+              productId={product.id}
+              showText={true}
+              className="!h-10 !px-4 flex items-center border border-gray-300 hover:border-pink-500 hover:text-pink-500 transition-all text-base"
+            />
           </div>
 
           <div className="space-y-2">
