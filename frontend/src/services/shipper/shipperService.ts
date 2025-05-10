@@ -1,14 +1,15 @@
-import { API_URL } from '../config';
+export const API_URL = import.meta.env.VITE_API_URL;
 
 export const ShipperService = {
   // Lấy danh sách đơn hàng cần giao
   async getDeliveryOrders(page = 1, limit = 10) {
+    const token = localStorage.getItem('token');
     const response = await fetch(
       `${API_URL}/shippers/orders?page=${page}&limit=${limit}`,
       {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          'Authorization': `Bearer ${token}`
+        }
       }
     );
     if (!response.ok) throw new Error('Failed to fetch delivery orders');
@@ -17,29 +18,28 @@ export const ShipperService = {
 
   // Cập nhật trạng thái giao hàng
   async updateDeliveryStatus(orderId: string, status: string) {
-    const response = await fetch(
-      `${API_URL}/shippers/orders/${orderId}/status`,
-      {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ status }),
-      }
-    );
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/shippers/orders/${orderId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ status })
+    });
     if (!response.ok) throw new Error('Failed to update delivery status');
     return response.json();
   },
 
   // Lấy lịch sử giao hàng
   async getDeliveryHistory(page = 1, limit = 10) {
+    const token = localStorage.getItem('token');
     const response = await fetch(
       `${API_URL}/shippers/orders/logs?page=${page}&limit=${limit}`,
       {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          'Authorization': `Bearer ${token}`
+        }
       }
     );
     if (!response.ok) throw new Error('Failed to fetch delivery history');

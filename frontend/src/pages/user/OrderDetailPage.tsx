@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { formatPrice, formatDate } from '../../utils/format';
-import * as api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { message, Button, Modal, notification } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { message, Button, Modal, notification, Timeline, Rate, Form, Input } from 'antd';
+import { CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined, CarOutlined, UserOutlined, StarOutlined } from '@ant-design/icons';
+import { OrderService } from '../../services/order/orderService';
+import { PaymentService } from '../../services/order/paymentService';
+import { ShipperService } from '../../services/shipper/shipperService';
 
 interface OrderItem {
   id: number;
@@ -42,18 +44,45 @@ interface Order {
   };
 }
 
+interface DeliveryLog {
+  id: number;
+  orderId: number;
+  deliveryId: number;
+  status: string;
+  note?: string;
+  createdAt: string;
+  delivery: {
+    id: number;
+    name: string;
+    phone: string;
+  };
+}
+
+interface ShipperRating {
+  id: number;
+  orderId: number;
+  shipperId: number;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+}
+
 const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const [deliveryLogs, setDeliveryLogs] = useState<DeliveryLog[]>([]);
+  const [shipperRating, setShipperRating] = useState<ShipperRating | null>(null);
+  const [isRatingModalVisible, setIsRatingModalVisible] = useState(false);
+  const [ratingForm] = Form.useForm();
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        if (!token) {
+        if (!isAuthenticated) {
           window.location.href = '/login';
           return;
         }
@@ -72,7 +101,7 @@ const OrderDetailPage: React.FC = () => {
           return;
         }
 
-        const data = await api.getOrder(token, orderId);
+        const data = await OrderService.getOrder(orderId);
         
         if (!data) {
           setError('Không tìm thấy đơn hàng');
@@ -97,6 +126,16 @@ const OrderDetailPage: React.FC = () => {
         };
         
         setOrder(transformedOrder);
+
+        // Fetch delivery logs
+        const logs = await ShipperService.getOrderDeliveryLogs(orderId);
+        setDeliveryLogs(logs);
+
+        // Fetch shipper rating if order is delivered
+        if (transformedOrder.status === 'DELIVERED') {
+          const rating = await ShipperService.getShipperRating(orderId);
+          setShipperRating(rating);
+        }
       } catch (err) {
         console.error('Error fetching order:', err);
         setError('Không thể tải chi tiết đơn hàng. Vui lòng thử lại sau.');
@@ -106,7 +145,7 @@ const OrderDetailPage: React.FC = () => {
     };
 
     fetchOrder();
-  }, [id, token]);
+  }, [id, isAuthenticated]);
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -123,9 +162,9 @@ const OrderDetailPage: React.FC = () => {
       const vnp_TxnRef = searchParams.get('vnp_TxnRef');
       const vnp_SecureHash = searchParams.get('vnp_SecureHash');
 
-      if (vnp_ResponseCode && token) {
+      if (vnp_ResponseCode && isAuthenticated) {
         try {
-          const data = await api.verifyPayment(token, {
+          const data = await PaymentService.verifyPayment({
             vnp_Amount: vnp_Amount || '',
             vnp_BankCode: vnp_BankCode || '',
             vnp_BankTranNo: vnp_BankTranNo || '',
@@ -167,7 +206,7 @@ const OrderDetailPage: React.FC = () => {
     };
 
     verifyPayment();
-  }, [searchParams, token]);
+  }, [searchParams, isAuthenticated]);
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
@@ -192,6 +231,42 @@ const OrderDetailPage: React.FC = () => {
         return <CloseCircleOutlined className="text-orange-600" />;
       default:
         return <ClockCircleOutlined className="text-yellow-600" />;
+    }
+  };
+
+  const getDeliveryStatusIcon = (status: string) => {
+    switch (status) {
+      case 'PROCESSING':
+        return <ClockCircleOutlined className="text-blue-600" />;
+      case 'SHIPPED':
+        return <CarOutlined className="text-orange-600" />;
+      case 'DELIVERED':
+        return <CheckCircleOutlined className="text-green-600" />;
+      default:
+        return <ClockCircleOutlined className="text-gray-600" />;
+    }
+  };
+
+  const handleRateShipper = async (values: { rating: number; comment?: string }) => {
+    try {
+      if (!order) return;
+
+      const rating = await ShipperService.rateShipper(order.id, values.rating, values.comment);
+      setShipperRating(rating);
+      setIsRatingModalVisible(false);
+      notification.success({
+        message: 'Thành công',
+        description: 'Cảm ơn bạn đã đánh giá shipper!',
+        placement: 'topRight',
+        duration: 2,
+      });
+    } catch (err) {
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể gửi đánh giá. Vui lòng thử lại sau.',
+        placement: 'topRight',
+        duration: 2,
+      });
     }
   };
 
@@ -292,6 +367,96 @@ const OrderDetailPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Delivery History */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-bold mb-4">Lịch sử giao hàng</h2>
+          <Timeline>
+            {deliveryLogs.map((log) => (
+              <Timeline.Item
+                key={log.id}
+                dot={getDeliveryStatusIcon(log.status)}
+              >
+                <div className="mb-2">
+                  <p className="font-medium">{log.status}</p>
+                  <p className="text-gray-600">
+                    {formatDate(log.createdAt)}
+                  </p>
+                  {log.note && (
+                    <p className="text-gray-600 mt-1">{log.note}</p>
+                  )}
+                  <div className="mt-2 flex items-center text-gray-600">
+                    <UserOutlined className="mr-2" />
+                    <span>
+                      {log.delivery.name} - {log.delivery.phone}
+                    </span>
+                  </div>
+                </div>
+              </Timeline.Item>
+            ))}
+          </Timeline>
+        </div>
+
+        {/* Shipper Rating */}
+        {order.status === 'DELIVERED' && (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4">Đánh giá shipper</h2>
+            {shipperRating ? (
+              <div>
+                <div className="flex items-center mb-2">
+                  <Rate disabled defaultValue={shipperRating.rating} />
+                  <span className="ml-2 text-gray-600">
+                    {formatDate(shipperRating.createdAt)}
+                  </span>
+                </div>
+                {shipperRating.comment && (
+                  <p className="text-gray-600">{shipperRating.comment}</p>
+                )}
+              </div>
+            ) : (
+              <Button
+                type="primary"
+                icon={<StarOutlined />}
+                onClick={() => setIsRatingModalVisible(true)}
+              >
+                Đánh giá shipper
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Rating Modal */}
+        <Modal
+          title="Đánh giá shipper"
+          open={isRatingModalVisible}
+          onCancel={() => setIsRatingModalVisible(false)}
+          footer={null}
+        >
+          <Form
+            form={ratingForm}
+            onFinish={handleRateShipper}
+            layout="vertical"
+          >
+            <Form.Item
+              name="rating"
+              label="Số sao"
+              rules={[{ required: true, message: 'Vui lòng chọn số sao' }]}
+            >
+              <Rate />
+            </Form.Item>
+            <Form.Item
+              name="comment"
+              label="Nhận xét"
+            >
+              <Input.TextArea rows={4} />
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Gửi đánh giá
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
     </div>
   );
