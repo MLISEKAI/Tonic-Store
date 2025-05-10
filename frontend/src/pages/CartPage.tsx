@@ -5,13 +5,7 @@ import { useCart } from '../contexts/CartContext';
 import { Button, notification, Modal } from 'antd';
 import { CartService } from '../services/cart/cartService';
 import { ShippingAddressService } from '../services/shipping/shippingAddressService';
-
-const formatPrice = (price: number) => {
-  return price.toLocaleString('vi-VN', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }) + 'đ';
-};
+import { formatPrice } from '../utils/format';
 
 export const CartPage: FC = () => {
   const { cart, updateQuantity, removeFromCart } = useCart();

@@ -216,7 +216,11 @@ const AdminDashboard: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider trigger={null} collapsible collapsed={collapsed}>
-        <div style={{ height: 32, margin: 16, background: 'rgba(255, 255, 255, 0.2)' }} />
+        <div style={{ height: 32, margin: 16, background: 'rgba(255, 255, 255, 0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
+          <a href="/" style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>
+            Admin Dashboard
+          </a>
+        </div>
         <Menu
           theme="dark"
           mode="inline"

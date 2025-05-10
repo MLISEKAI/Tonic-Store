@@ -63,5 +63,12 @@ export const ProductService = {
     const response = await fetch(`${API_URL}/products/newest?limit=${limit}`);
     if (!response.ok) throw new Error('Failed to fetch newest products');
     return response.json();
+  },
+
+  // Lấy sản phẩm khuyến mãi
+  async getFlashSaleProducts() {
+    const response = await fetch(`${API_URL}/products/flash-sale`);
+    if (!response.ok) throw new Error('Failed to fetch flash sale products');
+    return response.json();
   }
 }; 

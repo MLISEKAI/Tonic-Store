@@ -1,4 +1,6 @@
 import { PrismaClient, OrderStatus, Prisma, PaymentStatus } from '@prisma/client';
+import { checkAndUpdateStock, updateSoldCount } from './productService';
+
 const prisma = new PrismaClient();
 
 export const getAllOrders = async () => {
@@ -30,16 +32,10 @@ export const createOrder = async (
   note?: string
 ) => {
   try {
-    console.log('Creating order with data:', {
-      userId,
-      totalPrice,
-      status,
-      items,
-      shippingAddress,
-      shippingPhone,
-      shippingName,
-      note
-    });
+    // Check stock availability for all items
+    for (const item of items) {
+      await checkAndUpdateStock(item.productId, item.quantity);
+    }
 
     const orderData: Prisma.OrderUncheckedCreateInput = {
       userId,
@@ -58,14 +54,11 @@ export const createOrder = async (
       },
     };
 
-    console.log('Order data prepared:', orderData);
-
     const order = await prisma.order.create({
       data: orderData,
       include: { items: { include: { product: true } }, payment: true },
     });
 
-    console.log('Order created successfully:', order);
     return order;
   } catch (error) {
     console.error('Error in createOrder:', error);
@@ -78,6 +71,22 @@ export const createOrder = async (
 };
 
 export const updateOrderStatus = async (id: number, status: string) => {
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: { items: true }
+  });
+
+  if (!order) {
+    throw new Error('Order not found');
+  }
+
+  // If order is being delivered, update stock
+  if (status === OrderStatus.DELIVERED) {
+    for (const item of order.items) {
+      await updateSoldCount(item.productId, item.quantity);
+    }
+  }
+
   return prisma.order.update({
     where: { id },
     data: { status: status as OrderStatus },
