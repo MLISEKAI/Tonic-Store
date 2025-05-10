@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Select, notification, Spin, Modal, Input, Card, Typography, Tag, Descriptions, Divider } from 'antd';
+import { Table, Button, Select, notification, Spin, Modal, Input, Card, Typography, Tag, Descriptions, Divider, Space } from 'antd';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import OrderService, { Order } from '../services/orderService';
+import { ShipperService } from '../services/shipperService';
 
-type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
 type PaymentMethod = 'COD' | 'BANK_TRANSFER' | 'VNPAY';
 
@@ -23,12 +24,20 @@ interface OrderDetail extends Omit<Order, 'status' | 'items'> {
   shippingAddress: string;
   shippingPhone: string;
   shippingName: string;
+  shipper?: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+  };
 }
 
 const { Title } = Typography;
 
 const orderStatusOptions = [
   { value: 'PENDING', label: 'Pending' },
+  { value: 'CONFIRMED', label: 'Confirmed' },
   { value: 'PROCESSING', label: 'Processing' },
   { value: 'SHIPPED', label: 'Shipped' },
   { value: 'DELIVERED', label: 'Delivered' },
@@ -54,6 +63,11 @@ const OrderList: React.FC = () => {
   const [transactionId, setTransactionId] = useState('');
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedOrderDetail, setSelectedOrderDetail] = useState<OrderDetail | null>(null);
+  const [assignShipperModalVisible, setAssignShipperModalVisible] = useState(false);
+  const [selectedOrderForShipper, setSelectedOrderForShipper] = useState<OrderDetail | null>(null);
+  const [shippers, setShippers] = useState<any[]>([]);
+  const [selectedShipperId, setSelectedShipperId] = useState<number | null>(null);
+  const [assigningShipper, setAssigningShipper] = useState(false);
 
   const getNextValidStatusOptions = (order: OrderDetail) => {
     const current = order.status;
@@ -199,9 +213,9 @@ const OrderList: React.FC = () => {
       // Cập nhật trạng thái thanh toán
       await OrderService.updatePaymentStatus(selectedOrder.id, 'COMPLETED', transactionId);
       
-      // Tự động cập nhật trạng thái đơn hàng sang PROCESSING nếu đang ở PENDING
+      // Tự động cập nhật trạng thái đơn hàng sang CONFIRMED nếu đang ở PENDING
       if (selectedOrder.status === 'PENDING') {
-        await OrderService.updateOrderStatus(selectedOrder.id, 'PROCESSING');
+        await OrderService.updateOrderStatus(selectedOrder.id, 'CONFIRMED');
       }
       
       notification.success({
@@ -223,9 +237,89 @@ const OrderList: React.FC = () => {
     }
   };
 
-  const handleViewDetails = (order: OrderDetail) => {
-    setSelectedOrderDetail(order);
-    setDetailModalVisible(true);
+  const handleViewDetails = async (order: OrderDetail) => {
+    try {
+      // Lấy thông tin chi tiết mới nhất của đơn hàng
+      const orderDetail = await OrderService.getOrder(order.id);
+      setSelectedOrderDetail(orderDetail);
+      setDetailModalVisible(true);
+    } catch (err) {
+      console.error('Error fetching order details:', err);
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể tải thông tin chi tiết đơn hàng',
+        placement: 'topRight',
+        duration: 2,
+      });
+    }
+  };
+
+  const handleAssignShipper = async (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    setSelectedOrderForShipper(order);
+    setAssignShipperModalVisible(true);
+
+    try {
+      const shipperList = await ShipperService.getAllShippers();
+      setShippers(shipperList);
+    } catch (err) {
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể tải danh sách shipper',
+        placement: 'topRight',
+        duration: 2,
+      });
+    }
+  };
+
+  const handleConfirmAssignShipper = async () => {
+    if (!selectedOrderForShipper || !selectedShipperId) return;
+
+    try {
+      setAssigningShipper(true);
+      const updatedOrder = await ShipperService.assignShipperToOrder(
+        parseInt(selectedOrderForShipper.id),
+        selectedShipperId
+      );
+
+      console.log('Updated order after assigning shipper:', updatedOrder);
+      console.log('Shipper info in updated order:', updatedOrder.shipper);
+
+      notification.success({
+        message: 'Thành công',
+        description: 'Đã gán shipper cho đơn hàng',
+        placement: 'topRight',
+        duration: 2,
+      });
+
+      // Cập nhật lại danh sách đơn hàng
+      await fetchOrders();
+
+      // Nếu đang xem chi tiết đơn hàng này, cập nhật lại thông tin
+      if (selectedOrderDetail?.id === selectedOrderForShipper.id) {
+        // Lấy thông tin chi tiết mới nhất của đơn hàng
+        const orderDetail = await OrderService.getOrder(selectedOrderForShipper.id);
+        console.log('Updating order detail with:', orderDetail);
+        console.log('Shipper info in new order detail:', orderDetail.shipper);
+        setSelectedOrderDetail(orderDetail);
+      }
+
+      setAssignShipperModalVisible(false);
+      setSelectedOrderForShipper(null);
+      setSelectedShipperId(null);
+    } catch (err) {
+      console.error('Error assigning shipper:', err);
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể gán shipper cho đơn hàng',
+        placement: 'topRight',
+        duration: 2,
+      });
+    } finally {
+      setAssigningShipper(false);
+    }
   };
 
   const columns = [
@@ -308,13 +402,36 @@ const OrderList: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (text: string, record: OrderDetail) => (
-        <Button 
-          type="link" 
-          onClick={() => handleViewDetails(record)}
-        >
-          View Details
-        </Button>
+      render: (_: unknown, record: OrderDetail) => (
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleViewDetails(record)}
+          >
+            Chi tiết
+          </Button>
+          {record.status === 'CONFIRMED' && (
+            <Button
+              type="primary"
+              onClick={() => handleAssignShipper(record.id)}
+            >
+              Gán shipper
+            </Button>
+          )}
+          {getNextValidStatusOptions(record).length > 0 && (
+            <Select
+              style={{ width: 120 }}
+              placeholder="Cập nhật trạng thái"
+              onChange={(value) => handleStatusChange(record.id, value)}
+            >
+              {getNextValidStatusOptions(record).map(option => (
+                <Select.Option key={option.value} value={option.value}>
+                  {option.label}
+                </Select.Option>
+              ))}
+            </Select>
+          )}
+        </Space>
       ),
     },
   ];
@@ -412,8 +529,8 @@ const OrderList: React.FC = () => {
         {selectedOrderDetail && (
           <div className="space-y-6">
             <Descriptions title="Customer Information" bordered>
-              <Descriptions.Item label="Name">{selectedOrderDetail.user.name}</Descriptions.Item>
-              <Descriptions.Item label="Email">{selectedOrderDetail.user.email}</Descriptions.Item>
+              <Descriptions.Item label="Name">{selectedOrderDetail.user?.name}</Descriptions.Item>
+              <Descriptions.Item label="Email">{selectedOrderDetail.user?.email}</Descriptions.Item>
               <Descriptions.Item label="Phone">{selectedOrderDetail.shippingPhone}</Descriptions.Item>
             </Descriptions>
 
@@ -440,7 +557,29 @@ const OrderList: React.FC = () => {
                   {selectedOrderDetail.payment?.status}
                 </Tag>
               </Descriptions.Item>
+              {selectedOrderDetail.payment?.transactionId && (
+                <Descriptions.Item label="Transaction ID">
+                  {selectedOrderDetail.payment.transactionId}
+                </Descriptions.Item>
+              )}
+              {selectedOrderDetail.payment?.paymentDate && (
+                <Descriptions.Item label="Payment Date">
+                  {format(new Date(selectedOrderDetail.payment.paymentDate), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                </Descriptions.Item>
+              )}
             </Descriptions>
+
+            {selectedOrderDetail.shipper && (
+              <Descriptions title="Shipper Information" bordered>
+                <Descriptions.Item label="Name">{selectedOrderDetail.shipper.name}</Descriptions.Item>
+                <Descriptions.Item label="Phone">{selectedOrderDetail.shipper.phone}</Descriptions.Item>
+                <Descriptions.Item label="Email">{selectedOrderDetail.shipper.email}</Descriptions.Item>
+                <Descriptions.Item label="Address">{selectedOrderDetail.shipper.address}</Descriptions.Item>
+                <Descriptions.Item label="Assigned At">
+                  {format(new Date(selectedOrderDetail.updatedAt), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                </Descriptions.Item>
+              </Descriptions>
+            )}
 
             <div className="mt-4">
               <h3 className="text-lg font-semibold mb-4">Order Items</h3>
@@ -494,6 +633,47 @@ const OrderList: React.FC = () => {
                   }).format(selectedOrderDetail.totalPrice)}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        title="Gán shipper cho đơn hàng"
+        open={assignShipperModalVisible}
+        onOk={handleConfirmAssignShipper}
+        onCancel={() => {
+          setAssignShipperModalVisible(false);
+          setSelectedOrderForShipper(null);
+          setSelectedShipperId(null);
+        }}
+        confirmLoading={assigningShipper}
+      >
+        {selectedOrderForShipper && (
+          <div className="space-y-4">
+            <p>
+              <strong>Mã đơn hàng:</strong> #{selectedOrderForShipper.id}
+            </p>
+            <p>
+              <strong>Khách hàng:</strong> {selectedOrderForShipper.user.name}
+            </p>
+            <p>
+              <strong>Địa chỉ giao hàng:</strong> {selectedOrderForShipper.shippingAddress}
+            </p>
+            <div>
+              <p className="mb-2"><strong>Chọn shipper:</strong></p>
+              <Select
+                style={{ width: '100%' }}
+                placeholder="Chọn shipper"
+                onChange={(value) => setSelectedShipperId(value)}
+                value={selectedShipperId}
+              >
+                {shippers.map((shipper) => (
+                  <Select.Option key={shipper.id} value={shipper.id}>
+                    {shipper.name} - {shipper.phone}
+                  </Select.Option>
+                ))}
+              </Select>
             </div>
           </div>
         )}

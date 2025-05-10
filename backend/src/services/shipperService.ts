@@ -50,21 +50,53 @@ export const getShipperById = async (id: number) => {
 
 // Gán shipper cho đơn hàng
 export const assignShipperToOrder = async (orderId: number, shipperId: number) => {
-  return prisma.order.update({
-    where: { id: orderId },
-    data: {
-      shipperId,
-      status: OrderStatus.PROCESSING
-    },
-    include: {
-      items: {
-        include: {
-          product: true
-        }
-      },
-      shipper: true
+  try {
+    console.log('Assigning shipper:', { orderId, shipperId });
+    
+    // Kiểm tra xem shipper có tồn tại và có role DELIVERY không
+    const shipper = await prisma.user.findFirst({
+      where: {
+        id: shipperId,
+        role: 'DELIVERY'
+      }
+    });
+
+    if (!shipper) {
+      throw new Error('Shipper not found or not a delivery person');
     }
-  });
+
+    // Kiểm tra đơn hàng
+    const order = await prisma.order.findUnique({
+      where: { id: orderId }
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    // Cập nhật đơn hàng với shipper mới
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        shipperId,
+        status: OrderStatus.PROCESSING
+      },
+      include: {
+        items: {
+          include: {
+            product: true
+          }
+        },
+        shipper: true
+      }
+    });
+
+    console.log('Updated order:', updatedOrder);
+    return updatedOrder;
+  } catch (error) {
+    console.error('Error in assignShipperToOrder:', error);
+    throw error;
+  }
 };
 
 // Cập nhật trạng thái giao hàng

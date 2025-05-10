@@ -107,6 +107,7 @@ export const OrderController = {
           },
           payment: true,
           user: true,
+          shipper: true,
         },
       });
 

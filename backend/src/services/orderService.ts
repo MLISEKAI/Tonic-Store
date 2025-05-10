@@ -10,7 +10,12 @@ export const getAllOrders = async () => {
 export const getOrder = async (id: number) => {
   return prisma.order.findUnique({
     where: { id },
-    include: { user: true, items: { include: { product: true } }, payment: true },
+    include: { 
+      user: true, 
+      items: { include: { product: true } }, 
+      payment: true,
+      shipper: true
+    },
   });
 };
 
