@@ -100,6 +100,7 @@ export const updateProduct = async (id: number, data: {
   name?: string;
   description?: string;
   price?: number;
+  promotionalPrice?: number;
   stock?: number;
   categoryId?: number;
   imageUrl?: string;
@@ -305,4 +306,56 @@ export const updateSoldCount = async (productId: number, quantity: number) => {
       status: newStatus
     }
   });
+};
+
+export const getFlashSaleProducts = async () => {
+  try {
+    console.log('Starting getFlashSaleProducts...');
+    
+    const products = await prisma.product.findMany({
+      where: {
+        AND: [
+          { status: 'ACTIVE' },
+          { promotionalPrice: { not: null } },
+          { promotionalPrice: { gt: 0 } }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        promotionalPrice: true,
+        stock: true,
+        imageUrl: true,
+        status: true,
+        category: true,
+        createdAt: true,
+        updatedAt: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    console.log('Found products:', products.length);
+    if (products.length > 0) {
+      console.log('First product sample:', {
+        id: products[0].id,
+        name: products[0].name,
+        price: products[0].price,
+        promotionalPrice: products[0].promotionalPrice,
+        status: products[0].status
+      });
+    }
+    
+    return products;
+  } catch (error) {
+    console.error('Detailed error in getFlashSaleProducts:', {
+      error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    throw new Error('Failed to get flash sale products');
+  }
 }; 

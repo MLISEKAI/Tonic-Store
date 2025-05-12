@@ -68,6 +68,7 @@ async function main() {
             name: string;
             description: string;
             price: number;
+            promotionalPrice?: number;
             stock: number;
             imageUrl: string;
             categoryId?: number;
@@ -97,6 +98,7 @@ async function main() {
                 name: "Áo thun nam cổ tròn",
                 description: "Áo thun nam cổ tròn chất liệu cotton 100%",
                 price: 299000,
+                promotionalPrice: 199000,
                 stock: 100,
                 imageUrl: "https://example.com/ao-thun-nam.jpg",
                 categoryId: createdCategories.get("Thời Trang Nam"),
@@ -149,6 +151,7 @@ async function main() {
                 name: "iPhone 15 Pro Max",
                 description: "Apple iPhone 15 Pro Max 256GB - Titanium Blue",
                 price: 32990000,
+                promotionalPrice: 29990000,
                 stock: 50,
                 imageUrl: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-7inch_GEO_EMEA?wid=5120&hei=2880&fmt=p-jpg&qlt=80&.v=1693009283816",
                 categoryId: createdCategories.get("Điện Thoại & Phụ Kiện"),
@@ -201,6 +204,7 @@ async function main() {
                 name: "AirPods Pro 2",
                 description: "Apple AirPods Pro (2nd generation) với MagSafe",
                 price: 249.99,
+                promotionalPrice: 199.99,
                 stock: 100,
                 imageUrl: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MQD83?wid=572&hei=572&fmt=jpeg&qlt=95&.v=1660803972361",
                 categoryId: createdCategories.get("Thiết Bị Điện Tử"),
@@ -666,6 +670,7 @@ async function main() {
                 name: "Lego Star Wars",
                 description: "Bộ xếp hình Lego Star Wars",
                 price: 799000,
+                promotionalPrice: 599000,
                 stock: 30,
                 imageUrl: "https://example.com/lego-star-wars.jpg",
                 categoryId: createdCategories.get("Đồ Chơi"),

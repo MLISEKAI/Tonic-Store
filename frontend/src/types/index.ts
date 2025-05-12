@@ -57,7 +57,7 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  originalPrice?: number;
+  promotionalPrice?: number;
   stock: number;
   imageUrl?: string;
   categoryId: number;

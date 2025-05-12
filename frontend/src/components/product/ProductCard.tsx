@@ -4,7 +4,7 @@ import { ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { Product, ProductStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
-import WishlistButton from '../WishlistButton';
+import WishlistButton from '../home/WishlistButton';
 
 interface ProductCardProps {
   product: Product;
@@ -63,9 +63,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
           <span className="text-xl font-bold text-red-500">
             {formatPrice(product.price)}
           </span>
-          {product.originalPrice && (
+          {product.promotionalPrice && (
             <span className="text-gray-500 line-through">
-              {formatPrice(product.originalPrice)}
+              {formatPrice(product.promotionalPrice)}
             </span>
           )}
         </div>

@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { getAllProducts, createProduct, getProductById, updateProduct, deleteProduct, searchProducts, updateProductStatus, updateProductRating, getProductBySeoUrl, incrementViewCount } from "../services/productService";
+import { getAllProducts, createProduct, getProductById, updateProduct, deleteProduct, searchProducts, updateProductStatus, updateProductRating, getProductBySeoUrl, incrementViewCount, getFlashSaleProducts } from "../services/productService";
 import { authenticate } from "../middleware/auth";
 
 const router = express.Router();
@@ -39,10 +39,27 @@ router.get("/search", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-router.get("/:id", async (req: Request, res: Response): Promise<void> => {
+// Lấy sản phẩm flash sale - Di chuyển lên trước /:id
+router.get("/flash-sale", async (req: Request, res: Response): Promise<void> => {
   try {
-    const id = parseInt(req.params.id);
-    const product = await getProductById(id);
+    console.log('Received flash sale request');
+    const products = await getFlashSaleProducts();
+    console.log('Flash sale products count:', products.length);
+    res.json(products);
+  } catch (error) {
+    console.error('Error in flash sale route:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Failed to get flash sale products',
+      details: error instanceof Error ? error.stack : undefined
+    });
+  }
+});
+
+// Thêm route mới trước route /:id
+router.get("/seo/:seoUrl", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { seoUrl } = req.params;
+    const product = await getProductBySeoUrl(seoUrl);
     if (!product) {
       res.status(404).json({ error: 'Product not found' });
       return;
@@ -53,11 +70,10 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// Thêm route mới trước route /:id
-router.get("/seo/:seoUrl", async (req: Request, res: Response): Promise<void> => {
+router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   try {
-    const { seoUrl } = req.params;
-    const product = await getProductBySeoUrl(seoUrl);
+    const id = parseInt(req.params.id);
+    const product = await getProductById(id);
     if (!product) {
       res.status(404).json({ error: 'Product not found' });
       return;
