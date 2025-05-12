@@ -7,7 +7,7 @@ import { useCart } from '../../contexts/CartContext';
 import { Product, ProductStatus } from '../../types';
 import ProductReviews from './ProductReviews';
 import { ProductService } from '../../services/product/productService';
-import WishlistButton from '../WishlistButton';
+import WishlistButton from '../home/WishlistButton';
 
 const { TabPane } = Tabs;
 
@@ -115,12 +115,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
                 currency: 'VND'
               }).format(product.price)}
             </span>
-            {product.originalPrice && (
+            {product.promotionalPrice && (
               <span className="ml-2 text-gray-500 line-through">
                 {new Intl.NumberFormat('vi-VN', {
                   style: 'currency',
                   currency: 'VND'
-                }).format(product.originalPrice)}
+                }).format(product.promotionalPrice)}
               </span>
             )}
           </div>

@@ -40,6 +40,7 @@ const ProductManagement: React.FC = () => {
           name: product.name || '',
           description: product.description || '',
           price: product.price || 0,
+          promotionalPrice: product.promotionalPrice || 0,
           stock: product.stock || 0,
           imageUrl: product.imageUrl || '',
           category: product.category || '',
@@ -78,6 +79,7 @@ const ProductManagement: React.FC = () => {
         name: product.name,
         description: product.description,
         price: product.price,
+        promotionalPrice: product.promotionalPrice,
         stock: product.stock,
         imageUrl: product.imageUrl,
         categoryId: product.category.id,
@@ -160,6 +162,16 @@ const ProductManagement: React.FC = () => {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
+      width: 120,
+      render: (price: number | undefined) => price ? new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+      }).format(price) : '-',
+    },
+    {
+      title: 'Promotional Price',
+      dataIndex: 'promotionalPrice',
+      key: 'promotionalPrice',
       width: 120,
       render: (price: number | undefined) => price ? new Intl.NumberFormat('vi-VN', {
         style: 'currency',
@@ -335,15 +347,28 @@ const ProductManagement: React.FC = () => {
 
           <Form.Item
             name="price"
-            label="Price (VND)"
-            rules={[{ required: true }]}
+            label="Price"
+            rules={[{ required: true, message: 'Please input the price!' }]}
           >
             <InputNumber
-              style={{ width: '100%' }}
               min={0}
-              precision={0}
               step={1000}
-              addonAfter="VND"
+              formatter={(value: number | undefined) => value ? `₫ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
+              parser={(value: string | undefined) => value ? Number(value.replace(/₫\s?|(,*)/g, '')) : 0}
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="promotionalPrice"
+            label="Promotional Price"
+          >
+            <InputNumber
+              min={0}
+              step={1000}
+              formatter={(value: number | undefined) => value ? `₫ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
+              parser={(value: string | undefined) => value ? Number(value.replace(/₫\s?|(,*)/g, '')) : 0}
+              style={{ width: '100%' }}
             />
           </Form.Item>
 

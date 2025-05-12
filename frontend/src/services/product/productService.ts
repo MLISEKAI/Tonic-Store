@@ -67,8 +67,23 @@ export const ProductService = {
 
   // Lấy sản phẩm khuyến mãi
   async getFlashSaleProducts() {
-    const response = await fetch(`${API_URL}/products/flash-sale`);
-    if (!response.ok) throw new Error('Failed to fetch flash sale products');
-    return response.json();
+    try {
+      console.log('Calling flash sale API...');
+      const response = await fetch(`${API_URL}/products/flash-sale`);
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error(errorData.error || 'Failed to fetch flash sale products');
+      }
+      
+      const data = await response.json();
+      console.log('Flash sale data:', data);
+      return data;
+    } catch (error) {
+      console.error('Error in getFlashSaleProducts:', error);
+      throw error;
+    }
   }
 }; 

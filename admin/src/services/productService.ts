@@ -10,6 +10,7 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  promotionalPrice?: number;
   stock: number;
   imageUrl: string;
   category: Category;
@@ -39,6 +40,7 @@ export interface CreateProductData {
   name: string;
   description: string;
   price: number;
+  promotionalPrice?: number;
   stock: number;
   imageUrl: string;
   categoryId: number;
@@ -62,6 +64,7 @@ export interface UpdateProductData {
   name?: string;
   description?: string;
   price?: number;
+  promotionalPrice?: number;
   stock?: number;
   imageUrl?: string;
   categoryId?: number;

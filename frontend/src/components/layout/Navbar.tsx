@@ -38,8 +38,6 @@ const Navbar = () => {
     { key: 'home', label: 'Trang chủ', path: '/' },
     { key: 'products', label: 'Sản phẩm', path: '/products' },
     { key: 'categories', label: 'Danh mục', path: '/categories' },
-    { key: 'about', label: 'Giới thiệu', path: '/about' },
-    { key: 'contact', label: 'Liên hệ', path: '/contact' }
   ];
 
   const userMenuItems: MenuProps['items'] = [

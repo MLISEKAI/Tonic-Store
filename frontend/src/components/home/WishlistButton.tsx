@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, message } from 'antd';
 import { HeartOutlined, HeartFilled } from '@ant-design/icons';
-import { WishlistService } from '../services/wishlist/wishlistService';
+import { WishlistService } from '../../services/wishlist/wishlistService';
 
 interface WishlistButtonProps {
   productId: number;

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Button, notification } from 'antd';
-import { ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
+import { Card, Rate, Button, Tag, notification } from 'antd';
+import { ShoppingCartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { Product, ProductStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { WishlistService } from '../../services/wishlist/wishlistService';
+import WishlistButton from './WishlistButton';
 import { ProductService } from '../../services/product/productService';
 
 const FlashSale: React.FC = () => {
@@ -64,33 +64,6 @@ const FlashSale: React.FC = () => {
     }
   };
 
-  const handleAddToWishlist = async (productId: number) => {
-    if (!isAuthenticated) {
-      notification.warning({
-        message: 'Thông báo',
-        description: 'Vui lòng đăng nhập để thêm sản phẩm vào yêu thích',
-        placement: 'topRight',
-      });
-      navigate('/login');
-      return;
-    }
-
-    try {
-      await WishlistService.addToWishlist(productId);
-      notification.success({
-        message: 'Thành công',
-        description: 'Đã thêm sản phẩm vào yêu thích',
-        placement: 'topRight',
-      });
-    } catch (error) {
-      notification.error({
-        message: 'Lỗi',
-        description: 'Không thể thêm sản phẩm vào yêu thích',
-        placement: 'topRight',
-      });
-    }
-  };
-
   const handleProductClick = (productId: number) => {
     navigate(`/products/${productId}`);
   };
@@ -103,57 +76,67 @@ const FlashSale: React.FC = () => {
           <Card
             key={product.id}
             hoverable
+            className="product-card"
             cover={
               <img
                 alt={product.name}
-                src={product.imageUrl}
-                className="h-48 object-cover cursor-pointer"
+                src={product.imageUrl || 'https://via.placeholder.com/400'}
+                className="h-48 object-cover"
                 onClick={() => handleProductClick(product.id)}
               />
             }
-            actions={[
-              <Button
-                key="cart"
-                type="primary"
-                icon={<ShoppingCartOutlined />}
-                onClick={() => handleAddToCart(product)}
-              >
-                Thêm vào giỏ
-              </Button>,
-              <Button
-                key="wishlist"
-                icon={<HeartOutlined />}
-                onClick={() => handleAddToWishlist(product.id)}
-              >
-                Yêu thích
-              </Button>
-            ]}
+            onClick={() => handleProductClick(product.id)}
           >
-            <Card.Meta
-              title={
-                <div 
-                  className="cursor-pointer hover:text-blue-600"
-                  onClick={() => handleProductClick(product.id)}
-                >
+            <div className="space-y-2">
+              <div className="flex justify-between items-start">
+                <h3 className="text-lg font-medium text-gray-900 truncate">
                   {product.name}
+                </h3>
+                <div className="flex space-x-1">
+                  {product.isNew && <Tag color="blue">Mới</Tag>}
+                  {product.isFeatured && <Tag color="gold">Nổi bật</Tag>}
+                  {product.isBestSeller && <Tag color="red">Bán chạy</Tag>}
                 </div>
-              }
-              description={
-                <div>
-                  <p className="text-gray-600">{product.description}</p>
-                  <div className="mt-2">
-                    <span className="text-lg font-bold text-red-500">
-                      {formatPrice(product.price)}
-                    </span>
-                    {product.originalPrice && (
-                      <span className="ml-2 text-gray-500 line-through">
-                        {formatPrice(product.originalPrice)}
-                      </span>
-                    )}
-                  </div>
+              </div>
+
+              <div className="flex items-center">
+                <Rate disabled defaultValue={product.rating || 0} />
+                <span className="ml-2 text-gray-500 text-sm">
+                  ({product.reviewCount || 0})
+                </span>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <span className="text-xl font-bold text-red-500">
+                  {formatPrice(product.price)}
+                </span>
+                {product.promotionalPrice && (
+                  <span className="text-gray-500 line-through">
+                    {formatPrice(product.promotionalPrice)}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500">
+                  Đã bán: {product.soldCount || 0}
+                </span>
+                <div className="flex space-x-2">
+                  <WishlistButton productId={product.id} showText={false} className="!p-2" />
+                  <Button
+                    type="primary"
+                    icon={<ShoppingCartOutlined />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(product);
+                    }}
+                    disabled={product.status === ProductStatus.OUT_OF_STOCK}
+                  >
+                    {product.status === ProductStatus.OUT_OF_STOCK ? 'Hết hàng' : 'Thêm vào giỏ'}
+                  </Button>
                 </div>
-              }
-            />
+              </div>
+            </div>
           </Card>
         ))}
       </div>

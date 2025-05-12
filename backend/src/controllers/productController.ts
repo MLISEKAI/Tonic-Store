@@ -82,7 +82,8 @@ export const updateProduct = async (req: Request, res: Response) => {
     const { 
       name, 
       description, 
-      price, 
+      price,
+      promotionalPrice,
       stock, 
       imageUrl, 
       categoryId,
@@ -106,6 +107,7 @@ export const updateProduct = async (req: Request, res: Response) => {
       name,
       description,
       price,
+      promotionalPrice,
       stock,
       categoryId,
       imageUrl,
