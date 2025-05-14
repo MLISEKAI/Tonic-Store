@@ -1,5 +1,5 @@
 import { Form, Input, Button, Card, notification } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, HomeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { UserService } from '../services/user/userService';
@@ -7,36 +7,49 @@ import { UserService } from '../services/user/userService';
 const RegisterPage = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const [form] = Form.useForm();
 
   const onFinish = async (values: {
     fullName: string;
     email: string;
     password: string;
     phone: string;
+    address: string;
   }) => {
     try {
-      const response = await UserService.register({
-        name: values.fullName,
-        email: values.email,
+      // Chuẩn hóa dữ liệu trước khi gửi
+      const formData = {
+        name: values.fullName.trim(),
+        email: values.email.toLowerCase().trim(),
         password: values.password,
-        phone: values.phone
-      });
-      await register(response);
-      notification.success({
-        message: 'Thành công',
-        description: 'Đăng ký thành công',
-        placement: 'topRight',
-        duration: 2,
-      });
-      navigate('/login');
+        phone: values.phone.trim(),
+        address: values.address.trim()
+      };
+
+      // Đăng ký tài khoản
+      const response = await UserService.register(formData);
+      
+      if (response && response.user) {
+        // Đăng ký thành công
+        notification.success({
+          message: 'Thành công',
+          description: 'Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.',
+          placement: 'topRight',
+          duration: 3,
+        });
+        
+        // Reset form
+        form.resetFields();
+        
+        // Chuyển hướng đến trang đăng nhập
+        navigate('/login');
+      } else {
+        throw new Error('Không nhận được thông tin người dùng từ server');
+      }
     } catch (error) {
       let errorMessage = 'Đăng ký thất bại';
       if (error instanceof Error) {
-        if (error.message.includes('user_email_key')) {
-          errorMessage = 'Email này đã được sử dụng. Vui lòng sử dụng email khác.';
-        } else {
-          errorMessage = error.message;
-        }
+        errorMessage = error.message;
       }
       notification.error({
         message: 'Lỗi',
@@ -58,14 +71,19 @@ const RegisterPage = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <Form
-            name="normal_login"
+            form={form}
+            name="register"
             className="login-form"
-            initialValues={{ remember: true }}
             onFinish={onFinish}
+            validateTrigger="onBlur"
           >
             <Form.Item
               name="fullName"
-              rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
+              rules={[
+                { required: true, message: 'Vui lòng nhập họ tên!' },
+                { min: 2, message: 'Họ tên phải có ít nhất 2 ký tự!' },
+                { whitespace: true, message: 'Họ tên không được chỉ chứa khoảng trắng!' }
+              ]}
             >
               <Input
                 prefix={<UserOutlined className="site-form-item-icon" />}
@@ -76,7 +94,8 @@ const RegisterPage = () => {
               name="email"
               rules={[
                 { required: true, message: 'Vui lòng nhập email!' },
-                { type: 'email', message: 'Email không hợp lệ!' }
+                { type: 'email', message: 'Email không hợp lệ!' },
+                { whitespace: true, message: 'Email không được chứa khoảng trắng!' }
               ]}
             >
               <Input
@@ -88,11 +107,12 @@ const RegisterPage = () => {
               name="password"
               rules={[
                 { required: true, message: 'Vui lòng nhập mật khẩu!' },
+                { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
+                { whitespace: true, message: 'Mật khẩu không được chứa khoảng trắng!' }
               ]}
             >
-              <Input
+              <Input.Password
                 prefix={<LockOutlined className="site-form-item-icon" />}
-                type="password"
                 placeholder="Mật khẩu"
               />
             </Form.Item>
@@ -100,6 +120,8 @@ const RegisterPage = () => {
               name="phone"
               rules={[
                 { required: true, message: 'Vui lòng nhập số điện thoại!' },
+                { pattern: /^[0-9]{10,11}$/, message: 'Số điện thoại phải có 10-11 chữ số!' },
+                { whitespace: true, message: 'Số điện thoại không được chứa khoảng trắng!' }
               ]}
             >
               <Input
@@ -107,11 +129,24 @@ const RegisterPage = () => {
                 placeholder="Số điện thoại"
               />
             </Form.Item>
+            <Form.Item
+              name="address"
+              rules={[
+                { required: true, message: 'Vui lòng nhập địa chỉ!' },
+                { min: 5, message: 'Địa chỉ phải có ít nhất 5 ký tự!' },
+                { whitespace: true, message: 'Địa chỉ không được chỉ chứa khoảng trắng!' }
+              ]}
+            >
+              <Input
+                prefix={<HomeOutlined className="site-form-item-icon" />}
+                placeholder="Địa chỉ"
+              />
+            </Form.Item>
             <Form.Item>
               <Button
                 type="primary"
                 htmlType="submit"
-                className="login-form-button"
+                className="login-form-button w-full"
               >
                 Đăng ký
               </Button>

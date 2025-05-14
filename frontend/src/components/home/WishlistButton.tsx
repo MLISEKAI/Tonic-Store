@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button, message } from 'antd';
 import { HeartOutlined, HeartFilled } from '@ant-design/icons';
-import { WishlistService } from '../../services/wishlist/wishlistService';
+import { useWishlist } from '../../hooks/useWishlist';
 
 interface WishlistButtonProps {
   productId: number;
@@ -10,37 +10,14 @@ interface WishlistButtonProps {
 }
 
 const WishlistButton: React.FC<WishlistButtonProps> = ({ productId, className, showText = true }) => {
-  const [isInWishlist, setIsInWishlist] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    checkWishlistStatus();
-  }, [productId]);
-
-  const checkWishlistStatus = async () => {
-    try {
-      const { isInWishlist } = await WishlistService.checkWishlistStatus(productId);
-      setIsInWishlist(isInWishlist);
-    } catch (error) {
-      console.error('Error checking wishlist status:', error);
-    }
-  };
+  const { isInWishlist, loading, toggleWishlist } = useWishlist(productId);
 
   const handleToggleWishlist = async () => {
     try {
-      setLoading(true);
-      if (isInWishlist) {
-        await WishlistService.removeFromWishlist(productId);
-        message.success('Removed from wishlist');
-      } else {
-        await WishlistService.addToWishlist(productId);
-        message.success('Added to wishlist');
-      }
-      setIsInWishlist(!isInWishlist);
+      await toggleWishlist();
+      message.success(isInWishlist ? 'Removed from wishlist' : 'Added to wishlist');
     } catch (error) {
       message.error('Failed to update wishlist');
-    } finally {
-      setLoading(false);
     }
   };
 

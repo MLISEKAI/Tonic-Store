@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext } from 'react';
 import { UserService } from '../services/user/userService';
+import { useAuthState } from '../hooks/useAuthState';
 
 interface User {
   id: number;
@@ -11,12 +12,15 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
   login: (credentials: { email: string; password: string }) => Promise<void>;
   register: (data: {
     name: string;
     email: string;
     password: string;
     phone: string;
+    address: string;
   }) => Promise<void>;
   logout: () => void;
 }
@@ -24,48 +28,36 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const {
+    user,
+    isAuthenticated,
+    loading,
+    error,
+    setUser,
+    setIsAuthenticated,
+    checkAuth,
+    clearAuth
+  } = useAuthState();
 
-  useEffect(() => {
-    // Kiểm tra token và lấy thông tin user khi component mount
+  // Check auth status when component mounts
+  React.useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       checkAuth();
     }
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const userData = await UserService.getProfile();
-      setUser(userData);
-      setIsAuthenticated(true);
-    } catch (error) {
-      // Nếu có lỗi, xóa token và reset state
-      localStorage.removeItem('token');
-      setUser(null);
-      setIsAuthenticated(false);
-    }
-  };
+  }, [checkAuth]);
 
   const login = async (credentials: { email: string; password: string }) => {
     try {
       const response = await UserService.login(credentials);
       if (response.token) {
         localStorage.setItem('token', response.token.trim());
-        await checkAuth(); // Lấy thông tin user sau khi đăng nhập
+        await checkAuth();
       } else {
         throw new Error('No token received from server');
       }
     } catch (error) {
-      localStorage.removeItem('token');
-      setUser(null);
-      setIsAuthenticated(false);
+      clearAuth();
       throw error;
     }
   };
@@ -75,22 +67,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     email: string;
     password: string;
     phone: string;
+    address: string;
   }) => {
     try {
-      await UserService.register(data);
+      const response = await UserService.register(data);
+      return response;
     } catch (error) {
+      console.error("Auth context register error:", error);
       throw error;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    setIsAuthenticated(false);
+    clearAuth();
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        loading,
+        error,
+        login,
+        register,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

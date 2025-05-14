@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { CartService } from '../services/cart/cartService';
+import { useCartState } from '../hooks/useCartState';
 
 interface Product {
   id: number;
@@ -21,29 +22,38 @@ interface Cart {
 
 interface CartContextType {
   cart: Cart;
+  loading: boolean;
+  error: string | null;
   addToCart: (product: Product, quantity: number) => Promise<void>;
   removeFromCart: (cartItemId: number) => Promise<void>;
   updateQuantity: (cartItemId: number, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
-  loading: boolean;
-  error: string | null;
   totalItems: number;
+  totalPrice: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [cart, setCart] = useState<Cart>({ items: [] });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    cart,
+    setCart,
+    loading,
+    setLoading,
+    error,
+    setError,
+    totalItems,
+    totalPrice,
+    clearCart: clearCartState
+  } = useCartState();
+  
   const { isAuthenticated } = useAuth();
-
-  const totalItems = cart.items.reduce((total, item) => total + item.quantity, 0);
 
   const fetchCart = async () => {
     if (!isAuthenticated) return;
     try {
       setLoading(true);
+      setError(null);
       const data = await CartService.getCart();
       setCart(data);
     } catch (err) {
@@ -65,6 +75,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     try {
       setLoading(true);
+      setError(null);
       const result = await CartService.addToCart(product.id, quantity);
       setCart(prevCart => {
         const existingItem = prevCart.items.find(item => item.product.id === product.id);
@@ -96,6 +107,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isAuthenticated) return;
     try {
       setLoading(true);
+      setError(null);
       await CartService.removeFromCart(cartItemId);
       await fetchCart();
     } catch (err) {
@@ -110,6 +122,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isAuthenticated) return;
     try {
       setLoading(true);
+      setError(null);
       await CartService.updateCartItem(cartItemId, quantity);
       await fetchCart();
     } catch (err) {
@@ -124,8 +137,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isAuthenticated) return;
     try {
       setLoading(true);
+      setError(null);
       await CartService.clearCart();
-      setCart({ items: [] });
+      clearCartState();
     } catch (err) {
       setError('Không thể xóa giỏ hàng');
       console.error('Error clearing cart:', err);
@@ -135,15 +149,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <CartContext.Provider value={{ 
-      cart, 
-      addToCart, 
-      removeFromCart, 
-      updateQuantity, 
-      clearCart, 
-      loading, 
+    <CartContext.Provider value={{
+      cart,
+      loading,
       error,
-      totalItems
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      totalItems,
+      totalPrice
     }}>
       {children}
     </CartContext.Provider>

@@ -1,4 +1,4 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+import { ENDPOINTS, handleResponse } from '../api';
 
 export const UserService = {
   // Đăng ký tài khoản
@@ -7,46 +7,52 @@ export const UserService = {
     email: string;
     password: string;
     phone: string;
+    address: string;
   }) {
     try {
-      const response = await fetch(`${API_URL}/auth/register`, {
+      const response = await fetch(ENDPOINTS.AUTH.REGISTER, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-          name: data.name,
-          phone: data.phone,
+          ...data,
           role: 'CUSTOMER'
         }),
       });
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Đăng ký thất bại');
+        // Xử lý các trường hợp lỗi cụ thể
+        if (response.status === 400 && responseData.error === "Email already exists") {
+          throw new Error("Email này đã được sử dụng. Vui lòng sử dụng email khác.");
+        }
+        
+        // Xử lý lỗi server
+        if (response.status === 500) {
+          console.error("Server error details:", responseData);
+          throw new Error("Có lỗi xảy ra từ phía server. Vui lòng thử lại sau.");
+        }
+
+        throw new Error(responseData.error || responseData.message || 'Đăng ký thất bại');
       }
 
-      return await response.json();
+      return responseData;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
-      }
-      throw new Error('Đăng ký thất bại');
+      console.error("Registration error:", error);
+      throw error;
     }
   },
 
   // Đăng nhập
   async login(credentials: { email: string; password: string }) {
     try {
-      // Validate credentials
       if (!credentials.email || !credentials.password) {
         throw new Error('Email và mật khẩu không được để trống');
       }
 
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const response = await fetch(ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,20 +64,14 @@ export const UserService = {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Đăng nhập thất bại');
-      }
-
-      const data = await response.json();
-      // Đảm bảo token được lưu đúng cách
+      const data = await handleResponse(response);
       if (data.token) {
         localStorage.setItem('token', data.token.trim());
       }
       return data;
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(error.message);
+        throw error;
       }
       throw new Error('Đăng nhập thất bại');
     }
@@ -84,18 +84,12 @@ export const UserService = {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}/users/profile`, {
+    const response = await fetch(ENDPOINTS.USER.PROFILE, {
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
         'Authorization': `Bearer ${token.trim()}`
       }
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch profile');
-    }
-    return response.json();
+    return handleResponse(response);
   },
 
   // Cập nhật thông tin hồ sơ
@@ -109,20 +103,15 @@ export const UserService = {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}/users/profile`, {
+    const response = await fetch(ENDPOINTS.USER.PROFILE, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
         'Authorization': `Bearer ${token.trim()}`
       },
       body: JSON.stringify(data)
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to update profile');
-    }
-    return response.json();
+    return handleResponse(response);
   },
 
   // Đổi mật khẩu
@@ -135,37 +124,27 @@ export const UserService = {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}/users/change-password`, {
+    const response = await fetch(ENDPOINTS.USER.CHANGE_PASSWORD, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
         'Authorization': `Bearer ${token.trim()}`
       },
       body: JSON.stringify(data)
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to change password');
-    }
-    return response.json();
+    return handleResponse(response);
   },
 
   // Quên mật khẩu
   async forgotPassword(email: string) {
-    const response = await fetch(`${API_URL}/auth/forgot-password`, {
+    const response = await fetch(ENDPOINTS.AUTH.FORGOT_PASSWORD, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ email }),
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to send reset password email');
-    }
-    return response.json();
+    return handleResponse(response);
   },
 
   // Đặt lại mật khẩu
@@ -173,19 +152,14 @@ export const UserService = {
     token: string;
     newPassword: string;
   }) {
-    const response = await fetch(`${API_URL}/auth/reset-password`, {
+    const response = await fetch(ENDPOINTS.AUTH.RESET_PASSWORD, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(data),
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to reset password');
-    }
-    return response.json();
+    return handleResponse(response);
   },
 
   // Gửi email xác thực
@@ -195,31 +169,22 @@ export const UserService = {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}/users/send-verification`, {
+    const response = await fetch(ENDPOINTS.USER.SEND_VERIFICATION, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
         'Authorization': `Bearer ${token.trim()}`
       }
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to send verification email');
-    }
-    return response.json();
+    return handleResponse(response);
   },
 
   // Xác thực email
   async verifyEmail(token: string) {
-    const response = await fetch(`${API_URL}/users/verify-email/${token}`, {
+    const response = await fetch(ENDPOINTS.USER.VERIFY_EMAIL, {
       headers: {
-        'Accept': 'application/json'
+        'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to verify email');
-    }
-    return response.json();
+    return handleResponse(response);
   }
 }; 

@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
-import { message } from 'antd';
-import { ShippingAddressService } from '../services/shipping/shippingAddressService';
+import {
+  getShippingAddresses,
+  addShippingAddress,
+  updateShippingAddress,
+  deleteShippingAddress,
+  setDefaultShippingAddress
+} from '../services/api';
 
 interface ShippingAddress {
   id: number;
@@ -10,78 +15,74 @@ interface ShippingAddress {
   isDefault: boolean;
 }
 
-export function useShippingAddress(token: string | null) {
+export function useShippingAddress(token: string) {
   const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchAddresses = async () => {
-    if (!token) return;
     try {
       setLoading(true);
-      const data = await ShippingAddressService.getShippingAddresses();
+      const data = await getShippingAddresses(token);
       setAddresses(data);
-    } catch (error) {
-      message.error('Failed to fetch shipping addresses');
+      setError(null);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchAddresses();
-  }, [token]);
-
-  const addAddress = async (values: Omit<ShippingAddress, 'id' | 'isDefault'>) => {
-    if (!token) return;
+  const addAddress = async (addressData: any) => {
     try {
-      await ShippingAddressService.createShippingAddress(values);
-      message.success('Address created successfully');
+      await addShippingAddress(token, addressData);
       await fetchAddresses();
-    } catch (error) {
-      message.error('Failed to create address');
+    } catch (err) {
+      throw err;
     }
   };
 
-  const updateAddress = async (id: number, values: Omit<ShippingAddress, 'id' | 'isDefault'>) => {
-    if (!token) return;
+  const updateAddress = async (id: number, addressData: any) => {
     try {
-      await ShippingAddressService.updateShippingAddress(id, values);
-      message.success('Address updated successfully');
+      await updateShippingAddress(token, id, addressData);
       await fetchAddresses();
-    } catch (error) {
-      message.error('Failed to update address');
+    } catch (err) {
+      throw err;
     }
   };
 
   const deleteAddress = async (id: number) => {
-    if (!token) return;
     try {
-      await ShippingAddressService.deleteShippingAddress(id);
-      message.success('Address deleted successfully');
+      await deleteShippingAddress(token, id);
       await fetchAddresses();
-    } catch (error) {
-      message.error('Failed to delete address');
+    } catch (err) {
+      throw err;
     }
   };
 
-  const setDefaultAddress = async (id: number) => {
-    if (!token) return;
+  const setDefault = async (id: number) => {
     try {
-      await ShippingAddressService.setDefaultShippingAddress(id);
-      message.success('Default address updated successfully');
+      await setDefaultShippingAddress(token, id);
       await fetchAddresses();
-    } catch (error) {
-      message.error('Failed to set default address');
+    } catch (err) {
+      throw err;
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      fetchAddresses();
+    }
+  }, [token]);
 
   return {
     addresses,
     loading,
+    error,
     addAddress,
     updateAddress,
     deleteAddress,
-    setDefaultAddress,
-    refetch: fetchAddresses
+    setDefault,
+    refresh: fetchAddresses
   };
 } 

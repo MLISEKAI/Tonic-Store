@@ -1,41 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Card, Rate, Button, Tag, notification } from 'antd';
-import { ShoppingCartOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { ShoppingCartOutlined, RightOutlined } from '@ant-design/icons';
+import { useNavigate, Link } from 'react-router-dom';
 import { Product, ProductStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import WishlistButton from './WishlistButton';
-import { ProductService } from '../../services/product/productService';
+import { useFlashSale } from '../../hooks/useFlashSale';
 
 const FlashSale: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loading, error } = useFlashSale();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
-
-  useEffect(() => {
-    fetchFlashSaleProducts();
-  }, []);
-
-  const fetchFlashSaleProducts = async () => {
-    try {
-      setLoading(true);
-      const data = await ProductService.getFlashSaleProducts();
-      setProducts(data);
-    } catch (error) {
-      console.error('Error fetching flash sale products:', error);
-      notification.error({
-        message: 'Lỗi',
-        description: 'Không thể tải sản phẩm flash sale',
-        placement: 'topRight',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddToCart = async (product: Product) => {
     if (!isAuthenticated) {
@@ -64,13 +42,37 @@ const FlashSale: React.FC = () => {
     }
   };
 
-  const handleProductClick = (productId: number) => {
+  const navigateToProduct = (productId: number) => {
     navigate(`/products/${productId}`);
   };
 
+  if (error) {
+    return (
+      <div className="text-center text-red-500 py-4">
+        {error}
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="text-center py-4">
+        Loading...
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold mb-6">Flash Sale</h2>
+    <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold">Flash Sale</h2>
+        <Link
+          to="/flash-sale"
+          className="text-blue-500 flex items-center hover:text-blue-600 transition-colors"
+        >
+          Xem tất cả <RightOutlined className="text-xs ml-1"/>
+        </Link>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((product) => (
           <Card
@@ -80,12 +82,12 @@ const FlashSale: React.FC = () => {
             cover={
               <img
                 alt={product.name}
-                src={product.imageUrl || 'https://via.placeholder.com/400'}
+                src={product.imageUrl}
                 className="h-48 object-cover"
-                onClick={() => handleProductClick(product.id)}
+                onClick={() => navigateToProduct(product.id)}
               />
             }
-            onClick={() => handleProductClick(product.id)}
+            onClick={() => navigateToProduct(product.id)}
           >
             <div className="space-y-2">
               <div className="flex justify-between items-start">
