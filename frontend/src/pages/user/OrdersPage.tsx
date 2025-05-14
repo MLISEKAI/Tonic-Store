@@ -146,7 +146,7 @@ export const OrdersPage: FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto my-4 p-8 bg-white">
       <h1 className="text-2xl font-bold mb-6">Đơn hàng của tôi</h1>
       <Tabs defaultActiveKey="all">
         <TabPane tab="Tất cả" key="all">

@@ -8,7 +8,8 @@ import {
   Dropdown,
   Avatar,
   notification,
-  Popover
+  Popover,
+  Space
 } from 'antd';
 import {
   MenuOutlined,
@@ -17,13 +18,22 @@ import {
   UserOutlined,
   HeartOutlined,
   LogoutOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  MobileOutlined,
+  DownOutlined,
+  QrcodeOutlined,
+  BellOutlined,
+  CarOutlined,
+  FacebookFilled,
+  InstagramFilled,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { formatPrice } from '../../utils/format';
 import { ProductService } from '../../services/product/productService';
+import { CategoryService } from '../../services/category/categoryService';
+import type { Category } from '../../types';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,11 +43,29 @@ const Navbar = () => {
   const { cart, totalItems, removeFromCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await CategoryService.getCategories();
+        setCategories(data);
+      } catch (error) {
+        // Có thể xử lý lỗi ở đây nếu muốn
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const menuItems = [
     { key: 'home', label: 'Trang chủ', path: '/' },
     { key: 'products', label: 'Sản phẩm', path: '/products' },
-    { key: 'categories', label: 'Danh mục', path: '/categories' },
+    { key: 'flash-sale', label: 'Khuyến mãi', path: '/flash-sale' },
+    { key: 'new-arrivals', label: 'Hàng mới về', path: '/new-arrivals' },
+    { key: 'best-sellers', label: 'Bán chạy', path: '/best-sellers' },
+    { key: 'brands', label: 'Thương hiệu', path: '/brands' },
+    { key: 'blog', label: 'Tonic Store Blog', path: '/blog' },
+    { key: 'contact', label: 'Liên hệ', path: '/contact' },
   ];
 
   const userMenuItems: MenuProps['items'] = [
@@ -156,113 +184,135 @@ const Navbar = () => {
   );
 
   return (
-    <nav className="sticky top-0 z-50 transition-all duration-300 bg-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 w-full overflow-visible">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
-            <span className="text-3xl font-bold tracking-wide bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent group-hover:from-pink-600 group-hover:to-blue-600 transition-all duration-500">
-              Tonic Store
-            </span>
-          </Link>
-
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8 whitespace-nowrap overflow-visible">
-            {menuItems.map((item) => (
-              <Link
-                key={item.key}
-                to={item.path}
-                className={`text-gray-600 text-lg font-semibold hover:text-blue-600 transition-colors ${
-                  selectedKey === item.key ? 'text-blue-600' : ''
-                }`}
-              >
-                {item.label}
+    <div className="bg-white sticky top-0 z-50">
+      {/* Top bar */}
+      <div className="bg-gray-100 py-1">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center text-sm">
+            <div className="flex items-center space-x-4">
+              <Link to="/" className="flex items-center">
+                <MobileOutlined className="mr-1" />
+                Tải ứng dụng
               </Link>
-            ))}
-          </div>
+              {isAuthenticated ? (
+                <Dropdown menu={{ items: userMenuItems }}>
+                  <span className="cursor-pointer">
+                    Xin chào, {user?.name} <DownOutlined />
+                  </span>
+                </Dropdown>
+              ) : (
+                <Space>
+                  <Link to="/login">Đăng nhập</Link>
+                  <Link to="/register">Đăng ký</Link>
+                </Space>
+              )}
+            </div>
 
-          {/* Search and Actions */}
-          <div className="flex items-center space-x-4">
-            <div className="hidden md:block relative">
+            <div className="flex items-center space-x-4">
+              <Link to="/help">Trung tâm hỗ trợ</Link>
+               {/* Liên kết mạng xã hội */}
+              <div className="flex items-center space-x-2">
+                <span>Kết nối</span>
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+                  <FacebookFilled className="text-blue-600 text-lg hover:text-blue-800" />
+                </a>
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+                  <InstagramFilled className="text-pink-500 text-lg hover:text-pink-600" />
+                </a>
+              </div>
+
+              <div className="relative group">
+                <span className="flex items-center cursor-pointer">
+                  <QrcodeOutlined className="mr-1" />
+                  Quét mã QR
+                </span>
+                <div className="hidden group-hover:block absolute right-0 p-2 bg-white shadow-lg rounded">
+                  <div className="w-32 h-32 bg-gray-200"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main header */}
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-4 lg:gap-8">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-2 group shrink-0">
+              <span className="text-2xl md:text-4xl font-bold tracking-wide bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent group-hover:from-pink-600 group-hover:to-blue-600 transition-all duration-500">
+                Tonic Store
+              </span>
+            </Link>
+
+            {/* Search block */}
+            <div className="flex flex-col flex-1 max-w-xl lg:max-w-2xl">
               <Input
                 placeholder="Tìm kiếm sản phẩm..."
                 prefix={<SearchOutlined className={`text-gray-400 ${isSearching ? 'animate-spin' : ''}`} />}
-                className="w-64 px-4 py-1.5 rounded-full border border-gray-300 hover:border-blue-500 focus:border-blue-500 transition-all"
+                className="w-full px-4 py-1.5 rounded-full border border-gray-300 hover:border-blue-500 focus:border-blue-500 transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleSearch}
                 disabled={isSearching}
               />
-            </div>
-            <div className="flex items-center space-x-3">
-              {isAuthenticated ? (
-                <>
-                  <Link to="/wishlist">
-                    <Button
-                      type="text"
-                      className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
-                      icon={<HeartOutlined className="text-xl" />}
-                    />
-                  </Link>
-                  <Popover
-                    content={cartContent}
-                    trigger="hover"
-                    placement="bottomRight"
+              {/* Suggestions row */}
+              <div className="flex flex-wrap items-center gap-3 mt-2">
+                {categories.slice(0, 6).map((cat) => (
+                  <span
+                    key={cat.id}
+                    className="text-xs text-gray-500 cursor-pointer hover:text-blue-600 transition-colors"
                   >
-                    <Link to="/cart">
-                      <Badge count={totalItems} size="small" offset={[-2, 2]}>
-                        <Button
-                          type="text"
-                          className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
-                          icon={<ShoppingCartOutlined className="text-xl" />}
-                        />
-                      </Badge>
-                    </Link>
-                  </Popover>
-                  <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                    <Button
-                      type="text"
-                      className="hover:bg-gray-100 rounded-full p-2 shadow-sm hover:shadow-md transition-all"
-                    >
-                      <Avatar
-                        icon={<UserOutlined />}
-                        className="bg-blue-100 text-blue-600"
-                      />
-                    </Button>
-                  </Dropdown>
-                </>
-              ) : (
-                <>
-                  <Link to="/login">
-                    <Button type="primary" className="mr-2">
-                      Đăng nhập
-                    </Button>
-                  </Link>
-                  <Link to="/register">
-                    <Button>Đăng ký</Button>
-                  </Link>
-                </>
-              )}
+                    {cat.name}
+                  </span>
+                ))}
+              </div>
             </div>
-            <Button
-              type="text"
-              icon={<MenuOutlined className="text-xl" />}
-              className="md:hidden hover:bg-gray-100 rounded-full p-2 transition-all"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            />
+
+            {/* Right buttons */}
+            <div className="flex items-center gap-4 lg:gap-6 shrink-0">
+              <Link to="/user/orders" className="hidden md:flex items-center text-gray-600 hover:text-blue-500">
+                <CarOutlined className="text-sm" />
+                <span className="hidden md:inline ml-2">Theo dõi đơn hàng</span>
+              </Link>
+
+              <Popover content={cartContent} trigger="hover" placement="bottomRight">
+                <Link to="/notifications" className="hidden md:flex items-center text-gray-600 hover:text-blue-500">
+                  <Badge dot>
+                    <BellOutlined className="text-sm" />
+                  </Badge>
+                  <span className="hidden md:inline ml-2">Thông báo của tôi</span>
+                </Link>
+              </Popover>
+
+              <Link to="/wishlist" className="hidden md:flex items-center text-gray-600 hover:text-blue-500">
+                <Badge dot>
+                  <HeartOutlined className="text-sm" />
+                </Badge>
+                <span className="hidden md:inline ml-2">Yêu thích</span>
+              </Link>
+
+              <Popover content={cartContent} trigger="hover" placement="bottomRight">
+                <Link to="/cart" className="flex items-center text-gray-600 hover:text-blue-500">
+                  <Badge count={totalItems}>
+                    <ShoppingCartOutlined className="text-xl" />
+                  </Badge>
+                  <span className="hidden md:inline ml-2">Giỏ hàng</span>
+                </Link>
+              </Popover>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Menu */}
-        <div
-          className={`md:hidden transition-all duration-500 transform origin-top ${
-            isMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'
-          }`}
-        >
-          <Menu
+      {/* Main navigation */}
+      <div className="border-b">
+        <div className="container mx-auto px-4">
+          <Menu 
+            mode="horizontal" 
             selectedKeys={[selectedKey]}
-            mode="vertical"
-            className="border-t"
+            className="border-none"
           >
             {menuItems.map((item) => (
               <Menu.Item key={item.key}>
@@ -272,7 +322,7 @@ const Navbar = () => {
           </Menu>
         </div>
       </div>
-    </nav>
+    </div>
   );
 };
 

@@ -358,4 +358,116 @@ export const getFlashSaleProducts = async () => {
     });
     throw new Error('Failed to get flash sale products');
   }
+};
+
+export const getNewestProducts = async (limit: number = 8) => {
+  try {
+    console.log('Starting getNewestProducts with limit:', limit);
+    
+    const products = await prisma.product.findMany({
+      where: {
+        status: 'ACTIVE',
+        isNew: true
+      },
+      include: {
+        category: true,
+        reviews: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: limit
+    });
+
+    console.log('Found newest products:', products.length);
+    if (products.length > 0) {
+      console.log('First product sample:', {
+        id: products[0].id,
+        name: products[0].name,
+        isNew: products[0].isNew,
+        status: products[0].status
+      });
+    }
+
+    return products;
+  } catch (error) {
+    console.error('Detailed error in getNewestProducts:', {
+      error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      code: error instanceof Error ? (error as any).code : undefined,
+      meta: error instanceof Error ? (error as any).meta : undefined
+    });
+    throw new Error('Failed to get newest products');
+  }
+};
+
+export const getBestSellingProducts = async (limit: number = 8) => {
+  try {
+    console.log('Starting getBestSellingProducts with limit:', limit);
+    
+    // First check if we can connect to the database
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      console.log('Database connection successful');
+    } catch (dbError) {
+      console.error('Database connection error:', dbError);
+      throw new Error('Database connection failed');
+    }
+    
+    const products = await prisma.product.findMany({
+      where: {
+        status: 'ACTIVE',
+        isBestSeller: true
+      },
+      include: {
+        category: true,
+        reviews: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        soldCount: 'desc'
+      },
+      take: limit
+    });
+
+    console.log('Found best selling products:', products.length);
+    if (products.length > 0) {
+      console.log('First product sample:', {
+        id: products[0].id,
+        name: products[0].name,
+        isBestSeller: products[0].isBestSeller,
+        soldCount: products[0].soldCount,
+        status: products[0].status
+      });
+    }
+
+    return products;
+  } catch (error) {
+    console.error('Detailed error in getBestSellingProducts:', {
+      error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      code: error instanceof Error ? (error as any).code : undefined,
+      meta: error instanceof Error ? (error as any).meta : undefined
+    });
+    throw new Error('Failed to get best selling products');
+  }
 }; 
