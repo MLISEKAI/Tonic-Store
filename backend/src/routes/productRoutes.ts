@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { getAllProducts, createProduct, getProductById, updateProduct, deleteProduct, searchProducts, updateProductStatus, updateProductRating, getProductBySeoUrl, incrementViewCount, getFlashSaleProducts } from "../services/productService";
+import { getAllProducts, createProduct, getProductById, updateProduct, deleteProduct, searchProducts, updateProductStatus, updateProductRating, getProductBySeoUrl, incrementViewCount, getFlashSaleProducts, getNewestProducts, getBestSellingProducts } from "../services/productService";
 import { authenticate } from "../middleware/auth";
 
 const router = express.Router();
@@ -39,7 +39,7 @@ router.get("/search", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// Lấy sản phẩm flash sale - Di chuyển lên trước /:id
+// Lấy sản phẩm flash sale
 router.get("/flash-sale", async (req: Request, res: Response): Promise<void> => {
   try {
     console.log('Received flash sale request');
@@ -50,6 +50,58 @@ router.get("/flash-sale", async (req: Request, res: Response): Promise<void> => 
     console.error('Error in flash sale route:', error);
     res.status(500).json({ 
       error: error instanceof Error ? error.message : 'Failed to get flash sale products',
+      details: error instanceof Error ? error.stack : undefined
+    });
+  }
+});
+
+// Lấy sản phẩm nổi bật
+router.get("/featured", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
+    console.log('Fetching featured products with limit:', limit);
+    const products = await getAllProducts(undefined, { isFeatured: true });
+    const limitedProducts = products.slice(0, limit);
+    console.log('Found featured products:', limitedProducts.length);
+    res.json(limitedProducts);
+  } catch (error) {
+    console.error('Error in featured products route:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Failed to get featured products',
+      details: error instanceof Error ? error.stack : undefined
+    });
+  }
+});
+
+// Lấy sản phẩm mới nhất - Di chuyển lên trước /:id
+router.get("/newest", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
+    console.log('Fetching newest products with limit:', limit);
+    const products = await getNewestProducts(limit);
+    console.log('Found newest products:', products.length);
+    res.json(products);
+  } catch (error) {
+    console.error('Error in newest products route:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Failed to get newest products',
+      details: error instanceof Error ? error.stack : undefined
+    });
+  }
+});
+
+// Lấy sản phẩm bán chạy - Di chuyển lên trước /:id
+router.get("/best-selling", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
+    console.log('Fetching best selling products with limit:', limit);
+    const products = await getBestSellingProducts(limit);
+    console.log('Found best selling products:', products.length);
+    res.json(products);
+  } catch (error) {
+    console.error('Error in best selling products route:', error);
+    res.status(500).json({ 
+      error: error instanceof Error ? error.message : 'Failed to get best selling products',
       details: error instanceof Error ? error.stack : undefined
     });
   }

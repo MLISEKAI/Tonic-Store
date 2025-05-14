@@ -21,6 +21,12 @@ import ShipperLayout from './layouts/ShipperLayout';
 import ShipperProfilePage from './pages/shipper/ProfilePage';
 import DefaultLayout from './layouts/DefaultLayout';
 import WishlistPage from './pages/WishlistPage';
+import FlashSalePage from './pages/FlashSalePage';
+import NewArrivalsPage from './pages/NewArrivalsPage';
+import BestSellersPage from './pages/BestSellersPage';
+import BrandsPage from './pages/BrandsPage';
+import BlogPage from "./pages/BlogPage";
+import FeaturedProductsPage from "./pages/FeaturedProductsPage";
 
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -99,6 +105,41 @@ const App = () => {
                   <WishlistPage />
                 </DefaultLayout>
               </ProtectedRoute>
+            } />
+            <Route path="/flash-sale" element={
+              <DefaultLayout>
+                <FlashSalePage />
+              </DefaultLayout>
+            } />
+            <Route path="/new-arrivals" element={
+              <DefaultLayout>
+                <NewArrivalsPage />
+              </DefaultLayout>
+            } />
+            <Route path="/best-sellers" element={
+              <DefaultLayout>
+                <BestSellersPage />
+              </DefaultLayout>
+            } />
+            <Route path="/brands" element={
+              <DefaultLayout>
+                <BrandsPage />
+              </DefaultLayout>
+            } />
+            <Route path="/featured-products" element={
+              <DefaultLayout>
+                <FeaturedProductsPage />
+              </DefaultLayout>
+            } />
+            <Route path="/blog" element={
+              <DefaultLayout>
+                <BlogPage />
+              </DefaultLayout>
+            } />
+            <Route path="/blog/:id" element={
+              <DefaultLayout>
+                <BlogPage />
+              </DefaultLayout>
             } />
 
             {/* User routes */}
