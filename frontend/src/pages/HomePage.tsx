@@ -187,9 +187,7 @@ const HomePage = () => {
             </div>
 
             {/* Flash Sale Section */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <FlashSale />
-            </div>
+            <FlashSale />
 
             {/* Sản phẩm nổi bật */}
             <FeaturedProducts 

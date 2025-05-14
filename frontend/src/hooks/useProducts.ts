@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { ProductService } from '../services/product/productService';
-import { CategoryService } from '../services/category/categoryService';
+import { getProducts, getCategories } from "../services/api";
 import { Product } from '../types';
 
 interface Category {
@@ -10,10 +9,10 @@ interface Category {
   productCount?: number;
 }
 
-const CACHE_KEY = 'products_cache';
+const CACHE_KEY = 'product_cache';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-export function useProducts(category?: string) {
+export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>(() => {
     // Initialize from cache if available
     const cachedData = localStorage.getItem(CACHE_KEY);
@@ -29,15 +28,15 @@ export function useProducts(category?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
       // Check cache first
-      const cachedData = localStorage.getItem(CACHE_KEY);
-      if (cachedData) {
-        const { data, timestamp } = JSON.parse(cachedData);
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
         if (Date.now() - timestamp < CACHE_DURATION) {
           setProducts(data);
           setLoading(false);
@@ -45,10 +44,10 @@ export function useProducts(category?: string) {
         }
       }
 
-      // If no cache or cache expired, fetch from API
+      // Fetch fresh data
       const [productsData, categoriesData] = await Promise.all([
-        ProductService.getProducts(category),
-        CategoryService.getCategories()
+        getProducts(),
+        getCategories()
       ]);
 
       // Calculate product count for each category
@@ -59,6 +58,7 @@ export function useProducts(category?: string) {
         ).length
       }));
 
+      // Update state
       setProducts(productsData);
       setCategories(categoriesWithCount);
 
@@ -67,17 +67,18 @@ export function useProducts(category?: string) {
         data: productsData,
         timestamp: Date.now()
       }));
-    } catch (error) {
-      console.error('Error fetching data:', error);
+
+    } catch (err) {
+      console.error('Error fetching data:', err);
       setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }
-  }, [category]);
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   // Memoize filtered products
   const filteredProducts = useMemo(() => {
@@ -96,7 +97,7 @@ export function useProducts(category?: string) {
     categories,
     loading,
     error,
-    refetch: fetchData,
+    refetch: fetchProducts,
     filteredProducts
   };
-} 
+}; 

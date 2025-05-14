@@ -1,89 +1,60 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+import { ENDPOINTS, handleResponse } from '../api';
 
 export const ProductService = {
   // Lấy danh sách sản phẩm
-  async getProducts(category?: string) {
-    const url = new URL(`${API_URL}/products`);
-    if (category) {
-      url.searchParams.append('category', category);
-    }
-    const response = await fetch(url.toString());
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch products');
-    }
-    return response.json();
+  async getProducts() {
+    const response = await fetch(ENDPOINTS.PRODUCT.LIST);
+    return handleResponse(response);
   },
 
   // Lấy chi tiết sản phẩm
-  async getProduct(id: number) {
-    const response = await fetch(`${API_URL}/products/${id}`);
-    if (!response.ok) throw new Error('Failed to fetch product');
-    return response.json();
+  async getProductById(id: number) {
+    const response = await fetch(ENDPOINTS.PRODUCT.DETAIL(id));
+    return handleResponse(response);
+  },
+
+  // Lấy danh sách danh mục
+  async getCategories() {
+    const response = await fetch(ENDPOINTS.PRODUCT.CATEGORIES);
+    return handleResponse(response);
   },
 
   // Tìm kiếm sản phẩm
   async searchProducts(query: string) {
-    try {
-      const response = await fetch(`${API_URL}/products/search?q=${encodeURIComponent(query)}`);
-      if (!response.ok) throw new Error('Failed to search products');
-      return response.json();
-    } catch (error) {
-      console.error('Error searching products:', error);
-      throw error;
-    }
+    const response = await fetch(`${ENDPOINTS.PRODUCT.SEARCH}?q=${encodeURIComponent(query)}`);
+    return handleResponse(response);
   },
 
   // Tăng lượt xem sản phẩm
   async incrementProductView(id: number) {
-    const response = await fetch(`${API_URL}/products/${id}/view`, {
+    const response = await fetch(ENDPOINTS.PRODUCT.VIEW(id), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' }
     });
-    if (!response.ok) throw new Error('Failed to increment view');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Lấy sản phẩm nổi bật
   async getFeaturedProducts(limit = 8) {
-    const response = await fetch(`${API_URL}/products/featured?limit=${limit}`);
-    if (!response.ok) throw new Error('Failed to fetch featured products');
-    return response.json();
+    const response = await fetch(ENDPOINTS.PRODUCT.FEATURED(limit));
+    return handleResponse(response);
   },
 
   // Lấy sản phẩm bán chạy
   async getBestSellingProducts(limit = 8) {
-    const response = await fetch(`${API_URL}/products/best-selling?limit=${limit}`);
-    if (!response.ok) throw new Error('Failed to fetch best selling products');
-    return response.json();
+    const response = await fetch(ENDPOINTS.PRODUCT.BEST_SELLING(limit));
+    return handleResponse(response);
   },
 
   // Lấy sản phẩm mới nhất
   async getNewestProducts(limit = 8) {
-    const response = await fetch(`${API_URL}/products/newest?limit=${limit}`);
-    if (!response.ok) throw new Error('Failed to fetch newest products');
-    return response.json();
+    const response = await fetch(ENDPOINTS.PRODUCT.NEWEST(limit));
+    return handleResponse(response);
   },
 
-  // Lấy sản phẩm khuyến mãi
+  // Lấy sản phẩm flash sale
   async getFlashSaleProducts() {
-    try {
-      console.log('Calling flash sale API...');
-      const response = await fetch(`${API_URL}/products/flash-sale`);
-      console.log('Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error response:', errorData);
-        throw new Error(errorData.error || 'Failed to fetch flash sale products');
-      }
-      
-      const data = await response.json();
-      console.log('Flash sale data:', data);
-      return data;
-    } catch (error) {
-      console.error('Error in getFlashSaleProducts:', error);
-      throw error;
-    }
+    const response = await fetch(ENDPOINTS.PRODUCT.FLASH_SALE);
+    return handleResponse(response);
   }
 }; 
