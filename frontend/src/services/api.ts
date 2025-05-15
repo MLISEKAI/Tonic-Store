@@ -48,11 +48,11 @@ export const ENDPOINTS = {
   },
   // Shipping
   SHIPPING: {
-    ADDRESSES: `${API_URL}/shipping/addresses`,
-    ADD_ADDRESS: `${API_URL}/shipping/addresses`,
-    UPDATE_ADDRESS: (id: number) => `${API_URL}/shipping/addresses/${id}`,
-    DELETE_ADDRESS: (id: number) => `${API_URL}/shipping/addresses/${id}`,
-    SET_DEFAULT: (id: number) => `${API_URL}/shipping/addresses/${id}/default`,
+    ADDRESSES: `${API_URL}/shipping-addresses`,
+    ADD_ADDRESS: `${API_URL}/shipping-addresses`,
+    UPDATE_ADDRESS: (id: number) => `${API_URL}/shipping-addresses/${id}`,
+    DELETE_ADDRESS: (id: number) => `${API_URL}/shipping-addresses/${id}`,
+    SET_DEFAULT: (id: number) => `${API_URL}/shipping-addresses/${id}/default`,
   }
 };
 
@@ -63,5 +63,74 @@ export const handleResponse = async (response: Response) => {
     throw new Error(error.message || error.error || 'Something went wrong');
   }
   return response.json();
+};
+
+// API functions
+export const getProducts = async () => {
+  const response = await fetch(ENDPOINTS.PRODUCT.LIST);
+  return handleResponse(response);
+};
+
+export const getCategories = async () => {
+  const response = await fetch(ENDPOINTS.PRODUCT.CATEGORIES);
+  return handleResponse(response);
+};
+
+
+export const getShippingAddresses = async (token: string) => {
+  const response = await fetch(ENDPOINTS.SHIPPING.ADDRESSES, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  return handleResponse(response);
+};
+
+
+export const addShippingAddress = async (token: string, data: any) => {
+  const response = await fetch(ENDPOINTS.SHIPPING.ADD_ADDRESS, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+};
+
+
+export const updateShippingAddress = async (token: string, id: number, data: any) => {
+  const response = await fetch(ENDPOINTS.SHIPPING.UPDATE_ADDRESS(id), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+};
+
+
+export const deleteShippingAddress = async (token: string, id: number) => {
+  const response = await fetch(ENDPOINTS.SHIPPING.DELETE_ADDRESS(id), {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  return handleResponse(response);
+};
+
+
+export const setDefaultShippingAddress = async (token: string, id: number) => {
+  const response = await fetch(ENDPOINTS.SHIPPING.SET_DEFAULT(id), {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  return handleResponse(response);
 };
 

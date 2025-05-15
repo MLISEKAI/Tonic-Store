@@ -2,7 +2,7 @@ import { ENDPOINTS, handleResponse } from '../api';
 
 export const ProductService = {
   // Lấy danh sách sản phẩm
-  async getProducts() {
+  async getProducts(p0: string | undefined) {
     const response = await fetch(ENDPOINTS.PRODUCT.LIST);
     return handleResponse(response);
   },

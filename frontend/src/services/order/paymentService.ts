@@ -65,5 +65,22 @@ export const PaymentService = {
     }
 
     return response.json();
+  },
+
+  async confirmCODPayment(orderId: number) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/orders/${orderId}/confirm-cod`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to confirm COD payment');
+    }
+
+    return response.json();
   }
 }; 

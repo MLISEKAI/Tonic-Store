@@ -227,18 +227,34 @@ export const OrderController = {
       const { id } = req.params;
       const { status, transactionId } = req.body;
 
+      // Lấy thông tin order và payment
+      const order = await prisma.order.findUnique({
+        where: { id: Number(id) },
+        include: { payment: true }
+      });
+      if (!order || !order.payment) {
+        return res.status(404).json({ error: 'Order or payment not found' });
+      }
+
+      // Kiểm tra quyền
+      const isAdminOrUser = req.user?.role === 'ADMIN' || req.user?.role === 'USER';
+      const isShipperCOD = req.user?.role === 'DELIVERY' && order.payment.method === 'COD' && order.status === 'DELIVERED';
+      if (!isAdminOrUser && !isShipperCOD) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
       const payment = await prisma.payment.update({
         where: { orderId: Number(id) },
         data: {
           status,
           transactionId,
-          paymentDate: status === "COMPLETED" ? new Date() : undefined,
+          paymentDate: status === 'COMPLETED' ? new Date() : undefined,
         },
       });
 
       res.json(payment);
     } catch (error) {
-      res.status(500).json({ error: "Failed to update payment status" });
+      res.status(500).json({ error: 'Failed to update payment status' });
     }
   },
 

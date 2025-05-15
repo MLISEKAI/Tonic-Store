@@ -5,7 +5,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { ProductService } from '../services/product/productService';
-import { CartService } from '../services/cart/cartService';
 import { Product } from '../types';
 import ProductCard from '../components/product/ProductCard';
 

@@ -59,6 +59,15 @@ export const createOrder = async (
       include: { items: { include: { product: true } }, payment: true },
     });
 
+    // Create notification for the user
+    await prisma.notification.create({
+      data: {
+        userId,
+        message: `Đơn hàng của bạn đã được tạo thành công`,
+        isRead: false,
+      },
+    });
+
     return order;
   } catch (error) {
     console.error('Error in createOrder:', error);
@@ -73,7 +82,7 @@ export const createOrder = async (
 export const updateOrderStatus = async (id: number, status: string) => {
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { items: true }
+    include: { items: true, user: true }
   });
 
   if (!order) {
@@ -86,6 +95,15 @@ export const updateOrderStatus = async (id: number, status: string) => {
       await updateSoldCount(item.productId, item.quantity);
     }
   }
+
+  // Create notification for order status update
+  await prisma.notification.create({
+    data: {
+      userId: order.userId,
+      message: `Đơn hàng #${order.id} đã được cập nhật trạng thái: ${status}.`,
+      isRead: false,
+    },
+  });
 
   return prisma.order.update({
     where: { id },

@@ -21,6 +21,16 @@ export const loginUser = async (email: string, password: string) => {
     }
 
     const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: "1d" });
+
+    // Create notification for user login
+    await prisma.notification.create({
+      data: {
+        userId: user.id,
+        message: `Bạn vừa đăng nhập từ một thiết bị mới. Nếu không phải bạn, hãy đổi mật khẩu ngay.`,
+        isRead: false,
+      },
+    });
+
     return { token, user };
   } catch (error) {
     console.error("Login error:", error);

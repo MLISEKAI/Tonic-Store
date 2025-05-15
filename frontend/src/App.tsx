@@ -27,6 +27,7 @@ import BestSellersPage from './pages/BestSellersPage';
 import BrandsPage from './pages/BrandsPage';
 import BlogPage from "./pages/BlogPage";
 import FeaturedProductsPage from "./pages/FeaturedProductsPage";
+import NotificationsPage from './pages/NotificationsPage';
 
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -185,6 +186,15 @@ const App = () => {
                 <ShipperLayout>
                   <ShipperProfilePage />
                 </ShipperLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Notifications route */}
+            <Route path="/notifications" element={
+              <ProtectedRoute>
+                <DefaultLayout>
+                  <NotificationsPage />
+                </DefaultLayout>
               </ProtectedRoute>
             } />
           </Routes>

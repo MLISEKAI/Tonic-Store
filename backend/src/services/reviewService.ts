@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const createReview = async (userId: number, productId: number, rating: number, comment?: string) => {
-  return prisma.review.create({
+  const review = await prisma.review.create({
     data: {
       userId,
       productId,
@@ -25,6 +25,17 @@ export const createReview = async (userId: number, productId: number, rating: nu
       }
     }
   });
+
+  // Create notification for new review
+  await prisma.notification.create({
+    data: {
+      userId,
+      message: `Cảm ơn bạn đã đánh giá sản phẩm ${review.product.name}.`,
+      isRead: false,
+    },
+  });
+
+  return review;
 };
 
 export const getProductReviews = async (productId: number) => {

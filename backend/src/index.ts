@@ -23,6 +23,7 @@ import reviewRoutes from './routes/reviewRoutes';
 import shippingAddressRoutes from "./routes/shippingAddressRoutes";
 import shipperRoutes from './routes/shipperRoutes';
 import wishlistRoutes from './routes/wishlistRoutes';
+import notificationRoutes from "./routes/notificationRoutes";
 
 dotenv.config();
 const app = express();
@@ -107,6 +108,8 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/shipping-addresses', shippingAddressRoutes);
 app.use('/api/shippers', shipperRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/notifications', notificationRoutes);
+
 
 // Middleware để bắt lỗi
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
