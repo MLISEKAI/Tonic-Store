@@ -3,6 +3,7 @@ import { ShipperService } from '../../services/shipper/shipperService';
 import { OrderStatus } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatPrice } from '../../utils/format';
+import { PaymentService } from '../../services/order/paymentService';
 
 interface Order {
   id: number;
@@ -20,6 +21,10 @@ interface Order {
     };
     quantity: number;
   }>;
+  payment?: {
+    method: string;
+    status: string;
+  };
 }
 
 const ShipperOrders: React.FC = () => {
@@ -39,7 +44,12 @@ const ShipperOrders: React.FC = () => {
     try {
       setLoading(true);
       const data = await ShipperService.getDeliveryOrders(1, 10);
-      setOrders(data);
+      const normalized = data.map((order: any) => ({
+        ...order,
+        payment: order.payment || { method: '', status: '' }
+      }));
+      console.log('Orders for shipper:', normalized);
+      setOrders(normalized);
       setError(null);
     } catch (err) {
       setError('Failed to load orders');
@@ -58,12 +68,25 @@ const ShipperOrders: React.FC = () => {
     }
   };
 
+  const handleConfirmReceivedPayment = async (orderId: number) => {
+    try {
+      await PaymentService.confirmCODPayment(orderId);
+      loadOrders();
+    } catch (err) {
+      alert('Xác nhận nhận tiền thất bại!');
+    }
+  };
+
   if (!isAuthenticated || user?.role !== 'DELIVERY') {
     return <div className="text-red-500">Please login to view orders</div>;
   }
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
+
+  if (orders.some(order => !order.payment || !order.payment.method)) {
+    return <div className="text-red-500">Dữ liệu đơn hàng thiếu thông tin thanh toán. Hãy kiểm tra lại backend!</div>;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -146,6 +169,14 @@ const ShipperOrders: React.FC = () => {
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                 >
                   Xác nhận đã giao
+                </button>
+              )}
+              {order.status === OrderStatus.DELIVERED && order.payment?.method === 'COD' && order.payment?.status === 'PENDING' && (
+                <button
+                  onClick={() => handleConfirmReceivedPayment(order.id)}
+                  className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+                >
+                  Xác nhận đã nhận tiền
                 </button>
               )}
             </div>

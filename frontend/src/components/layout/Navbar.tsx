@@ -34,6 +34,15 @@ import { formatPrice } from '../../utils/format';
 import { ProductService } from '../../services/product/productService';
 import { CategoryService } from '../../services/category/categoryService';
 import type { Category } from '../../types';
+import { NotificationService } from '../../services/notification/notificationService';
+
+interface Notification {
+  id: string;
+  message: string;
+  link?: string;
+  isRead: boolean;
+  createdAt: string;
+}
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -44,6 +53,8 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -55,7 +66,20 @@ const Navbar = () => {
       }
     };
     fetchCategories();
-  }, []);
+
+    const fetchNotifications = async () => {
+      if (isAuthenticated) {
+        try {
+          const notifications = await NotificationService.getNotifications();
+          setNotifications(notifications);
+          setUnreadNotificationCount(notifications.filter((n: { isRead: any; }) => !n.isRead).length);
+        } catch (error) {
+          console.error("Failed to fetch notifications", error);
+        }
+      }
+    };
+    fetchNotifications();
+  }, [isAuthenticated]);
 
   const menuItems = [
     { key: 'home', label: 'Trang chủ', path: '/' },
@@ -183,6 +207,42 @@ const Navbar = () => {
     </div>
   );
 
+  const notificationContent = (
+    <div className="w-80 max-h-96 overflow-y-auto">
+      {notifications.length === 0 ? (
+        <div className="p-4 text-center text-gray-500">
+          Không có thông báo nào
+        </div>
+      ) : (
+        <div className="divide-y">
+          {notifications.map((item) => (
+            <div 
+              key={item.id} 
+              className={`p-4 hover:bg-gray-100 cursor-pointer ${!item.isRead ? 'font-semibold' : ''}`}
+              onClick={() => item.link && navigate(item.link)}
+            >
+              <div className="text-sm">{item.message}</div>
+              <div className="text-xs text-gray-400 mt-1">
+                {new Date(item.createdAt).toLocaleString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {notifications.length > 0 && (
+        <div className="p-4 border-t">
+          <Button
+            type="primary"
+            block
+            onClick={() => navigate('/notifications')}
+          >
+            Xem tất cả thông báo
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="bg-white sticky top-0 z-50">
       {/* Top bar */}
@@ -277,9 +337,9 @@ const Navbar = () => {
                 <span className="hidden md:inline ml-2">Theo dõi đơn hàng</span>
               </Link>
 
-              <Popover content={cartContent} trigger="hover" placement="bottomRight">
+              <Popover content={notificationContent} trigger="hover" placement="bottomRight">
                 <Link to="/notifications" className="hidden md:flex items-center text-gray-600 hover:text-blue-500">
-                  <Badge dot>
+                  <Badge dot={unreadNotificationCount > 0}>
                     <BellOutlined className="text-sm" />
                   </Badge>
                   <span className="hidden md:inline ml-2">Thông báo của tôi</span>

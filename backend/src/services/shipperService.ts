@@ -139,7 +139,13 @@ export const getShipperOrders = async (shipperId: number, status?: OrderStatus) 
           product: true
         }
       },
-      user: true
+      user: true,
+      payment: {
+        select: {
+          method: true,
+          status: true
+        }
+      }
     },
     orderBy: {
       createdAt: 'desc'

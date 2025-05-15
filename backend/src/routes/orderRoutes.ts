@@ -54,6 +54,39 @@ router.patch('/:id/payment', authenticate, async (req: Request, res: Response) =
   }
 });
 
+// Xác nhận COD đã giao hàng (chỉ cho SHIPPER)
+router.post('/:id/confirm-cod', authenticate, async (req: Request, res: Response) => {
+  try {
+    if (req.user!.role !== 'DELIVERY') {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+    const orderId = Number(req.params.id);
+    // Lấy order và payment
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { payment: true }
+    });
+    if (!order || !order.payment) {
+      return res.status(404).json({ error: 'Order or payment not found' });
+    }
+    if (order.payment.method !== 'COD' || order.status !== 'DELIVERED') {
+      return res.status(400).json({ error: 'Order is not eligible for COD confirmation' });
+    }
+    // Cập nhật trạng thái thanh toán
+    const payment = await prisma.payment.update({
+      where: { orderId },
+      data: {
+        status: 'COMPLETED',
+        paymentDate: new Date()
+      }
+    });
+    res.json(payment);
+  } catch (error) {
+    console.error('Error confirming COD payment:', error);
+    res.status(500).json({ error: 'Failed to confirm COD payment' });
+  }
+});
+
 // Hủy đơn hàng
 router.patch('/:id/cancel', authenticate, async (req: Request, res: Response) => {
   try {

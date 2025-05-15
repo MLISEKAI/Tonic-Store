@@ -368,7 +368,7 @@ const OrderList: React.FC = () => {
           </span>
           {status === 'PENDING' && 
           record.status !== 'CANCELLED' &&
-          (record.payment?.method === 'COD' || record.payment?.method === 'BANK_TRANSFER') && (
+          record.payment?.method === 'BANK_TRANSFER' && (
             <Button 
               type="primary"
               size="small"
@@ -377,7 +377,7 @@ const OrderList: React.FC = () => {
                 setConfirmModalVisible(true);
               }}
             >
-              {record.payment?.method === 'BANK_TRANSFER' ? 'Xác nhận chuyển khoản' : 'Xác nhận thanh toán'}
+              Xác nhận chuyển khoản
             </Button>
           )}
         </div>
@@ -410,7 +410,7 @@ const OrderList: React.FC = () => {
           >
             Chi tiết
           </Button>
-          {record.status === 'CONFIRMED' && (
+          {(record.status === 'CONFIRMED' || (record.status === 'PENDING' && record.payment?.method === 'COD')) && (
             <Button
               type="primary"
               onClick={() => handleAssignShipper(record.id)}

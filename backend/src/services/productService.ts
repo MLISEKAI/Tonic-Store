@@ -348,6 +348,15 @@ export const getFlashSaleProducts = async () => {
         status: products[0].status
       });
     }
+
+    // Create notification for flash sale
+    await prisma.notification.create({
+      data: {
+        userId: 1, // Replace with actual user ID or logic to determine user
+        message: `Flash Sale đang diễn ra! Hãy nhanh tay mua sắm.`,
+        isRead: false,
+      },
+    });
     
     return products;
   } catch (error) {

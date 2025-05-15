@@ -73,6 +73,10 @@ export const verifyPaymentController = async (req: Request, res: Response) => {
 
         return res.redirect(`${process.env.FRONTEND_URL}/payment/success?orderId=${orderId}`);
       }
+    } else if (method === PaymentMethod.COD) {
+      // Đối với COD, trạng thái thanh toán vẫn đang chờ xử lý cho đến khi Shipper xác nhận nhận khoản thanh toán
+      // Không hiển thị nút xác nhận thanh toán cho COD
+      return res.redirect(`${process.env.FRONTEND_URL}/payment/pending?orderId=${orderId}`);
     }
 
     return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?orderId=${orderId}`);
