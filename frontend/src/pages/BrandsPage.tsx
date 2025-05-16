@@ -15,7 +15,7 @@ interface Brand {
   isFeatured: boolean;
 }
 
-// Temporary mock data - will be replaced with API call
+// Dữ liệu giả tạm thời - sẽ được thay thế bằng cuộc gọi API
 const brands: Brand[] = [
   {
     id: 1,

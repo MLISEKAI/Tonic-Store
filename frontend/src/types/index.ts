@@ -181,3 +181,11 @@ export interface PaymentResponse {
   url: string;
   transactionId: string;
 }
+
+export interface FlashSale {
+  id: number;
+  product: Product;
+  discount: number;
+  startTime: string;
+  endTime: string;
+}

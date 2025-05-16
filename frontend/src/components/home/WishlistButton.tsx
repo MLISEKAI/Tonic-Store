@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, message } from 'antd';
+import { Button, notification } from 'antd';
 import { HeartOutlined, HeartFilled } from '@ant-design/icons';
 import { useWishlist } from '../../hooks/useWishlist';
 
@@ -15,9 +15,19 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({ productId, className, s
   const handleToggleWishlist = async () => {
     try {
       await toggleWishlist();
-      message.success(isInWishlist ? 'Removed from wishlist' : 'Added to wishlist');
+      notification.success({
+        message: 'Thành công',
+        description: isInWishlist ? 'Đã xóa khỏi danh sách yêu thích' : 'Đã thêm vào danh sách yêu thích',
+        placement: 'topRight',
+        duration: 2,
+      });
     } catch (error) {
-      message.error('Failed to update wishlist');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể cập nhật danh sách yêu thích',
+        placement: 'topRight',
+        duration: 2,
+      });
     }
   };
 
@@ -34,7 +44,7 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({ productId, className, s
       loading={loading}
       className={className}
     >
-      {showText && (isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist')}
+      {showText && (isInWishlist ? 'Xóa yêu thích' : 'Yêu thích')}
     </Button>
   );
 };

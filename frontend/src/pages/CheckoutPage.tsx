@@ -8,7 +8,7 @@ import { PaymentService } from '../services/order/paymentService';
 import { formatPrice } from '../utils/format';
 import VNPayPayment from '../components/payment/VNPayPayment';
 import { Order, PaymentMethod, PaymentStatus } from '../types';
-import { message, Form, Input, Select, Button, Radio, Spin, Checkbox } from 'antd';
+import { message, Form, Input, Select, Button, Radio, Spin, Checkbox, Modal } from 'antd';
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,36 +20,47 @@ const CheckoutPage: React.FC = () => {
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [shippingAddresses, setShippingAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<any | null>(null);
+  const [isAddressListVisible, setIsAddressListVisible] = useState(false);
+  const [editIsDefault, setEditIsDefault] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+
+  const fetchAddresses = async () => {
+    try {
+      const addresses = await ShippingAddressService.getShippingAddresses();
+      setShippingAddresses(addresses);
+      const defaultAddress = addresses.find((addr: any) => addr.isDefault);
+      if (defaultAddress) {
+        setSelectedAddress(defaultAddress.id);
+        form.setFieldsValue({
+          name: defaultAddress.name,
+          phone: defaultAddress.phone,
+          address: defaultAddress.address
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching addresses:', error);
+      if (error instanceof Error && error.message.includes('401')) {
+        navigate('/login');
+      }
+    }
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-
-    const fetchAddresses = async () => {
-      try {
-        const addresses = await ShippingAddressService.getShippingAddresses();
-        setShippingAddresses(addresses);
-        const defaultAddress = addresses.find((addr: any) => addr.isDefault);
-        if (defaultAddress) {
-          setSelectedAddress(defaultAddress.id);
-          form.setFieldsValue({
-            name: defaultAddress.name,
-            phone: defaultAddress.phone,
-            address: defaultAddress.address
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching addresses:', error);
-        if (error instanceof Error && error.message.includes('401')) {
-          navigate('/login');
-        }
-      }
-    };
-
     fetchAddresses();
   }, [isAuthenticated, navigate, form]);
+
+  const handleTimeout = () => {
+    setError('Phiên thanh toán đã hết hạn. Vui lòng thử lại.');
+    setPaymentUrl(null);
+  };
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
@@ -62,13 +73,6 @@ const CheckoutPage: React.FC = () => {
         return;
       }
   
-      // Validate form data
-      if (!values.name || !values.phone || !values.address) {
-        setError('Vui lòng điền đầy đủ Thông tin nhận hàng');
-        setLoading(false);
-        return;
-      }
-  
       // Validate cart
       if (!cart.items.length) {
         setError('Giỏ hàng trống');
@@ -76,18 +80,31 @@ const CheckoutPage: React.FC = () => {
         return;
       }
 
-      // Nếu người dùng chọn lưu địa chỉ
-      if (values.saveAddress) {
+      // Lấy thông tin địa chỉ từ địa chỉ mặc định nếu có
+      const defaultAddress = shippingAddresses.find((addr: any) => addr.isDefault);
+      const shippingInfo = defaultAddress ? {
+        name: defaultAddress.name,
+        phone: defaultAddress.phone,
+        address: defaultAddress.address,
+        id: defaultAddress.id
+      } : {
+        name: values.name,
+        phone: values.phone,
+        address: values.address
+      };
+
+      // Chỉ tạo địa chỉ mới khi không có địa chỉ mặc định và người dùng muốn lưu địa chỉ
+      if (values.saveAddress && !defaultAddress) {
         try {
-          await ShippingAddressService.createShippingAddress({
+          const newAddress = await ShippingAddressService.createShippingAddress({
             name: values.name,
             phone: values.phone,
             address: values.address,
-            isDefault: shippingAddresses.length === 0 // Nếu là địa chỉ đầu tiên thì set làm mặc định
+            isDefault: shippingAddresses.length === 0
           });
+          shippingInfo.id = newAddress.id;
         } catch (error) {
           console.error('Failed to save shipping address:', error);
-          // Không dừng quá trình checkout nếu lưu địa chỉ thất bại
         }
       }
   
@@ -102,13 +119,13 @@ const CheckoutPage: React.FC = () => {
           sum + parseFloat(item.product.price.toString().replace(',', '.')) * item.quantity, 
           0
         ),
-        shippingAddress: values.address,
-        shippingPhone: values.phone,
-        shippingName: values.name,
+        shippingAddress: shippingInfo.address,
+        shippingPhone: shippingInfo.phone,
+        shippingName: shippingInfo.name,
         note: values.note,
         paymentMethod: values.paymentMethod,
         userId: user.id,
-        shippingAddressId: selectedAddress
+        shippingAddressId: shippingInfo.id || selectedAddress
       };
   
       console.log('Creating order with data:', orderData);
@@ -143,10 +160,62 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
-  const handleTimeout = () => {
-    setError('Phiên thanh toán đã hết hạn. Vui lòng thử lại.');
-    setPaymentUrl(null);
+  const handleEditAddress = () => {
+    setIsAddressListVisible(true);
   };
+
+  const handleSaveAddress = async (values: any) => {
+    // Kiểm tra địa chỉ trùng lặp, loại trừ địa chỉ đang chỉnh sửa
+    const isDuplicate = shippingAddresses.some(
+      (addr) =>
+        addr.id !== editingAddress?.id && // Loại trừ địa chỉ đang chỉnh sửa
+        addr.name === values.name &&
+        addr.phone === values.phone &&
+        addr.address === values.address
+    );
+
+    if (isDuplicate) {
+      message.warning('Địa chỉ này đã tồn tại trong hệ thống');
+      return;
+    }
+  
+    try {
+      if (editingAddress) {
+        // Cập nhật địa chỉ hiện có
+        await ShippingAddressService.updateShippingAddress(editingAddress.id, {
+          name: values.name,
+          phone: values.phone,
+          address: values.address,
+          isDefault: editIsDefault,
+        });
+        message.success('Cập nhật địa chỉ thành công');
+      } else {
+        // Tạo địa chỉ mới
+        await ShippingAddressService.createShippingAddress({
+          name: values.name,
+          phone: values.phone,
+          address: values.address,
+          isDefault: editIsDefault,
+        });
+        message.success('Thêm địa chỉ mới thành công');
+      }
+  
+      // Refresh danh sách địa chỉ sau khi cập nhật
+      await fetchAddresses();
+  
+    } catch (error) {
+      console.error('Lỗi khi lưu địa chỉ:', error);
+      message.error('Đã xảy ra lỗi khi lưu địa chỉ');
+    } finally {
+      setIsModalVisible(false);
+      setEditName('');
+      setEditPhone('');
+      setEditAddress('');
+      setEditingAddress(null);
+      setEditIsDefault(false);
+    }
+  };
+  
 
   if (paymentUrl) {
     return <VNPayPayment paymentUrl={paymentUrl} onTimeout={handleTimeout} />;
@@ -172,76 +241,136 @@ const CheckoutPage: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <h2 className="text-xl font-bold mb-4">Thông tin nhận hàng</h2>
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleSubmit}
-            initialValues={{
-              paymentMethod: PaymentMethod.VN_PAY
+          <h2 className="text-xl font-bold mb-4">Địa chỉ nhận hàng</h2>
+
+          {shippingAddresses.filter(addr => addr.isDefault).map(defaultAddress => (
+            <div
+              className="flex justify-between items-start p-4 bg-white rounded-lg shadow-md border border-gray-200 mb-4"
+              key={defaultAddress.id}
+            >
+              <div className="space-y-1">
+                <p className="font-semibold">{defaultAddress.name}</p>
+                <p className="text-gray-600">{defaultAddress.phone}</p>
+                <p className="text-gray-600">{defaultAddress.address}</p>
+              </div>
+              <Button type="link" onClick={handleEditAddress} className="text-blue-600">
+                Chỉnh sửa
+              </Button>
+            </div>
+          ))}
+
+          {/* Địa chỉ của tôi */}
+          <Modal
+            title="Địa chỉ của tôi"
+            open={isAddressListVisible}
+            onCancel={() => {
+              setIsAddressListVisible(false);
+              setIsModalVisible(false);
             }}
+            footer={null}
           >
-            {shippingAddresses.length > 0 && (
-              <Form.Item label="Chọn địa chỉ giao hàng">
-                <Select
-                  value={selectedAddress}
-                  onChange={(value) => {
-                    setSelectedAddress(value);
-                    const address = shippingAddresses.find(addr => addr.id === value);
-                    if (address) {
-                      form.setFieldsValue({
-                        name: address.name,
-                        phone: address.phone,
-                        address: address.address
-                      });
-                    }
+            {shippingAddresses.map((address) => (
+              <div
+                key={address.id}
+                className="flex justify-between items-start p-4 bg-white rounded-lg shadow-md border border-gray-200 mb-4"
+              >
+                <div className="space-y-1">
+                  <p className="font-semibold">{address.name}</p>
+                  <p className="text-gray-600">{address.phone}</p>
+                  <p className="text-gray-600">{address.address}</p>
+                </div>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    setEditingAddress(address);
+                    setEditName(address.name);
+                    setEditPhone(address.phone);
+                    setEditAddress(address.address);
+                    setEditIsDefault(address.isDefault);
+                    setIsAddressListVisible(false);
+                    setIsModalVisible(true);
                   }}
                 >
-                  {shippingAddresses.map((address) => (
-                    <Select.Option key={address.id} value={address.id}>
-                      {address.name} - {address.address} {address.isDefault ? '(Mặc định)' : ''}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            )}
+                  Chỉnh sửa
+                </Button>
+              </div>
+            ))}
 
-            <Form.Item
-              name="name"
-              label="Họ tên"
-              rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
+            <Button
+              type="primary"
+              onClick={() => {
+                setEditingAddress(null);
+                setEditName('');
+                setEditPhone('');
+                setEditAddress('');
+                setIsAddressListVisible(false);
+                setIsModalVisible(true);
+              }}
+              block
             >
-              <Input />
-            </Form.Item>
+              Thêm địa chỉ mới
+            </Button>
+          </Modal>
 
-            <Form.Item
-              name="phone"
-              label="Số điện thoại"
-              rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+          {/* Sửa địa chỉ */}
+          <Modal
+            title="Sửa địa chỉ"
+            open={isModalVisible}
+            onCancel={() => {
+              setIsModalVisible(false);
+              setEditName('');
+              setEditPhone('');
+              setEditAddress('');
+            }}
+            footer={null}
+          >
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveAddress({
+                  name: editName,
+                  phone: editPhone,
+                  address: editAddress,
+                });
+              }}
             >
-              <Input />
-            </Form.Item>
+              <div className="mb-4">
+                <label className="block font-medium mb-1">Họ tên</label>
+                <Input value={editName} onChange={(e) => setEditName(e.target.value)} required />
+              </div>
 
-            <Form.Item
-              name="address"
-              label="Địa chỉ"
-              rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
-            >
-              <Input.TextArea />
-            </Form.Item>
+              <div className="mb-4">
+                <label className="block font-medium mb-1">Số điện thoại</label>
+                <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} required />
+              </div>
 
+              <div className="mb-4">
+                <label className="block font-medium mb-1">Địa chỉ</label>
+                <Input.TextArea value={editAddress} onChange={(e) => setEditAddress(e.target.value)} required />
+              </div>
+
+              <div className="mb-4">
+                <Checkbox checked={editIsDefault} onChange={(e) => setEditIsDefault(e.target.checked)}>
+                  Đặt làm địa chỉ mặc định
+                </Checkbox>
+              </div>
+
+              <Button type="primary" htmlType="submit">
+                Lưu
+              </Button>
+            </form>
+          </Modal>
+
+          <Form
+            form={form}
+            onFinish={handleSubmit}
+            layout="vertical"
+          >
             <Form.Item
               name="note"
               label="Ghi chú"
             >
               <Input.TextArea />
-            </Form.Item>
-
-            <Form.Item
-              name="saveAddress"
-              valuePropName="checked"
-            >
-              <Checkbox>Lưu địa chỉ này cho lần sau</Checkbox>
             </Form.Item>
 
             <Form.Item

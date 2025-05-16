@@ -80,8 +80,7 @@ const HomePage = () => {
   ];
 
   return (
-    <div>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 my-2 sm:my-4 lg:my-6">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-2 sm:mt-4 lg:mt-6">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar */}
           <aside className="hidden lg:block lg:w-1/5">
@@ -234,7 +233,6 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-    </div>
   );
 };
 

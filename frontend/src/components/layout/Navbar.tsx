@@ -86,7 +86,6 @@ const Navbar = () => {
     { key: 'products', label: 'Sản phẩm', path: '/products' },
     { key: 'flash-sale', label: 'Khuyến mãi', path: '/flash-sale' },
     { key: 'new-arrivals', label: 'Hàng mới về', path: '/new-arrivals' },
-    { key: 'best-sellers', label: 'Bán chạy', path: '/best-sellers' },
     { key: 'brands', label: 'Thương hiệu', path: '/brands' },
     { key: 'blog', label: 'Tonic Store Blog', path: '/blog' },
     { key: 'contact', label: 'Liên hệ', path: '/contact' },
@@ -320,12 +319,13 @@ const Navbar = () => {
               {/* Suggestions row */}
               <div className="flex flex-wrap items-center gap-3 mt-2">
                 {categories.slice(0, 6).map((cat) => (
-                  <span
+                  <Link
                     key={cat.id}
+                    to={`/category/${cat.id}`}
                     className="text-xs text-gray-500 cursor-pointer hover:text-blue-600 transition-colors"
                   >
                     {cat.name}
-                  </span>
+                  </Link>
                 ))}
               </div>
             </div>

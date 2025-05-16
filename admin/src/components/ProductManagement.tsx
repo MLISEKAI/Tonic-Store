@@ -11,7 +11,7 @@ import {
   Space,
   Card,
   Typography,
-  message,
+  notification,
 } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { productService, Product, CreateProductData, UpdateProductData } from '../services/productService';
@@ -135,11 +135,20 @@ const ProductManagement: React.FC = () => {
       onOk: async () => {
         try {
           await productService.deleteProduct(id);
-          message.success('Product deleted successfully');
+          notification.success({
+            message: 'Thành công',
+            description: 'Đã xóa sản phẩm thành công',
+            placement: 'topRight',
+            duration: 2,
+          });
           fetchProducts();
         } catch (error) {
-          console.error('Error deleting product:', error);
-          message.error(error instanceof Error ? error.message : 'Failed to delete product');
+          notification.error({
+            message: 'Lỗi',
+            description: error instanceof Error ? error.message : 'Không thể xóa sản phẩm',
+            placement: 'topRight',
+            duration: 2,
+          });
         }
       },
     });

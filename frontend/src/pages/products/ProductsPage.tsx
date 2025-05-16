@@ -2,11 +2,11 @@ import { Button, Input, Select, notification, Spin } from 'antd';
 import { SearchOutlined, FilterOutlined, ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useCart } from '../contexts/CartContext';
-import { ProductService } from '../services/product/productService';
-import { Product } from '../types';
-import ProductCard from '../components/product/ProductCard';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
+import { ProductService } from '../../services/product/productService';
+import { Product } from '../../types';
+import ProductCard from '../../components/product/ProductCard';
 
 const ProductsPage = () => {
   const [searchParams] = useSearchParams();

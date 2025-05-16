@@ -163,7 +163,7 @@ const Sidebar: React.FC = () => {
   return (
     <div className="fixed w-[240px]">
       <div
-        className="rounded-lg max-h-[calc(100vh-200px)] overflow-y-auto bg-white [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
+        className="rounded-lg max-h-[calc(100vh-190px)] overflow-y-auto bg-white [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
         "
       >
         <div className='font-semibold px-6 py-2'>

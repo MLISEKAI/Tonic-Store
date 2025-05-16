@@ -62,9 +62,9 @@ const ShipperOrders: React.FC = () => {
   const handleStatusChange = async (orderId: number, newStatus: OrderStatus) => {
     try {
       await ShipperService.updateDeliveryStatus(orderId.toString(), newStatus);
-      loadOrders(); // Reload orders after status update
+      loadOrders();
     } catch (err) {
-      console.error('Failed to update order status:', err);
+      console.error('Không cập nhật trạng thái đặt hàng:', err);
     }
   };
 

@@ -61,10 +61,14 @@ export const updateShippingAddress = async (id: number, userId: number, data: {
   address?: string;
   isDefault?: boolean;
 }) => {
-  // If this is set as default, unset all other defaults
+  // Nếu điều này được đặt làm mặc định, hãy hủy tất cả các mặc định khác ngoại trừ địa chỉ này
   if (data.isDefault) {
     await prisma.shippingAddress.updateMany({
-      where: { userId, isDefault: true },
+      where: { 
+        userId, 
+        isDefault: true,
+        id: { not: id }
+      },
       data: { isDefault: false }
     });
   }

@@ -1,21 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Button, notification, Spin, Image, Rate, InputNumber, Tabs, Tag, Space, Divider } from 'antd';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Card, Button, notification, Spin, Image, Rate, InputNumber, Tabs, Tag, Space, Divider, Breadcrumb } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined, EyeOutlined, StarOutlined, FireOutlined, GiftOutlined } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { Product, ProductStatus } from '../../types';
-import ProductReviews from './ProductReviews';
+import ProductReviews from '../../components/product/ProductReviews';
 import { ProductService } from '../../services/product/productService';
-import WishlistButton from '../home/WishlistButton';
+import WishlistButton from '../../components/home/WishlistButton';
 
 const { TabPane } = Tabs;
 
-interface ProductDetailProps {
-  productId?: string;
-}
-
-const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
+const ProductDetailPage = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,10 +24,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        if (productId) {
-          const data = await ProductService.getProduct(parseInt(productId));
+        if (id) {
+          const data = await ProductService.getProductById(parseInt(id));
           setProduct(data);
-          await ProductService.incrementProductView(parseInt(productId));
+          await ProductService.incrementProductView(parseInt(id));
         }
       } catch (error) {
         notification.error({
@@ -45,7 +42,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
     };
 
     fetchProduct();
-  }, [productId]);
+  }, [id]);
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -88,63 +85,69 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="container mx-auto px-4 py-6">
+      {/* Breadcrumb */}
+      <Breadcrumb className="mb-6 text-sm text-gray-600">
+        <Breadcrumb.Item>
+          <Link to="/" className="hover:text-blue-500">Trang chủ</Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>
+          <Link to="/products" className="hover:text-blue-500">Sản phẩm</Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>{product.name}</Breadcrumb.Item>
+      </Breadcrumb>
+  
+      {/* Main Content */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        {/* Left: Image */}
         <div>
           <Image
             src={product.imageUrl || 'https://via.placeholder.com/400'}
             alt={product.name}
-            className="rounded-lg"
+            className="rounded-md"
           />
         </div>
-
-        <div>
-          <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
-          
-          <div className="flex items-center mb-4">
+  
+        {/* Right: Info */}
+        <div className="space-y-4">
+          <h1 className="text-3xl font-semibold">{product.name}</h1>
+  
+          <div className="flex items-center space-x-2">
             <Rate disabled defaultValue={product.rating || 0} />
-            <span className="ml-2 text-gray-500">
-              ({product.reviewCount} đánh giá)
-            </span>
+            <span className="text-gray-500 text-sm">({product.reviewCount} đánh giá)</span>
           </div>
-
-          <div className="flex items-center mb-4">
+  
+          <div className="flex items-center space-x-4">
             <span className="text-2xl font-bold text-red-500">
               {new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
-                currency: 'VND'
+                currency: 'VND',
               }).format(product.price)}
             </span>
             {product.promotionalPrice && (
-              <span className="ml-2 text-gray-500 line-through">
+              <span className="text-base text-gray-400 line-through">
                 {new Intl.NumberFormat('vi-VN', {
                   style: 'currency',
-                  currency: 'VND'
+                  currency: 'VND',
                 }).format(product.promotionalPrice)}
               </span>
             )}
           </div>
-
-          <div className="mb-4">
-            <p className="text-gray-600">{product.description}</p>
+  
+          <p className="text-gray-600 leading-relaxed">{product.description}</p>
+  
+          <div className="flex items-center gap-4">
+            <span className="font-medium">Số lượng:</span>
+            <InputNumber
+              min={1}
+              max={product.stock}
+              value={quantity}
+              onChange={(value) => setQuantity(value || 1)}
+            />
+            <span className="text-gray-500 text-sm">{product.stock} sản phẩm có sẵn</span>
           </div>
-
-          <div className="mb-4">
-            <div className="flex items-center space-x-4">
-              <span className="font-medium">Số lượng:</span>
-              <InputNumber
-                min={1}
-                max={product.stock}
-                value={quantity}
-                onChange={(value) => setQuantity(value || 1)}
-              />
-              <span className="text-gray-500">
-                {product.stock} sản phẩm có sẵn
-              </span>
-            </div>
-          </div>
-
-          <div className="flex space-x-4 mb-8">
+  
+          <div className="flex gap-4">
             <Button
               type="primary"
               size="large"
@@ -154,57 +157,53 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
             >
               {product.status === ProductStatus.OUT_OF_STOCK ? 'Hết hàng' : 'Thêm vào giỏ hàng'}
             </Button>
+  
             <WishlistButton
               productId={product.id}
               showText={true}
-              className="!h-10 !px-4 flex items-center border border-gray-300 hover:border-pink-500 hover:text-pink-500 transition-all text-base"
+              className="!h-10 !px-4"
             />
           </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center">
-              <EyeOutlined className="text-gray-500 mr-2" />
-              <span className="text-gray-500">
-                {product.viewCount} lượt xem
-              </span>
+  
+          <div className="space-y-1 text-gray-600 text-sm">
+            <div className="flex items-center gap-2">
+              <EyeOutlined />
+              <span>{product.viewCount} Lượt xem</span>
             </div>
-            <div className="flex items-center">
-              <FireOutlined className="text-gray-500 mr-2" />
-              <span className="text-gray-500">
-                {product.soldCount} đã bán
-              </span>
+            <div className="flex items-center gap-2">
+              <FireOutlined />
+              <span>{product.soldCount} Đã bán</span>
             </div>
             {product.isFeatured && (
-              <div className="flex items-center">
-                <StarOutlined className="text-yellow-500 mr-2" />
-                <span className="text-yellow-500">Sản phẩm nổi bật</span>
+              <div className="flex items-center gap-2 text-yellow-500">
+                <StarOutlined />
+                <span>Sản phẩm nổi bật</span>
               </div>
             )}
             {product.isNew && (
-              <div className="flex items-center">
-                <GiftOutlined className="text-blue-500 mr-2" />
-                <span className="text-blue-500">Sản phẩm mới</span>
+              <div className="flex items-center gap-2 text-blue-500">
+                <GiftOutlined />
+                <span>Sản phẩm mới</span>
               </div>
             )}
             {product.isBestSeller && (
-              <div className="flex items-center">
-                <FireOutlined className="text-red-500 mr-2" />
-                <span className="text-red-500">Bán chạy nhất</span>
+              <div className="flex items-center gap-2 text-red-500">
+                <FireOutlined />
+                <span>Bán chạy nhất</span>
               </div>
             )}
           </div>
         </div>
       </div>
-
-      <div className="mt-8">
+  
+      {/* Tabs */}
+      <div className="mt-10 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <Tabs defaultActiveKey="1">
           <TabPane tab="Mô tả sản phẩm" key="1">
-            <div className="prose max-w-none">
-              {product.description}
-            </div>
+            <div className="prose max-w-none text-gray-700">{product.description}</div>
           </TabPane>
           <TabPane tab="Thông số kỹ thuật" key="2">
-            <div className="space-y-4">
+            <div className="space-y-4 text-gray-700">
               {product.sku && (
                 <div className="flex">
                   <span className="w-1/3 font-medium">Mã sản phẩm:</span>
@@ -258,4 +257,4 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId }) => {
   );
 };
 
-export default ProductDetail; 
+export default ProductDetailPage; 
