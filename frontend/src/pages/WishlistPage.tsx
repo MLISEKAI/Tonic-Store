@@ -80,7 +80,7 @@ const WishlistPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">My Wishlist</h1>
+      <h1 className="text-2xl font-bold mb-6">Danh sách yêu thích</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {wishlist.map((item) => (
           <Card
@@ -101,7 +101,7 @@ const WishlistPage: React.FC = () => {
                 icon={<ShoppingCartOutlined />}
                 onClick={() => handleAddToCart(item.product)}
               >
-                Add to Cart
+                Thêm vào giỏ hàng
               </Button>,
               <Button
                 key="remove"
@@ -109,7 +109,7 @@ const WishlistPage: React.FC = () => {
                 icon={<HeartOutlined />}
                 onClick={() => handleRemoveFromWishlist(item.product.id)}
               >
-                Remove
+                Xóa khỏi danh sách yêu thích
               </Button>
             ]}
           >

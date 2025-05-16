@@ -156,27 +156,27 @@ const ShippingAddressesPage: React.FC = () => {
       ),
     },
     {
-      title: 'Name',
+      title: 'Tên',
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: 'Phone',
+      title: 'Số điện thoại',
       dataIndex: 'phone',
       key: 'phone',
     },
     {
-      title: 'Address',
+      title: 'Địa chỉ',
       dataIndex: 'address',
       key: 'address',
     },
     {
-      title: 'Default',
+      title: 'Mặc định',
       dataIndex: 'isDefault',
       key: 'isDefault',
       render: (isDefault: boolean) => isDefault && (
         <Tag icon={<HomeOutlined />} color="success">
-          Default
+          Mặc định
         </Tag>
       ),
     },
@@ -200,7 +200,7 @@ const ShippingAddressesPage: React.FC = () => {
             />
           </Tooltip>
           {!record.isDefault && (
-            <Tooltip title="Set as Default">
+            <Tooltip title="Đặt làm mặc định">
               <Button
                 type="default"
                 icon={<StarOutlined />}
@@ -243,7 +243,7 @@ const ShippingAddressesPage: React.FC = () => {
       />
 
       <Modal
-        title={editingAddress ? 'Edit Address' : 'Add New Address'}
+        title={editingAddress ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới'}
         open={isModalVisible}
         onCancel={handleCancel}
         onOk={editingAddress ? handleUpdate : handleCreate}
@@ -256,7 +256,7 @@ const ShippingAddressesPage: React.FC = () => {
           <Form.Item
             name="name"
             label="Name"
-            rules={[{ required: true, message: 'Please input the name!' }]}
+            rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
           >
             <Input />
           </Form.Item>
@@ -264,7 +264,7 @@ const ShippingAddressesPage: React.FC = () => {
           <Form.Item
             name="phone"
             label="Phone"
-            rules={[{ required: true, message: 'Please input the phone number!' }]}
+            rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
           >
             <Input />
           </Form.Item>
@@ -272,7 +272,7 @@ const ShippingAddressesPage: React.FC = () => {
           <Form.Item
             name="address"
             label="Address"
-            rules={[{ required: true, message: 'Please input the address!' }]}
+            rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
           >
             <TextArea rows={4} />
           </Form.Item>
@@ -280,7 +280,7 @@ const ShippingAddressesPage: React.FC = () => {
           <Form.Item
             name="userId"
             label="User ID"
-            rules={[{ required: true, message: 'Please input the user ID!' }]}
+            rules={[{ required: true, message: 'Vui lòng nhập ID người dùng!' }]}
           >
             <Input type="number" />
           </Form.Item>
@@ -289,7 +289,7 @@ const ShippingAddressesPage: React.FC = () => {
             name="isDefault"
             valuePropName="checked"
           >
-            <Checkbox>Set as default address</Checkbox>
+            <Checkbox>Đặt là địa chỉ mặc định</Checkbox>
           </Form.Item>
         </Form>
       </Modal>

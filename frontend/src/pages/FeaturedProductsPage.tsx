@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Select, notification, Spin } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { notification } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { Product } from '../types';
-import ProductCard from '../components/product/ProductCard';
+import ProductListPage from '../components/product/ProductListPage';
 import { ProductService } from '../services/product/productService';
 
 const FeaturedProductsPage = () => {
@@ -43,6 +42,17 @@ const FeaturedProductsPage = () => {
   };
 
   const handleAddToCart = async (product: Product) => {
+    if (!isAuthenticated) {
+      notification.warning({
+        message: 'Thông báo',
+        description: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
+        placement: 'topRight',
+        duration: 2,
+      });
+      navigate('/login');
+      return;
+    }
+
     try {
       await addToCart(product, 1);
       notification.success({
@@ -82,56 +92,25 @@ const FeaturedProductsPage = () => {
     }
   });
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Spin size="large" />
-      </div>
-    );
-  }
+  const sortOptions = [
+    { value: 'featured', label: 'Nổi bật' },
+    { value: 'price-low', label: 'Giá: Thấp đến cao' },
+    { value: 'price-high', label: 'Giá: Cao đến thấp' },
+    { value: 'rating', label: 'Đánh giá cao' },
+  ];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold mb-4 md:mb-0">Sản phẩm nổi bật</h1>
-        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-          <Input
-            placeholder="Tìm kiếm sản phẩm..."
-            prefix={<SearchOutlined />}
-            className="w-full md:w-64"
-            onChange={(e) => handleSearch(e.target.value)}
-            value={searchText}
-          />
-          <Select
-            value={sortBy}
-            onChange={setSortBy}
-            className="w-full md:w-48"
-            options={[
-              { value: 'featured', label: 'Nổi bật' },
-              { value: 'price-low', label: 'Giá: Thấp đến cao' },
-              { value: 'price-high', label: 'Giá: Cao đến thấp' },
-              { value: 'rating', label: 'Đánh giá cao' },
-            ]}
-          />
-        </div>
-      </div>
-
-      {sortedProducts.length === 0 ? (
-        <div className="text-center text-gray-500 py-12">
-          Không tìm thấy sản phẩm nào
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {sortedProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={handleAddToCart}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    <ProductListPage
+      title="Sản phẩm nổi bật"
+      products={sortedProducts}
+      loading={loading}
+      onAddToCart={handleAddToCart}
+      onSearch={handleSearch}
+      onSort={setSortBy}
+      sortOptions={sortOptions}
+      searchText={searchText}
+      sortBy={sortBy}
+    />
   );
 };
 

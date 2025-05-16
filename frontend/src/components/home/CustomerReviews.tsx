@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Rate, Avatar, Spin, message } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
-import { Review } from '../../types';
-import { ProductService } from '../../services/product/productService';
+import { Review, Product } from '../../types';
 import { ReviewService } from '../../services/product/reviewService';
+import { ProductService } from '../../services/product/productService';
 
 const CustomerReviews = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -13,17 +13,17 @@ const CustomerReviews = () => {
   const fetchReviews = async () => {
     try {
       setError(null);
-      // Lấy tất cả sản phẩm
-      const products = await ProductService.getProducts();
+      // Lấy danh sách sản phẩm
+      const products = await ProductService.getProducts('');
       
-      // Lấy reviews của tất cả sản phẩm
-      const allReviewsPromises = products.map((product: { id: number; }) => 
+      // Lấy reviews của các sản phẩm
+      const allReviewsPromises = products.map((product: Product) => 
         ReviewService.getProductReviews(product.id)
       );
       
       const allReviewsArrays = await Promise.all(allReviewsPromises);
       
-      // Gộp tất cả reviews và sắp xếp theo thời gian mới nhất
+      // Gộp và sắp xếp reviews theo thời gian mới nhất
       const allReviews = allReviewsArrays
         .flat()
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
