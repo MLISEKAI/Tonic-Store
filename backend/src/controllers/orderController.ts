@@ -65,6 +65,14 @@ export const OrderController = {
               price: item.price,
             })),
           },
+          payment: {
+            create: {
+              method: paymentMethod,
+              status: "PENDING",
+              amount: Number(totalPrice),
+              currency: "VND"
+            }
+          },
         },
         include: {
           items: {
@@ -72,7 +80,18 @@ export const OrderController = {
               product: true,
             },
           },
+          payment: true,
         },
+      });
+
+      // Create initial delivery log
+      await prisma.deliveryLog.create({
+        data: {
+          orderId: order.id,
+          deliveryId: userId, // Initially set to user ID
+          status: OrderStatus.PENDING,
+          note: 'Order created'
+        }
       });
 
       // Nếu phương thức thanh toán là COD, không cần tạo URL thanh toán

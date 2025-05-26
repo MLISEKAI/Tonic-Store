@@ -1,25 +1,24 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+import { ENDPOINTS, handleResponse } from '../api';
 
 export const ShipperService = {
   // Lấy danh sách đơn hàng cần giao
   async getDeliveryOrders(page = 1, limit = 10) {
     const token = localStorage.getItem('token');
     const response = await fetch(
-      `${API_URL}/shippers/orders?page=${page}&limit=${limit}`,
+      `${ENDPOINTS.ORDER.DELIVERY_LIST}?page=${page}&limit=${limit}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }
     );
-    if (!response.ok) throw new Error('Failed to fetch delivery orders');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Cập nhật trạng thái giao hàng
-  async updateDeliveryStatus(orderId: string, status: string) {
+  async updateDeliveryStatus(orderId: number, status: string) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/shippers/orders/${orderId}/status`, {
+    const response = await fetch(`${ENDPOINTS.ORDER.DELIVERY_STATUS(orderId)}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -27,73 +26,65 @@ export const ShipperService = {
       },
       body: JSON.stringify({ status })
     });
-    if (!response.ok) throw new Error('Failed to update delivery status');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Lấy lịch sử giao hàng
   async getDeliveryHistory(page = 1, limit = 10) {
     const token = localStorage.getItem('token');
     const response = await fetch(
-      `${API_URL}/shippers/orders/logs?page=${page}&limit=${limit}`,
+      `${ENDPOINTS.ORDER.DELIVERY_HISTORY}?page=${page}&limit=${limit}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }
     );
-    if (!response.ok) throw new Error('Failed to fetch delivery history');
-    return response.json();
+    return handleResponse(response);
   },
 
-  // Get order delivery logs
+  // Lấy lịch sử giao hàng của một đơn hàng
   async getOrderDeliveryLogs(orderId: number) {
+    const token = localStorage.getItem('token');
     const response = await fetch(
-      `${API_URL}/shippers/orders/${orderId}/logs`,
+      `${ENDPOINTS.ORDER.DELIVERY_LOGS(orderId)}`,
       {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          'Authorization': `Bearer ${token}`
+        }
       }
     );
-    if (!response.ok) {
-      throw new Error('Failed to fetch delivery logs');
-    }
-    return response.json();
+    return handleResponse(response);
   },
 
-  // Get shipper rating for an order
+  // Lấy đánh giá shipper của một đơn hàng
   async getShipperRating(orderId: number) {
+    const token = localStorage.getItem('token');
     const response = await fetch(
-      `${API_URL}/shippers/orders/${orderId}/rating`,
+      `${ENDPOINTS.ORDER.DELIVERY_RATING(orderId)}`,
       {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          'Authorization': `Bearer ${token}`
+        }
       }
     );
-    if (!response.ok) {
-      throw new Error('Failed to fetch shipper rating');
-    }
-    return response.json();
+    return handleResponse(response);
   },
 
-  // Rate shipper
+  // Đánh giá shipper
   async rateShipper(orderId: number, rating: number, comment?: string) {
+    const token = localStorage.getItem('token');
     const response = await fetch(
-      `${API_URL}/shippers/orders/${orderId}/rating`,
+      `${ENDPOINTS.ORDER.DELIVERY_RATING(orderId)}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ rating, comment }),
+        body: JSON.stringify({ rating, comment })
       }
     );
-    if (!response.ok) {
-      throw new Error('Failed to rate shipper');
-    }
-    return response.json();
-  },
+    return handleResponse(response);
+  }
 }; 

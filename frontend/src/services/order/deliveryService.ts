@@ -1,22 +1,21 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+import { ENDPOINTS, handleResponse } from '../api';
 
 export const DeliveryService = {
   // Lấy thông tin giao hàng của đơn hàng
   async getOrderDelivery(orderId: string) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/orders/${orderId}/delivery`, {
+    const response = await fetch(ENDPOINTS.DELIVERY.INFO(orderId), {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) throw new Error('Failed to fetch delivery info');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Cập nhật trạng thái giao hàng
   async updateDeliveryStatus(orderId: string, status: string) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/orders/${orderId}/delivery/status`, {
+    const response = await fetch(ENDPOINTS.DELIVERY.UPDATE_STATUS(orderId), {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -24,19 +23,17 @@ export const DeliveryService = {
       },
       body: JSON.stringify({ status })
     });
-    if (!response.ok) throw new Error('Failed to update delivery status');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Lấy lịch sử giao hàng
   async getDeliveryHistory(orderId: string) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/orders/${orderId}/delivery/history`, {
+    const response = await fetch(ENDPOINTS.DELIVERY.HISTORY(orderId), {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) throw new Error('Failed to fetch delivery history');
-    return response.json();
+    return handleResponse(response);
   }
 }; 

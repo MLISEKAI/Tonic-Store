@@ -36,11 +36,11 @@ app.use(express.json());
 app.use(morgan('combined', { stream: { write: (message: string) => logger.info(message.trim()) } }));
 
 // Rate limiting
-const limiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 1000 // limit each IP to 1000 requests per windowMs
-});
-app.use(limiter);
+// const limiter = rateLimit({
+//   windowMs: 60 * 60 * 1000, // 1 hour
+//   max: 1000 // limit each IP to 1000 requests per windowMs
+// });
+// app.use(limiter);
 
 // Metrics middleware
 app.use((req: Request, res: Response, next: NextFunction) => {

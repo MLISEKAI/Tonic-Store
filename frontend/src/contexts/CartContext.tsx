@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { CartService } from '../services/cart/cartService';
+import { CartService } from '../services/carts/cartService';
 import { useCartState } from '../hooks/useCartState';
 
 interface Product {

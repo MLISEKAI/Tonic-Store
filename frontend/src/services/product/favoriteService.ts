@@ -1,25 +1,24 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+import { ENDPOINTS, handleResponse } from '../api';
 
 export const FavoriteService = {
   // Lấy danh sách sản phẩm yêu thích
   async getFavorites(page = 1, limit = 10) {
     const token = localStorage.getItem('token');
     const response = await fetch(
-      `${API_URL}/favorites?page=${page}&limit=${limit}`,
+      `${ENDPOINTS.FAVORITE.LIST}?page=${page}&limit=${limit}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }
     );
-    if (!response.ok) throw new Error('Failed to fetch favorites');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Thêm sản phẩm vào danh sách yêu thích
   async addToFavorites(productId: string) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/favorites`, {
+    const response = await fetch(ENDPOINTS.FAVORITE.ADD, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -27,20 +26,18 @@ export const FavoriteService = {
       },
       body: JSON.stringify({ productId })
     });
-    if (!response.ok) throw new Error('Failed to add to favorites');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Xóa sản phẩm khỏi danh sách yêu thích
   async removeFromFavorites(productId: string) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/favorites/${productId}`, {
+    const response = await fetch(ENDPOINTS.FAVORITE.REMOVE(productId), {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) throw new Error('Failed to remove from favorites');
-    return response.json();
+    return handleResponse(response);
   }
 }; 

@@ -1,4 +1,4 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+import { ENDPOINTS, handleResponse } from '../api';
 
 export const OrderService = {
   // Tạo đơn hàng mới
@@ -21,7 +21,7 @@ export const OrderService = {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}/orders`, {
+    const response = await fetch(ENDPOINTS.ORDER.CREATE, {
       method: 'POST',
       headers: { 
         'Authorization': `Bearer ${token.trim()}`,
@@ -46,8 +46,7 @@ export const OrderService = {
     }
 
     try {
-      // Sử dụng endpoint đúng từ backend
-      const response = await fetch(`${API_URL}/orders/user?page=${page}`, {
+      const response = await fetch(`${ENDPOINTS.ORDER.LIST}/user?page=${page}`, {
         method: 'GET',
         headers: { 
           'Authorization': `Bearer ${token.trim()}`,
@@ -82,7 +81,7 @@ export const OrderService = {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}/orders/${orderId}`, {
+    const response = await fetch(ENDPOINTS.ORDER.DETAIL(orderId), {
       headers: { 
         'Authorization': `Bearer ${token.trim()}`,
         'Accept': 'application/json'
@@ -103,7 +102,7 @@ export const OrderService = {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}/orders/${orderId}/cancel`, {
+    const response = await fetch(`${ENDPOINTS.ORDER.DETAIL(Number(orderId))}/cancel`, {
       method: 'PUT',
       headers: { 
         'Authorization': `Bearer ${token.trim()}`,
@@ -116,5 +115,13 @@ export const OrderService = {
       throw new Error(error.message || 'Failed to cancel order');
     }
     return response.json();
+  },
+
+  // Lấy cập nhật realtime cho đơn hàng
+  getOrderUpdates(orderId: number) {
+    const token = localStorage.getItem('token');
+    return new EventSource(
+      `${ENDPOINTS.ORDER.DETAIL(orderId)}/updates?token=${token}`
+    );
   }
 }; 

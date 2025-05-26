@@ -1,11 +1,9 @@
 import { FlashSale } from '../../types';
+import { ENDPOINTS, handleResponse } from '../api';
 
 export const FlashSaleService = {
   async getFlashSales(): Promise<FlashSale[]> {
-    const response = await fetch('/api/flash-sales');
-    if (!response.ok) {
-      throw new Error('Failed to fetch flash sales');
-    }
-    return response.json();
+    const response = await fetch(ENDPOINTS.PRODUCT.FLASH_SALE);
+    return handleResponse(response);
   }
 }; 

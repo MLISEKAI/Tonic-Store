@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Spin, message, notification } from 'antd';
 import { CategoryService } from '../services/category/categoryService';
 import { ProductService } from '../services/product/productService';
-import { CartService } from '../services/cart/cartService';
+import { CartService } from '../services/carts/cartService';
 import { useCart } from '../contexts/CartContext';
 import ProductCard from '../components/product/ProductCard';
 import { Product } from '../types';

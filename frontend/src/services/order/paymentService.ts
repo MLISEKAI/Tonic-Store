@@ -1,10 +1,10 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+import { ENDPOINTS, handleResponse } from '../api';
 
 export const PaymentService = {
   // Tạo URL thanh toán
   async createPaymentUrl(orderId: number) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/payment`, {
+    const response = await fetch(ENDPOINTS.PAYMENT.CREATE, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -12,12 +12,7 @@ export const PaymentService = {
       },
       body: JSON.stringify({ orderId })
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to create payment URL');
-    }
-
-    return response.json();
+    return handleResponse(response);
   },
 
   // Xác thực thanh toán
@@ -36,7 +31,7 @@ export const PaymentService = {
     vnp_SecureHash: string;
   }) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/payment/verify`, {
+    const response = await fetch(ENDPOINTS.PAYMENT.VERIFY, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -44,14 +39,13 @@ export const PaymentService = {
       },
       body: JSON.stringify(data)
     });
-    if (!response.ok) throw new Error('Failed to verify payment');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Cập nhật trạng thái thanh toán
   async updatePaymentStatus(orderId: string, status: string) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/orders/${orderId}/payment`, {
+    const response = await fetch(ENDPOINTS.PAYMENT.UPDATE_STATUS(orderId), {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -59,28 +53,18 @@ export const PaymentService = {
       },
       body: JSON.stringify({ status })
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to update payment status');
-    }
-
-    return response.json();
+    return handleResponse(response);
   },
 
   async confirmCODPayment(orderId: number) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/orders/${orderId}/confirm-cod`, {
+    const response = await fetch(ENDPOINTS.PAYMENT.CONFIRM_COD(orderId), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       }
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to confirm COD payment');
-    }
-
-    return response.json();
+    return handleResponse(response);
   }
 }; 

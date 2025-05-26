@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient, PaymentMethod, PaymentStatus } from '@prisma/client';
+import { PrismaClient, PaymentMethod, PaymentStatus, OrderStatus } from '@prisma/client';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
 
 const prisma = new PrismaClient();
@@ -55,6 +55,15 @@ export const verifyPaymentController = async (req: Request, res: Response) => {
       const isValid = verifyPayment(req.query as Record<string, string>);
       
       if (isValid) {
+        // Get order to check shipper
+        const order = await prisma.order.findUnique({
+          where: { id: Number(orderId) }
+        });
+
+        if (!order) {
+          throw new Error('Order not found');
+        }
+
         // Cập nhật trạng thái payment
         await prisma.payment.update({
           where: { orderId: Number(orderId) },
@@ -70,6 +79,18 @@ export const verifyPaymentController = async (req: Request, res: Response) => {
           where: { id: Number(orderId) },
           data: { status: 'CONFIRMED' }
         });
+
+        // Create delivery log for confirmed status
+        if (order.shipperId) {
+          await prisma.deliveryLog.create({
+            data: {
+              orderId: Number(orderId),
+              deliveryId: order.shipperId,
+              status: OrderStatus.CONFIRMED,
+              note: 'Payment verified, order confirmed'
+            }
+          });
+        }
 
         return res.redirect(`${process.env.FRONTEND_URL}/payment/success?orderId=${orderId}`);
       }

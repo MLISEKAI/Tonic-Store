@@ -96,6 +96,18 @@ export const updateOrderStatus = async (id: number, status: string) => {
     }
   }
 
+  // Create delivery log for status update
+  if (order.shipperId) {
+    await prisma.deliveryLog.create({
+      data: {
+        orderId: id,
+        deliveryId: order.shipperId,
+        status: status as OrderStatus,
+        note: `Order status updated to ${status}`
+      }
+    });
+  }
+
   // Create notification for order status update
   await prisma.notification.create({
     data: {
@@ -105,11 +117,30 @@ export const updateOrderStatus = async (id: number, status: string) => {
     },
   });
 
-  return prisma.order.update({
+  const updatedOrder = await prisma.order.update({
     where: { id },
     data: { status: status as OrderStatus },
     include: { items: { include: { product: true } }, payment: true },
   });
+
+  // Broadcast update to connected clients
+  const update = {
+    type: 'order_update',
+    orderId: id,
+    userId: order.userId,
+    status: status
+  };
+
+  // Get the clients Map from the orderRoutes
+  const { clients } = require('../routes/orderRoutes');
+  
+  // Send update to the specific user
+  const userClient = clients.get(order.userId);
+  if (userClient) {
+    userClient.write(`data: ${JSON.stringify(update)}\n\n`);
+  }
+
+  return updatedOrder;
 };
 
 export const cancelOrder = async (orderId: number, userId: number) => {

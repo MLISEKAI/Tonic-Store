@@ -171,4 +171,101 @@ export const getOrderDeliveryLogs = async (orderId: number) => {
       createdAt: 'desc'
     }
   });
+};
+
+// Lấy đánh giá shipper của một đơn hàng
+export const getDeliveryRating = async (orderId: number) => {
+  try {
+    console.log('Getting delivery rating for order:', orderId);
+    
+    if (!orderId || isNaN(orderId)) {
+      console.error('Invalid order ID:', orderId);
+      throw new Error('Invalid order ID');
+    }
+
+    // Kiểm tra đơn hàng có tồn tại không
+    const order = await prisma.order.findUnique({
+      where: { id: orderId }
+    });
+
+    if (!order) {
+      console.error('Order not found:', orderId);
+      throw new Error('Order not found');
+    }
+
+    console.log('Order status:', order.status);
+
+    // Kiểm tra đơn hàng đã được giao chưa
+    if (order.status !== 'DELIVERED') {
+      console.error('Order is not delivered yet:', orderId);
+      throw new Error('Order is not delivered yet');
+    }
+
+    // Tìm đánh giá
+    const rating = await prisma.deliveryRating.findUnique({
+      where: {
+        orderId: orderId
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    // Nếu không tìm thấy đánh giá, trả về null thay vì lỗi
+    if (!rating) {
+      console.log('No rating found for order:', orderId);
+      return null;
+    }
+
+    console.log('Found rating:', rating);
+    return rating;
+  } catch (error) {
+    console.error('Error in getDeliveryRating:', error);
+    throw error;
+  }
+};
+
+// Tạo đánh giá shipper
+export const createDeliveryRating = async (orderId: number, userId: number, rating: number, comment?: string) => {
+  // Kiểm tra xem đơn hàng đã được giao thành công chưa
+  const order = await prisma.order.findUnique({
+    where: { id: orderId }
+  });
+
+  if (!order || order.status !== 'DELIVERED') {
+    throw new Error('Order is not delivered yet');
+  }
+
+  // Kiểm tra xem người dùng đã đánh giá chưa
+  const existingRating = await prisma.deliveryRating.findUnique({
+    where: { orderId }
+  });
+
+  if (existingRating) {
+    throw new Error('Order has already been rated');
+  }
+
+  return prisma.deliveryRating.create({
+    data: {
+      orderId,
+      userId,
+      rating,
+      comment
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true
+        }
+      }
+    }
+  });
 }; 
