@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import * as shipperService from '../services/shipperService';
 import { OrderStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export const ShipperController = {
   // Lấy danh sách shipper (admin only)
@@ -127,6 +130,82 @@ export const ShipperController = {
     } catch (error) {
       console.error('Error getting delivery logs:', error);
       res.status(500).json({ error: 'Failed to get delivery logs' });
+    }
+  },
+
+  // Lấy đánh giá shipper của một đơn hàng
+  async getDeliveryRating(req: Request, res: Response) {
+    try {
+      const { orderId } = req.params;
+      console.log('Getting delivery rating for order:', orderId);
+      
+      if (!orderId) {
+        console.error('Order ID is missing');
+        return res.status(400).json({ error: 'Order ID is required' });
+      }
+
+      const orderIdNumber = Number(orderId);
+      
+      if (isNaN(orderIdNumber)) {
+        console.error('Invalid order ID:', orderId);
+        return res.status(400).json({ error: 'Invalid order ID' });
+      }
+
+      const rating = await shipperService.getDeliveryRating(orderIdNumber);
+      console.log('Rating result:', rating);
+      
+      // Nếu không có đánh giá, trả về null thay vì lỗi
+      if (rating === null) {
+        return res.json(null);
+      }
+      
+      res.json(rating);
+    } catch (error: any) {
+      console.error('Error getting delivery rating:', error);
+      if (error.message === 'Invalid order ID') {
+        return res.status(400).json({ error: error.message });
+      }
+      if (error.message === 'Order not found') {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message === 'Order is not delivered yet') {
+        return res.status(400).json({ error: error.message });
+      }
+      res.status(500).json({ error: 'Failed to get delivery rating' });
+    }
+  },
+
+  // Tạo đánh giá shipper
+  async createDeliveryRating(req: Request, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { orderId } = req.params;
+      const { rating, comment } = req.body;
+
+      if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: 'Invalid rating value' });
+      }
+
+      const newRating = await shipperService.createDeliveryRating(
+        Number(orderId),
+        req.user.id,
+        rating,
+        comment
+      );
+
+      res.status(201).json(newRating);
+    } catch (error: any) {
+      console.error('Error creating delivery rating:', error);
+      if (error.message === 'Order is not delivered yet') {
+        return res.status(400).json({ error: error.message });
+      }
+      if (error.message === 'Order has already been rated') {
+        return res.status(400).json({ error: error.message });
+      }
+      res.status(500).json({ error: 'Failed to create delivery rating' });
     }
   }
 }; 

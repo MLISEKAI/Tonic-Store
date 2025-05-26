@@ -1,26 +1,23 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+import { ENDPOINTS, handleResponse } from '../api';
 
 export const CategoryService = {
   // Lấy danh sách danh mục
   async getCategories() {
-    const response = await fetch(`${API_URL}/categories`);
-    if (!response.ok) throw new Error('Failed to fetch categories');
-    return response.json();
+    const response = await fetch(ENDPOINTS.CATEGORY.LIST);
+    return handleResponse(response);
   },
 
   // Lấy chi tiết danh mục
   async getCategory(id: string) {
-    const response = await fetch(`${API_URL}/categories/${id}`);
-    if (!response.ok) throw new Error('Failed to fetch category');
-    return response.json();
+    const response = await fetch(ENDPOINTS.CATEGORY.DETAIL(id));
+    return handleResponse(response);
   },
 
   // Lấy sản phẩm theo danh mục
   async getProductsByCategory(categoryId: string, page = 1, limit = 10) {
     const response = await fetch(
-      `${API_URL}/categories/${categoryId}/products?page=${page}&limit=${limit}`
+      `${ENDPOINTS.CATEGORY.PRODUCTS(categoryId)}?page=${page}&limit=${limit}`
     );
-    if (!response.ok) throw new Error('Failed to fetch products');
-    return response.json();
+    return handleResponse(response);
   }
 }; 

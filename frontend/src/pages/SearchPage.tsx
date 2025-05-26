@@ -6,7 +6,7 @@ import { ProductService } from '../services/product/productService';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { Product } from '../types';
-import { CartService } from '../services/cart/cartService';
+import { CartService } from '../services/carts/cartService';
 
 const SearchPage = () => {
   const location = useLocation();

@@ -65,7 +65,7 @@ export const OrdersPage: FC = () => {
     fetchOrders();
 
     // Subscribe to order status updates
-    const eventSource = new EventSource(`${import.meta.env.VITE_API_URL}/api/orders/updates`);
+    const eventSource = new EventSource(`${import.meta.env.VITE_API_URL}/orders/updates`);
 
     eventSource.onmessage = (event) => {
       const update = JSON.parse(event.data);

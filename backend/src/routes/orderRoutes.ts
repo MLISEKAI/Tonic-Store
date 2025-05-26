@@ -4,9 +4,13 @@ import { createOrder, getOrder, updateOrderStatus, getAllOrders, cancelOrder } f
 import { createPayment, updatePaymentStatus } from '../services/paymentService';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
 import { PaymentMethod, PaymentStatus, PrismaClient } from '@prisma/client';
+import { ShipperController } from '../controllers/shipperController';
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// Store active SSE connections
+export const clients = new Map<number, Response>();
 
 // Get all orders (admin only)
 router.get('/', authenticate, async (req: Request, res: Response) => {
@@ -234,5 +238,58 @@ router.get('/vnpay/callback', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to process payment callback' });
   }
 });
+
+// SSE endpoint for order updates
+router.get('/updates', authenticate, (req: Request, res: Response) => {
+  // Set headers for SSE
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  // Send initial connection message
+  res.write('data: {"type": "connected"}\n\n');
+
+  // Store this client's connection
+  const clientId = req.user!.id;
+  clients.set(clientId, res);
+
+  // Remove client when connection closes
+  req.on('close', () => {
+    clients.delete(clientId);
+  });
+});
+
+// Get delivery logs for an order
+router.get('/:id/delivery/logs', authenticate, async (req: Request, res: Response) => {
+  try {
+    const orderId = Number(req.params.id);
+    const logs = await prisma.deliveryLog.findMany({
+      where: { orderId },
+      include: {
+        delivery: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    res.json(logs);
+  } catch (error) {
+    console.error('Error getting delivery logs:', error);
+    res.status(500).json({ error: 'Failed to get delivery logs' });
+  }
+});
+
+// Get delivery rating for an order
+router.get('/:id/delivery/rating', authenticate, ShipperController.getDeliveryRating);
+
+// Create delivery rating
+router.post('/:id/delivery/rating', authenticate, ShipperController.createDeliveryRating);
 
 export default router;

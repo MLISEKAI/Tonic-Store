@@ -1,22 +1,21 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+import { ENDPOINTS, handleResponse } from '../api';
 
 export const WishlistService = {
   // Lấy danh sách sản phẩm yêu thích
   async getWishlist() {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/wishlist`, {
+    const response = await fetch(ENDPOINTS.WISHLIST.LIST, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) throw new Error('Failed to fetch wishlist');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Thêm sản phẩm vào wishlist
   async addToWishlist(productId: number) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/wishlist`, {
+    const response = await fetch(ENDPOINTS.WISHLIST.ADD, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -24,32 +23,29 @@ export const WishlistService = {
       },
       body: JSON.stringify({ productId })
     });
-    if (!response.ok) throw new Error('Failed to add to wishlist');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Xóa sản phẩm khỏi wishlist
   async removeFromWishlist(productId: number) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/wishlist/${productId}`, {
+    const response = await fetch(ENDPOINTS.WISHLIST.REMOVE(productId), {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) throw new Error('Failed to remove from wishlist');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Kiểm tra trạng thái sản phẩm trong wishlist
   async checkWishlistStatus(productId: number) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/wishlist/check/${productId}`, {
+    const response = await fetch(ENDPOINTS.WISHLIST.CHECK(productId), {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) throw new Error('Failed to check wishlist status');
-    return response.json();
+    return handleResponse(response);
   }
 }; 

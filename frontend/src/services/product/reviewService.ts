@@ -1,11 +1,10 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+import { ENDPOINTS, handleResponse } from '../api';
 
 export const ReviewService = {
   // Lấy đánh giá của sản phẩm
   async getProductReviews(productId: number) {
-    const response = await fetch(`${API_URL}/reviews/product/${productId}`);
-    if (!response.ok) throw new Error('Failed to fetch reviews');
-    return response.json();
+    const response = await fetch(ENDPOINTS.REVIEW.LIST(productId));
+    return handleResponse(response);
   },
 
   // Tạo đánh giá mới
@@ -15,7 +14,7 @@ export const ReviewService = {
     comment: string;
   }) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/reviews`, {
+    const response = await fetch(ENDPOINTS.REVIEW.CREATE, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -23,8 +22,7 @@ export const ReviewService = {
       },
       body: JSON.stringify(data)
     });
-    if (!response.ok) throw new Error('Failed to create review');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Cập nhật đánh giá
@@ -33,7 +31,7 @@ export const ReviewService = {
     comment?: string;
   }) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
+    const response = await fetch(ENDPOINTS.REVIEW.UPDATE(reviewId), {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -41,18 +39,16 @@ export const ReviewService = {
       },
       body: JSON.stringify(data)
     });
-    if (!response.ok) throw new Error('Failed to update review');
-    return response.json();
+    return handleResponse(response);
   },
 
   // Xóa đánh giá
   async deleteReview(reviewId: number) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/reviews/${reviewId}`, {
+    const response = await fetch(ENDPOINTS.REVIEW.DELETE(reviewId), {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     });
-    if (!response.ok) throw new Error('Failed to delete review');
-    return response.json();
+    return handleResponse(response);
   }
 }; 

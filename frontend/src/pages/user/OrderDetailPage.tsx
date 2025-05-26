@@ -2,57 +2,59 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { formatPrice, formatDate } from '../../utils/format';
 import { useAuth } from '../../contexts/AuthContext';
-import { message, Button, Modal, notification, Timeline, Rate, Form, Input } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined, CarOutlined, UserOutlined, StarOutlined } from '@ant-design/icons';
+import {
+  message,
+  Button,
+  Modal,
+  notification,
+  Timeline,
+  Rate,
+  Form,
+  Input,
+  Card,
+  Descriptions,
+  List,
+  Divider,
+  Space
+} from 'antd';
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ClockCircleOutlined,
+  CarOutlined,
+  UserOutlined,
+  StarOutlined,
+  BankOutlined
+} from '@ant-design/icons';
 import { OrderService } from '../../services/order/orderService';
 import { PaymentService } from '../../services/order/paymentService';
 import { ShipperService } from '../../services/shipper/shipperService';
 
 interface OrderItem {
   id: number;
-  orderId: number;
   productId: number;
   quantity: number;
   price: number;
-  createdAt: string;
-  updatedAt: string;
   product: {
     id: number;
     name: string;
-    price: number;
-    imageUrl?: string;
+    imageUrl: string;
   };
 }
 
-interface Order {
-  id: number;
-  userId: number;
-  totalPrice: number;
+interface Payment {
+  method: string;
   status: string;
-  createdAt: string;
-  updatedAt: string;
-  shippingAddress: string;
-  shippingPhone: string;
-  shippingName: string;
-  note?: string;
-  items: OrderItem[];
-  payment?: {
-    status: string;
-    method: string;
     transactionId?: string;
     paymentDate?: string;
-  };
 }
 
 interface DeliveryLog {
   id: number;
-  orderId: number;
-  deliveryId: number;
   status: string;
   note?: string;
   createdAt: string;
   delivery: {
-    id: number;
     name: string;
     phone: string;
   };
@@ -60,11 +62,18 @@ interface DeliveryLog {
 
 interface ShipperRating {
   id: number;
-  orderId: number;
-  shipperId: number;
   rating: number;
   comment?: string;
   createdAt: string;
+}
+
+interface Order {
+  id: number;
+  status: string;
+  totalPrice: number;
+  createdAt: string;
+  items: OrderItem[];
+  payment?: Payment;
 }
 
 const OrderDetailPage: React.FC = () => {
@@ -78,6 +87,7 @@ const OrderDetailPage: React.FC = () => {
   const [shipperRating, setShipperRating] = useState<ShipperRating | null>(null);
   const [isRatingModalVisible, setIsRatingModalVisible] = useState(false);
   const [ratingForm] = Form.useForm();
+  const [bankTransferModalVisible, setBankTransferModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -86,187 +96,111 @@ const OrderDetailPage: React.FC = () => {
           window.location.href = '/login';
           return;
         }
-
-        // Validate order ID
-        if (!id) {
-          setError('Không tìm thấy ID đơn hàng');
-          setLoading(false);
-          return;
-        }
-
-        const orderId = parseInt(id);
-        if (isNaN(orderId)) {
+        if (!id || isNaN(parseInt(id))) {
           setError('ID đơn hàng không hợp lệ');
           setLoading(false);
           return;
         }
-
-        const data = await OrderService.getOrder(orderId);
+        const data = await OrderService.getOrder(parseInt(id));
+        if (!data) throw new Error();
+        setOrder(data as Order);
+        const logs = await ShipperService.getOrderDeliveryLogs(data.id);
+        setDeliveryLogs(logs as DeliveryLog[]);
         
-        if (!data) {
-          setError('Không tìm thấy đơn hàng');
-          setLoading(false);
-          return;
+        // Chỉ lấy đánh giá nếu đơn hàng đã được giao
+        if (data.status === 'DELIVERED') {
+          try {
+            console.log('Fetching rating for order:', data.id);
+            const rating = await ShipperService.getShipperRating(data.id);
+            console.log('Rating result:', rating);
+            setShipperRating(rating as ShipperRating);
+          } catch (error) {
+            console.log('Chưa có đánh giá cho đơn hàng này');
+            setShipperRating(null);
+          }
         }
-        
-        // Transform data to match our interface
-        const transformedOrder: Order = {
-          ...data,
-          userId: data.userId,
-          shippingAddress: data.shippingAddress,
-          shippingPhone: data.shippingPhone,
-          shippingName: data.shippingName,
-          items: data.items.map((item: any) => ({
-            ...item,
-            productId: item.productId,
-            orderId: item.orderId,
-            quantity: item.quantity,
-            price: item.price
-          }))
-        };
-        
-        setOrder(transformedOrder);
-
-        // Fetch delivery logs
-        const logs = await ShipperService.getOrderDeliveryLogs(orderId);
-        setDeliveryLogs(logs);
-
-        // Fetch shipper rating if order is delivered
-        if (transformedOrder.status === 'DELIVERED') {
-          const rating = await ShipperService.getShipperRating(orderId);
-          setShipperRating(rating);
-        }
-      } catch (err) {
-        console.error('Error fetching order:', err);
-        setError('Không thể tải chi tiết đơn hàng. Vui lòng thử lại sau.');
+      } catch (error) {
+        console.error('Error fetching order:', error);
+        setError('Không thể tải chi tiết đơn hàng.');
       } finally {
         setLoading(false);
       }
     };
-
     fetchOrder();
   }, [id, isAuthenticated]);
 
   useEffect(() => {
     const verifyPayment = async () => {
-      const vnp_Amount = searchParams.get('vnp_Amount');
-      const vnp_BankCode = searchParams.get('vnp_BankCode');
-      const vnp_BankTranNo = searchParams.get('vnp_BankTranNo');
-      const vnp_CardType = searchParams.get('vnp_CardType');
-      const vnp_OrderInfo = searchParams.get('vnp_OrderInfo');
-      const vnp_PayDate = searchParams.get('vnp_PayDate');
-      const vnp_ResponseCode = searchParams.get('vnp_ResponseCode');
-      const vnp_TmnCode = searchParams.get('vnp_TmnCode');
-      const vnp_TransactionNo = searchParams.get('vnp_TransactionNo');
-      const vnp_TransactionStatus = searchParams.get('vnp_TransactionStatus');
-      const vnp_TxnRef = searchParams.get('vnp_TxnRef');
-      const vnp_SecureHash = searchParams.get('vnp_SecureHash');
-
-      if (vnp_ResponseCode && isAuthenticated) {
-        try {
-          const data = await PaymentService.verifyPayment({
-            vnp_Amount: vnp_Amount || '',
-            vnp_BankCode: vnp_BankCode || '',
-            vnp_BankTranNo: vnp_BankTranNo || '',
-            vnp_CardType: vnp_CardType || '',
-            vnp_OrderInfo: vnp_OrderInfo || '',
-            vnp_PayDate: vnp_PayDate || '',
-            vnp_ResponseCode: vnp_ResponseCode || '',
-            vnp_TmnCode: vnp_TmnCode || '',
-            vnp_TransactionNo: vnp_TransactionNo || '',
-            vnp_TransactionStatus: vnp_TransactionStatus || '',
-            vnp_TxnRef: vnp_TxnRef || '',
-            vnp_SecureHash: vnp_SecureHash || ''
-          });
-
-          if (data.success) {
-            notification.success({
-              message: 'Thành công',
-              description: 'Thanh toán thành công!',
-              placement: 'topRight',
-              duration: 2,
-            });
-          } else {
-            notification.error({
-              message: 'Lỗi',
-              description: 'Thanh toán thất bại. Vui lòng thử lại.',
-              placement: 'topRight',
-              duration: 2,
-            });
-          }
-        } catch (error) {
-          notification.error({
-            message: 'Lỗi',
-            description: 'Có lỗi xảy ra khi xác thực thanh toán',
-            placement: 'topRight',
-            duration: 2,
-          });
-        }
+      if (!isAuthenticated || !searchParams.get('vnp_ResponseCode')) return;
+      try {
+        const paymentData = {
+          vnp_Amount: searchParams.get('vnp_Amount') || '',
+          vnp_BankCode: searchParams.get('vnp_BankCode') || '',
+          vnp_BankTranNo: searchParams.get('vnp_BankTranNo') || '',
+          vnp_CardType: searchParams.get('vnp_CardType') || '',
+          vnp_OrderInfo: searchParams.get('vnp_OrderInfo') || '',
+          vnp_PayDate: searchParams.get('vnp_PayDate') || '',
+          vnp_ResponseCode: searchParams.get('vnp_ResponseCode') || '',
+          vnp_TmnCode: searchParams.get('vnp_TmnCode') || '',
+          vnp_TransactionNo: searchParams.get('vnp_TransactionNo') || '',
+          vnp_TransactionStatus: searchParams.get('vnp_TransactionStatus') || '',
+          vnp_TxnRef: searchParams.get('vnp_TxnRef') || '',
+          vnp_SecureHash: searchParams.get('vnp_SecureHash') || ''
+        };
+        const result = await PaymentService.verifyPayment(paymentData);
+        notification[result.success ? 'success' : 'error']({
+          message: result.success ? 'Thành công' : 'Lỗi',
+          description: result.success ? 'Thanh toán thành công!' : 'Thanh toán thất bại.',
+        });
+      } catch {
+        notification.error({ message: 'Lỗi', description: 'Lỗi xác thực thanh toán' });
       }
     };
-
     verifyPayment();
   }, [searchParams, isAuthenticated]);
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'COMPLETED':
-        return 'text-green-600';
-      case 'FAILED':
-        return 'text-red-600';
-      case 'REFUNDED':
-        return 'text-orange-600';
-      default:
-        return 'text-yellow-600';
-    }
-  };
-
   const getPaymentStatusIcon = (status: string) => {
     switch (status) {
-      case 'COMPLETED':
-        return <CheckCircleOutlined className="text-green-600" />;
-      case 'FAILED':
-        return <CloseCircleOutlined className="text-red-600" />;
-      case 'REFUNDED':
-        return <CloseCircleOutlined className="text-orange-600" />;
-      default:
-        return <ClockCircleOutlined className="text-yellow-600" />;
+      case 'COMPLETED': return <CheckCircleOutlined className="text-green-600" />;
+      case 'FAILED': return <CloseCircleOutlined className="text-red-600" />;
+      case 'REFUNDED': return <CloseCircleOutlined className="text-orange-600" />;
+      default: return <ClockCircleOutlined className="text-yellow-600" />;
     }
   };
 
   const getDeliveryStatusIcon = (status: string) => {
     switch (status) {
-      case 'PROCESSING':
-        return <ClockCircleOutlined className="text-blue-600" />;
-      case 'SHIPPED':
-        return <CarOutlined className="text-orange-600" />;
-      case 'DELIVERED':
-        return <CheckCircleOutlined className="text-green-600" />;
-      default:
-        return <ClockCircleOutlined className="text-gray-600" />;
+      case 'PENDING': return <ClockCircleOutlined className="text-yellow-600" />;
+      case 'CONFIRMED': return <CheckCircleOutlined className="text-blue-600" />;
+      case 'PROCESSING': return <ClockCircleOutlined className="text-blue-600" />;
+      case 'SHIPPED': return <CarOutlined className="text-orange-600" />;
+      case 'DELIVERED': return <CheckCircleOutlined className="text-green-600" />;
+      case 'CANCELLED': return <CloseCircleOutlined className="text-red-600" />;
+      default: return <ClockCircleOutlined className="text-gray-600" />;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'PENDING': return 'Chờ xác nhận';
+      case 'CONFIRMED': return 'Đã xác nhận';
+      case 'PROCESSING': return 'Đang xử lý';
+      case 'SHIPPED': return 'Đang giao hàng';
+      case 'DELIVERED': return 'Đã giao hàng';
+      case 'CANCELLED': return 'Đã hủy';
+      default: return status;
     }
   };
 
   const handleRateShipper = async (values: { rating: number; comment?: string }) => {
+    if (!order) return;
     try {
-      if (!order) return;
-
       const rating = await ShipperService.rateShipper(order.id, values.rating, values.comment);
-      setShipperRating(rating);
+      setShipperRating(rating as ShipperRating);
       setIsRatingModalVisible(false);
-      notification.success({
-        message: 'Thành công',
-        description: 'Cảm ơn bạn đã đánh giá shipper!',
-        placement: 'topRight',
-        duration: 2,
-      });
-    } catch (err) {
-      notification.error({
-        message: 'Lỗi',
-        description: 'Không thể gửi đánh giá. Vui lòng thử lại sau.',
-        placement: 'topRight',
-        duration: 2,
-      });
+      notification.success({ message: 'Đánh giá thành công' });
+    } catch {
+      notification.error({ message: 'Lỗi gửi đánh giá' });
     }
   };
 
@@ -275,189 +209,125 @@ const OrderDetailPage: React.FC = () => {
   if (!order) return <div>Không tìm thấy đơn hàng</div>;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-8">Chi tiết đơn hàng #{order.id}</h1>
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <h1 className="text-2xl font-bold">Chi tiết đơn hàng #{order.id}</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-          <div className="bg-white shadow rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-bold mb-4">Thông tin đơn hàng</h2>
-            <div className="space-y-2">
-              <p><span className="font-medium">Trạng thái:</span> {order.status}</p>
-              <p><span className="font-medium">Ngày đặt:</span> {formatDate(order.createdAt)}</p>
-              <p><span className="font-medium">Tổng tiền:</span> {formatPrice(order.totalPrice)}</p>
+      <Card title="Thông tin đơn hàng">
+        <Descriptions column={1} bordered size="small">
+          <Descriptions.Item label="Trạng thái">{order.status}</Descriptions.Item>
+          <Descriptions.Item label="Ngày đặt">{formatDate(order.createdAt)}</Descriptions.Item>
+          <Descriptions.Item label="Tổng tiền"><strong className="text-indigo-600">{formatPrice(order.totalPrice)}</strong></Descriptions.Item>
               {order.payment && (
                 <>
-                  <p><span className="font-medium">Phương thức thanh toán:</span> {order.payment.method}</p>
-                  <p className="flex items-center gap-2">
-                    <span className="font-medium">Trạng thái thanh toán:</span>
-                    <span className={getPaymentStatusColor(order.payment.status)}>
-                      {getPaymentStatusIcon(order.payment.status)}
-                      {order.payment.status}
-                    </span>
-                  </p>
-                  {order.payment.transactionId && (
-                    <p><span className="font-medium">Mã giao dịch:</span> {order.payment.transactionId}</p>
-                  )}
-                  {order.payment.paymentDate && (
-                    <p><span className="font-medium">Ngày thanh toán:</span> {formatDate(order.payment.paymentDate)}</p>
-                  )}
-                  {order.payment.status === 'PENDING' && (
-                    <p className="text-yellow-600 mt-2">
-                      Đơn hàng đang chờ xác nhận thanh toán từ admin
-                    </p>
-                  )}
+              <Descriptions.Item label="Phương thức thanh toán">{order.payment.method}</Descriptions.Item>
+              <Descriptions.Item label="Trạng thái thanh toán">
+                <Space>{getPaymentStatusIcon(order.payment.status)} {order.payment.status}</Space>
+              </Descriptions.Item>
                 </>
               )}
-            </div>
+        </Descriptions>
+        {order.payment?.method === 'BANK_TRANSFER' && (
+          <div className="mt-4">
+            <Button icon={<BankOutlined />} onClick={() => setBankTransferModalVisible(true)}>
+              Xem thông tin chuyển khoản
+            </Button>
           </div>
+        )}
+      </Card>
 
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4">Thông tin nhận hàng</h2>
-            <div className="space-y-2">
-              <p><span className="font-medium">Họ tên:</span> {order.shippingName}</p>
-              <p><span className="font-medium">Số điện thoại:</span> {order.shippingPhone}</p>
-              <p><span className="font-medium">Địa chỉ:</span> {order.shippingAddress}</p>
-              {order.note && (
-                <p><span className="font-medium">Ghi chú:</span> {order.note}</p>
-              )}
-            </div>
-          </div>
+      <Card title="Sản phẩm trong đơn hàng">
+        <List
+          itemLayout="horizontal"
+          dataSource={order.items}
+          renderItem={(item: OrderItem) => (
+            <List.Item>
+              <List.Item.Meta
+                avatar={<img src={item.product.imageUrl} className="w-16 h-16 object-cover rounded" />}
+                title={item.product.name}
+                description={`Số lượng: ${item.quantity}`}
+              />
+              <div className="text-indigo-600 font-semibold">{formatPrice(item.price * item.quantity)}</div>
+            </List.Item>
+          )}
+        />
+        <Divider />
+        <div className="text-right font-bold text-lg text-indigo-600">
+          Tổng cộng: {formatPrice(order.totalPrice)}
         </div>
+      </Card>
 
-        <div>
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4">Sản phẩm</h2>
-            <ul className="divide-y divide-gray-200">
-              {order.items.map((item) => (
-                <li key={item.id} className="py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      {item.product.imageUrl && (
-                        <img
-                          src={item.product.imageUrl}
-                          alt={item.product.name}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                      )}
-                      <div className="ml-4">
-                        <h4 className="text-lg font-medium text-gray-900">
-                          {item.product.name}
-                        </h4>
-                        <p className="text-gray-500">
-                          Số lượng: {item.quantity}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-indigo-600 font-medium">
-                      {formatPrice(item.price * item.quantity)}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="flex justify-between text-lg font-bold">
-                <span>Tổng cộng:</span>
-                <span className="text-indigo-600">
-                  {formatPrice(order.totalPrice)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Delivery History */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-bold mb-4">Lịch sử giao hàng</h2>
-          <Timeline>
-            {deliveryLogs.map((log) => (
-              <Timeline.Item
-                key={log.id}
-                dot={getDeliveryStatusIcon(log.status)}
-              >
-                <div className="mb-2">
-                  <p className="font-medium">{log.status}</p>
-                  <p className="text-gray-600">
-                    {formatDate(log.createdAt)}
-                  </p>
-                  {log.note && (
-                    <p className="text-gray-600 mt-1">{log.note}</p>
-                  )}
-                  <div className="mt-2 flex items-center text-gray-600">
-                    <UserOutlined className="mr-2" />
-                    <span>
-                      {log.delivery.name} - {log.delivery.phone}
-                    </span>
-                  </div>
-                </div>
-              </Timeline.Item>
-            ))}
-          </Timeline>
-        </div>
-
-        {/* Shipper Rating */}
-        {order.status === 'DELIVERED' && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4">Đánh giá shipper</h2>
-            {shipperRating ? (
+      <Card title="Lịch sử giao hàng">
+        <Timeline>
+          {deliveryLogs.map((log: DeliveryLog) => (
+            <Timeline.Item key={log.id} dot={getDeliveryStatusIcon(log.status)}>
               <div>
-                <div className="flex items-center mb-2">
-                  <Rate disabled defaultValue={shipperRating.rating} />
-                  <span className="ml-2 text-gray-600">
-                    {formatDate(shipperRating.createdAt)}
-                  </span>
-                </div>
-                {shipperRating.comment && (
-                  <p className="text-gray-600">{shipperRating.comment}</p>
+                <p className="font-medium">{getStatusLabel(log.status)}</p>
+                <p className="text-gray-500">{formatDate(log.createdAt)}</p>
+                {log.note && <p className="text-sm italic text-gray-500">{log.note}</p>}
+                {log.delivery && (
+                  <p className="mt-1 flex items-center gap-1 text-gray-600">
+                    <UserOutlined /> {log.delivery.name} - {log.delivery.phone}
+                  </p>
                 )}
               </div>
-            ) : (
-              <Button
-                type="primary"
-                icon={<StarOutlined />}
-                onClick={() => setIsRatingModalVisible(true)}
-              >
+            </Timeline.Item>
+          ))}
+        </Timeline>
+      </Card>
+
+        {order.status === 'DELIVERED' && (
+        <Card title="Đánh giá shipper">
+            {shipperRating ? (
+            <>
+                  <Rate disabled defaultValue={shipperRating.rating} />
+              <p className="text-gray-500 mt-1">{shipperRating.comment}</p>
+              <p className="text-sm text-gray-400">{formatDate(shipperRating.createdAt)}</p>
+            </>
+          ) : (
+            <Button icon={<StarOutlined />} onClick={() => setIsRatingModalVisible(true)}>
                 Đánh giá shipper
               </Button>
             )}
-          </div>
+        </Card>
         )}
 
-        {/* Rating Modal */}
         <Modal
           title="Đánh giá shipper"
           open={isRatingModalVisible}
           onCancel={() => setIsRatingModalVisible(false)}
           footer={null}
         >
-          <Form
-            form={ratingForm}
-            onFinish={handleRateShipper}
-            layout="vertical"
-          >
-            <Form.Item
-              name="rating"
-              label="Số sao"
-              rules={[{ required: true, message: 'Vui lòng chọn số sao' }]}
-            >
+        <Form form={ratingForm} onFinish={handleRateShipper} layout="vertical">
+          <Form.Item name="rating" label="Số sao" rules={[{ required: true, message: 'Vui lòng chọn số sao' }]}>
               <Rate />
             </Form.Item>
-            <Form.Item
-              name="comment"
-              label="Nhận xét"
-            >
+          <Form.Item name="comment" label="Nhận xét">
               <Input.TextArea rows={4} />
             </Form.Item>
             <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Gửi đánh giá
-              </Button>
+            <Button type="primary" htmlType="submit">Gửi đánh giá</Button>
             </Form.Item>
           </Form>
         </Modal>
+
+      <Modal
+        title="Thông tin chuyển khoản"
+        open={bankTransferModalVisible}
+        onCancel={() => setBankTransferModalVisible(false)}
+        footer={[<Button key="close" onClick={() => setBankTransferModalVisible(false)}>Đóng</Button>]}
+      >
+        <div className="space-y-2">
+          <p><strong>Ngân hàng:</strong> Vietcombank</p>
+          <p><strong>Số tài khoản:</strong> 0123456789</p>
+          <p><strong>Chủ tài khoản:</strong> CÔNG TY ABC</p>
+          <p><strong>Số tiền:</strong> {formatPrice(order.totalPrice)}</p>
+          <p><strong>Nội dung:</strong> THANH TOAN DH#{order.id}</p>
       </div>
+        <Divider />
+        <p className="text-sm text-gray-600">
+          Gửi biên lai về Zalo 098xxxx hoặc email support@abc.vn để được xác nhận sớm.
+        </p>
+      </Modal>
     </div>
   );
 };

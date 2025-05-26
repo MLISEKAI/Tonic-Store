@@ -27,6 +27,8 @@ const CheckoutPage: React.FC = () => {
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editAddress, setEditAddress] = useState('');
+  const [bankTransferModalVisible, setBankTransferModalVisible] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState<any>(null);
 
   const fetchAddresses = async () => {
     try {
@@ -138,19 +140,22 @@ const CheckoutPage: React.FC = () => {
       if (!data || !data.order) {
         throw new Error('Không thể tạo đơn hàng');
       }
-  
-      // Nếu là COD, điều hướng đến trang chi tiết đơn hàng
+
+      // Xử lý theo phương thức thanh toán
       if (values.paymentMethod === PaymentMethod.COD) {
         clearCart();
         navigate(`/user/orders/${data.order.id}`);
       } else if (values.paymentMethod === PaymentMethod.VN_PAY) {
-        // Xử lý thanh toán VNPay
         const paymentData = await PaymentService.createPaymentUrl(data.order.id);
         if (paymentData.paymentUrl) {
           setPaymentUrl(paymentData.paymentUrl);
         } else {
           throw new Error('Không thể tạo URL thanh toán');
         }
+      } else if (values.paymentMethod === PaymentMethod.BANK_TRANSFER) {
+        setCurrentOrder(data.order);
+        setBankTransferModalVisible(true);
+        clearCart();
       }
     } catch (err) {
       console.error('Checkout error:', err);
@@ -215,7 +220,16 @@ const CheckoutPage: React.FC = () => {
       setEditIsDefault(false);
     }
   };
-  
+
+  const handleSelectAddress = async (id: number) => {
+    try {
+      await ShippingAddressService.setDefaultShippingAddress(id);
+      fetchAddresses();
+    } catch (error) {
+      console.error(error);
+      message.error("Không thể chọn địa chỉ");
+    }
+  };
 
   if (paymentUrl) {
     return <VNPayPayment paymentUrl={paymentUrl} onTimeout={handleTimeout} />;
@@ -271,17 +285,21 @@ const CheckoutPage: React.FC = () => {
           >
             {shippingAddresses.map((address) => (
               <div
-                key={address.id}
-                className="flex justify-between items-start p-4 bg-white rounded-lg shadow-md border border-gray-200 mb-4"
-              >
-                <div className="space-y-1">
-                  <p className="font-semibold">{address.name}</p>
-                  <p className="text-gray-600">{address.phone}</p>
-                  <p className="text-gray-600">{address.address}</p>
-                </div>
+              key={address.id}
+              onClick={() => handleSelectAddress(address.id)}
+              className={`flex justify-between items-start p-4 rounded-lg shadow-md border mb-4 cursor-pointer transition 
+                ${address.isDefault ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-200 hover:border-blue-400'}`}
+            >
+              <div className="space-y-1">
+                <p className="font-semibold">{address.name}</p>
+                <p className="text-gray-600">{address.phone}</p>
+                <p className="text-gray-600">{address.address}</p>
+                {address.isDefault && <span className="text-sm text-blue-600 font-medium">[Địa chỉ mặc định]</span>}
+              </div>
                 <Button
                   type="link"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setEditingAddress(address);
                     setEditName(address.name);
                     setEditPhone(address.phone);
@@ -441,6 +459,46 @@ const CheckoutPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Bank Transfer Modal */}
+      <Modal
+        title="Thông tin chuyển khoản"
+        open={bankTransferModalVisible}
+        onCancel={() => {
+          setBankTransferModalVisible(false);
+          navigate(`/user/orders/${currentOrder?.id}`);
+        }}
+        footer={[
+          <Button
+            key="viewOrder"
+            type="primary"
+            onClick={() => {
+              setBankTransferModalVisible(false);
+              navigate(`/user/orders/${currentOrder?.id}`);
+            }}
+          >
+            Xem chi tiết đơn hàng
+          </Button>
+        ]}
+      >
+        <div className="p-4">
+          <p className="mb-4">Vui lòng chuyển khoản theo thông tin bên dưới để hoàn tất đơn hàng:</p>
+
+          <div className="space-y-2">
+            <p><strong>Ngân hàng:</strong> Vietcombank</p>
+            <p><strong>Số tài khoản:</strong> 0123456789</p>
+            <p><strong>Chủ tài khoản:</strong> CÔNG TY ABC</p>
+            <p><strong>Số tiền:</strong> {formatPrice(currentOrder?.totalPrice)}</p>
+            <p><strong>Nội dung chuyển khoản:</strong> THANH TOAN DH#{currentOrder?.id}</p>
+          </div>
+
+          <div className="mt-6 p-4 bg-gray-50 rounded">
+            <p className="text-sm text-gray-600">
+              Sau khi chuyển khoản, vui lòng gửi biên lai về Zalo 098xxxx hoặc email: support@abc.vn để được xác nhận sớm nhất.
+            </p>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
