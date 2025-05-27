@@ -35,25 +35,76 @@ const ShipperOrders: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'DELIVERY') {
-      loadOrders();
-    }
+    let mounted = true;
+
+    const fetchOrders = async () => {
+      if (isAuthenticated && user?.role === 'DELIVERY') {
+        try {
+          await loadOrders();
+        } catch (err) {
+          console.error('Error in useEffect:', err);
+        }
+      } else {
+        setError('Please login as a delivery staff to view orders');
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+
+    return () => {
+      mounted = false;
+    };
   }, [selectedStatus, isAuthenticated, user]);
 
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const data = await ShipperService.getDeliveryOrders(1, 10);
-      const normalized = data.map((order: any) => ({
-        ...order,
-        payment: order.payment || { method: '', status: '' }
-      }));
-      console.log('Orders for shipper:', normalized);
-      setOrders(normalized);
       setError(null);
-    } catch (err) {
-      setError('Failed to load orders');
-      console.error(err);
+      console.log('Starting to load orders...');
+      
+      if (!user?.id) {
+        throw new Error('User ID not found. Please login again.');
+      }
+      
+      console.log('User info:', { id: user.id, role: user.role });
+      
+      const response = await ShipperService.getDeliveryOrders(1, 10);
+      console.log('Received orders data:', response);
+      
+      if (!response.orders || !Array.isArray(response.orders)) {
+        console.error('Invalid data format received:', response);
+        throw new Error('Invalid data format received from server');
+      }
+      
+      const normalized = response.orders.map((order: any) => {
+        if (!order.id || !order.status) {
+          console.error('Invalid order data:', order);
+          throw new Error('Invalid order data received from server');
+        }
+        return {
+          ...order,
+          payment: order.payment || { method: '', status: '' }
+        };
+      });
+      
+      console.log('Normalized orders:', normalized);
+      setOrders(normalized);
+    } catch (err: any) {
+      console.error('Error loading orders:', err);
+      setError(err.message || 'Failed to load orders');
+      setOrders([]);
+      
+      // Show error notification
+      if (err.message.includes('Server error')) {
+        alert('Có lỗi xảy ra từ server. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.');
+      } else if (err.message.includes('Network error')) {
+        alert('Lỗi kết nối mạng. Vui lòng kiểm tra lại kết nối internet.');
+      } else if (err.message.includes('Session expired')) {
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      } else if (err.message.includes('permission')) {
+        alert('Bạn không có quyền truy cập vào trang này.');
+      }
     } finally {
       setLoading(false);
     }
@@ -61,28 +112,61 @@ const ShipperOrders: React.FC = () => {
 
   const handleStatusChange = async (orderId: number, newStatus: OrderStatus) => {
     try {
-      await ShipperService.updateDeliveryStatus(orderId.toString(), newStatus);
-      loadOrders();
-    } catch (err) {
-      console.error('Không cập nhật trạng thái đặt hàng:', err);
+      console.log('Updating order status:', { orderId, newStatus });
+      await ShipperService.updateDeliveryStatus(orderId, newStatus);
+      await loadOrders();
+    } catch (err: any) {
+      console.error('Error updating order status:', err);
+      alert(err.message || 'Không thể cập nhật trạng thái đơn hàng');
     }
   };
 
   const handleConfirmReceivedPayment = async (orderId: number) => {
     try {
+      console.log('Confirming COD payment for order:', orderId);
       await PaymentService.confirmCODPayment(orderId);
-      loadOrders();
-    } catch (err) {
-      alert('Xác nhận nhận tiền thất bại!');
+      await loadOrders();
+    } catch (err: any) {
+      console.error('Error confirming payment:', err);
+      alert(err.message || 'Xác nhận nhận tiền thất bại!');
     }
   };
 
   if (!isAuthenticated || user?.role !== 'DELIVERY') {
-    return <div className="text-red-500">Please login to view orders</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-red-500 text-center">
+          <h2 className="text-xl font-bold mb-2">Access Denied</h2>
+          <p>Please login as a delivery staff to view orders</p>
+        </div>
+      </div>
+    );
   }
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-red-500 text-center">
+          <h2 className="text-xl font-bold mb-2">Error</h2>
+          <p>{error}</p>
+          <button 
+            onClick={loadOrders}
+            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (orders.some(order => !order.payment || !order.payment.method)) {
     return <div className="text-red-500">Dữ liệu đơn hàng thiếu thông tin thanh toán. Hãy kiểm tra lại backend!</div>;

@@ -5,7 +5,8 @@ import {
   getUserReviewsController,
   createReviewController,
   updateReviewController,
-  deleteReviewController
+  deleteReviewController,
+  getAllReviewsController,
 } from '../controllers/reviewController';
 
 const router = express.Router();
@@ -24,5 +25,8 @@ router.put('/:id', authenticate, updateReviewController);
 
 // Xóa đánh giá
 router.delete('/:id', authenticate, deleteReviewController);
+
+// Lấy tất cả đánh giá
+router.get('/', getAllReviewsController);
 
 export default router; 

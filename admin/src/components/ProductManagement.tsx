@@ -127,11 +127,11 @@ const ProductManagement: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     Modal.confirm({
-      title: 'Are you sure you want to delete this product?',
-      content: 'This action cannot be undone.',
-      okText: 'Yes',
+      title: 'Bạn có chắc chắn muốn xóa sản phẩm này?',
+      content: 'Hành động này không thể hoàn tác.',
+      okText: 'Có',
       okType: 'danger',
-      cancelText: 'No',
+      cancelText: 'Không',
       onOk: async () => {
         try {
           await productService.deleteProduct(id);
@@ -156,19 +156,19 @@ const ProductManagement: React.FC = () => {
 
   const columns = [
     {
-      title: 'Name',
+      title: 'Tên',
       dataIndex: 'name',
       key: 'name',
       width: 200,
     },
     {
-      title: 'SKU',
+      title: 'Mã sản phẩm',
       dataIndex: 'sku',
       key: 'sku',
       width: 120,
     },
     {
-      title: 'Price',
+      title: 'Giá',
       dataIndex: 'price',
       key: 'price',
       width: 120,
@@ -178,7 +178,7 @@ const ProductManagement: React.FC = () => {
       }).format(price) : '-',
     },
     {
-      title: 'Promotional Price',
+      title: 'Giá khuyến mãi',
       dataIndex: 'promotionalPrice',
       key: 'promotionalPrice',
       width: 120,
@@ -188,13 +188,13 @@ const ProductManagement: React.FC = () => {
       }).format(price) : '-',
     },
     {
-      title: 'Stock',
+      title: 'Kho hàng',
       dataIndex: 'stock',
       key: 'stock',
       width: 80,
     },
     {
-      title: 'Status',
+      title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
       width: 100,
@@ -209,71 +209,71 @@ const ProductManagement: React.FC = () => {
       ),
     },
     {
-      title: 'Category',
+      title: 'Danh mục',
       dataIndex: ['category', 'name'],
       key: 'category',
       width: 150,
     },
     {
-      title: 'Weight (kg)',
+      title: 'Trọng lượng (kg)',
       dataIndex: 'weight',
       key: 'weight',
       width: 100,
       render: (weight: number) => weight ? weight.toFixed(2) : '-',
     },
     {
-      title: 'Dimensions',
+      title: 'Kích thước',
       dataIndex: 'dimensions',
       key: 'dimensions',
       width: 120,
     },
     {
-      title: 'Material',
+      title: 'Chất liệu',
       dataIndex: 'material',
       key: 'material',
       width: 120,
     },
     {
-      title: 'Origin',
+      title: 'Xuất xứ',
       dataIndex: 'origin',
       key: 'origin',
       width: 120,
     },
     {
-      title: 'Featured',
+      title: 'Sản phẩm nổi bật',
       dataIndex: 'isFeatured',
       key: 'isFeatured',
       width: 100,
-      render: (isFeatured: boolean) => isFeatured ? 'Yes' : 'No',
+      render: (isFeatured: boolean) => isFeatured ? 'Có' : 'Không',
     },
     {
-      title: 'New',
+      title: 'Sản phẩm mới',
       dataIndex: 'isNew',
       key: 'isNew',
       width: 80,
-      render: (isNew: boolean) => isNew ? 'Yes' : 'No',
+      render: (isNew: boolean) => isNew ? 'Có' : 'Không',
     },
     {
-      title: 'Best Seller',
+      title: 'Sản phẩm bán chạy',
       dataIndex: 'isBestSeller',
       key: 'isBestSeller',
       width: 100,
-      render: (isBestSeller: boolean) => isBestSeller ? 'Yes' : 'No',
+      render: (isBestSeller: boolean) => isBestSeller ? 'Có' : 'Không',
     },
     {
-      title: 'Views',
+      title: 'Lượt xem',
       dataIndex: 'viewCount',
       key: 'viewCount',
       width: 80,
     },
     {
-      title: 'Sold',
+      title: 'Đã bán',
       dataIndex: 'soldCount',
       key: 'soldCount',
       width: 80,
     },
     {
-      title: 'Actions',
+      title: 'Hành động',
       key: 'actions',
       fixed: 'right' as const,
       width: 120,
@@ -305,14 +305,14 @@ const ProductManagement: React.FC = () => {
         }}
       >
         <Title level={2} style={{ margin: 0 }}>
-          Product Management
+          Quản lý sản phẩm
         </Title>
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => showModal()}
         >
-          Add Product
+          Thêm sản phẩm
         </Button>
       </div>
 
@@ -324,12 +324,12 @@ const ProductManagement: React.FC = () => {
         pagination={{
           pageSize: 10,
           showSizeChanger: true,
-          showTotal: (total) => `Total ${total} items`,
+          showTotal: (total) => `Tổng ${total} sản phẩm`,
         }}
       />
 
       <Modal
-        title={selectedProduct ? 'Edit Product' : 'Add Product'}
+        title={selectedProduct ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm'}
         open={isModalVisible}
         onCancel={handleCancel}
         onOk={handleSubmit}
@@ -341,7 +341,7 @@ const ProductManagement: React.FC = () => {
         >
           <Form.Item
             name="name"
-            label="Name"
+            label="Tên"
             rules={[{ required: true }]}
           >
             <Input />
@@ -349,15 +349,15 @@ const ProductManagement: React.FC = () => {
 
           <Form.Item
             name="description"
-            label="Description"
+            label="Mô tả"
           >
             <TextArea rows={4} />
           </Form.Item>
 
           <Form.Item
             name="price"
-            label="Price"
-            rules={[{ required: true, message: 'Please input the price!' }]}
+            label="Giá"
+            rules={[{ required: true, message: 'Vui lòng nhập giá!' }]}
           >
             <InputNumber
               min={0}
@@ -370,7 +370,7 @@ const ProductManagement: React.FC = () => {
 
           <Form.Item
             name="promotionalPrice"
-            label="Promotional Price"
+            label="Giá khuyến mãi"
           >
             <InputNumber
               min={0}
@@ -383,7 +383,7 @@ const ProductManagement: React.FC = () => {
 
           <Form.Item
             name="stock"
-            label="Stock"
+            label="Kho hàng"
             rules={[{ required: true }]}
           >
             <InputNumber
@@ -394,14 +394,14 @@ const ProductManagement: React.FC = () => {
 
           <Form.Item
             name="imageUrl"
-            label="Image URL"
+            label="Ảnh sản phẩm"
           >
             <Input />
           </Form.Item>
 
           <Form.Item
             name="categoryId"
-            label="Category ID"
+            label="Danh mục"
             rules={[{ required: true }]}
           >
             <InputNumber
@@ -412,21 +412,21 @@ const ProductManagement: React.FC = () => {
 
           <Form.Item
             name="sku"
-            label="SKU"
+            label="Mã sản phẩm"
           >
             <Input />
           </Form.Item>
 
           <Form.Item
             name="barcode"
-            label="Barcode"
+            label="Mã vạch"
           >
             <Input />
           </Form.Item>
 
           <Form.Item
             name="weight"
-            label="Weight (kg)"
+            label="Trọng lượng (kg)"
           >
             <InputNumber
               style={{ width: '100%' }}
@@ -437,62 +437,62 @@ const ProductManagement: React.FC = () => {
 
           <Form.Item
             name="dimensions"
-            label="Dimensions"
+            label="Kích thước"
           >
             <Input />
           </Form.Item>
 
           <Form.Item
             name="material"
-            label="Material"
+            label="Chất liệu"
           >
             <Input />
           </Form.Item>
 
           <Form.Item
             name="origin"
-            label="Origin"
+            label="Xuất xứ"
           >
             <Input />
           </Form.Item>
 
           <Form.Item
             name="warranty"
-            label="Warranty"
+            label="Bảo hành"
           >
             <Input />
           </Form.Item>
 
           <Form.Item
             name="status"
-            label="Status"
+            label="Trạng thái"
             rules={[{ required: true }]}
           >
             <Select>
-              <Select.Option value="ACTIVE">Active</Select.Option>
-              <Select.Option value="INACTIVE">Inactive</Select.Option>
-              <Select.Option value="OUT_OF_STOCK">Out of Stock</Select.Option>
-              <Select.Option value="COMING_SOON">Coming Soon</Select.Option>
+              <Select.Option value="ACTIVE">Hoạt động</Select.Option>
+              <Select.Option value="INACTIVE">Không hoạt động</Select.Option>
+              <Select.Option value="OUT_OF_STOCK">Hết hàng</Select.Option>
+              <Select.Option value="COMING_SOON">Sắp ra mắt</Select.Option>
             </Select>
           </Form.Item>
 
           <Form.Item
             name="seoTitle"
-            label="SEO Title"
+            label="Tiêu đề SEO"
           >
             <Input />
           </Form.Item>
 
           <Form.Item
             name="seoDescription"
-            label="SEO Description"
+            label="Mô tả SEO"
           >
             <TextArea rows={2} />
           </Form.Item>
 
           <Form.Item
             name="seoUrl"
-            label="SEO URL"
+            label="URL SEO"
           >
             <Input />
           </Form.Item>
@@ -501,21 +501,21 @@ const ProductManagement: React.FC = () => {
             name="isFeatured"
             valuePropName="checked"
           >
-            <Checkbox>Featured Product</Checkbox>
+            <Checkbox>Sản phẩm nổi bật</Checkbox>
           </Form.Item>
 
           <Form.Item
             name="isNew"
             valuePropName="checked"
           >
-            <Checkbox>New Product</Checkbox>
+            <Checkbox>Sản phẩm mới</Checkbox>
           </Form.Item>
 
           <Form.Item
             name="isBestSeller"
             valuePropName="checked"
           >
-            <Checkbox>Best Seller</Checkbox>
+            <Checkbox>Sản phẩm bán chạy</Checkbox>
           </Form.Item>
         </Form>
       </Modal>

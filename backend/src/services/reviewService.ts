@@ -103,4 +103,14 @@ export const deleteReview = async (id: number) => {
   return prisma.review.delete({
     where: { id }
   });
-}; 
+};
+
+export const getAllReviews = async () => {
+  return prisma.review.findMany({
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      product: { select: { id: true, name: true } }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+};

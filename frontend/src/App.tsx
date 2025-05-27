@@ -28,6 +28,7 @@ import BrandsPage from './pages/BrandsPage';
 import BlogPage from "./pages/BlogPage";
 import FeaturedProductsPage from "./pages/FeaturedProductsPage";
 import NotificationsPage from './pages/NotificationsPage';
+import PromotionCode from "./components/promotion/PromotionCode";
 
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -110,6 +111,11 @@ const App = () => {
             <Route path="/flash-sale" element={
               <DefaultLayout>
                 <FlashSalePage />
+              </DefaultLayout>
+            } />
+            <Route path="/promotion-codes" element={
+              <DefaultLayout>
+                <PromotionCode />
               </DefaultLayout>
             } />
             <Route path="/new-arrivals" element={

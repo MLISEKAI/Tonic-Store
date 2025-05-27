@@ -324,12 +324,12 @@ const OrderList: React.FC = () => {
 
   const columns = [
     {
-      title: 'Order ID',
+      title: 'Mã đơn hàng',
       dataIndex: 'id',
       key: 'id',
     },
     {
-      title: 'Customer',
+      title: 'Khách hàng',
       dataIndex: ['user', 'name'],
       key: 'customer',
       render: (text: string, record: OrderDetail) => (
@@ -340,7 +340,7 @@ const OrderList: React.FC = () => {
       ),
     },
     {
-      title: 'Total Amount',
+      title: 'Tổng tiền',
       dataIndex: 'totalPrice',
       key: 'totalPrice',
       render: (amount: number) => (
@@ -351,12 +351,12 @@ const OrderList: React.FC = () => {
       ),
     },
     {
-      title: 'Payment Method',
+      title: 'Phương thức thanh toán',
       dataIndex: ['payment', 'method'],
       key: 'paymentMethod',
     },
     {
-      title: 'Payment Status',
+      title: 'Trạng thái thanh toán',
       dataIndex: ['payment', 'status'],
       key: 'paymentStatus',
       render: (status: PaymentStatus, record: OrderDetail) => (
@@ -372,6 +372,7 @@ const OrderList: React.FC = () => {
             <Button 
               type="primary"
               size="small"
+              className="space-x-2"
               onClick={() => {
                 setSelectedOrder(record);
                 setConfirmModalVisible(true);
@@ -384,7 +385,7 @@ const OrderList: React.FC = () => {
       ),
     },
     {
-      title: 'Order Status',
+      title: 'Trạng thái đơn hàng',
       dataIndex: 'status',
       key: 'status',
       render: (status: OrderStatus) => (
@@ -394,13 +395,13 @@ const OrderList: React.FC = () => {
       ),
     },
     {
-      title: 'Created At',
+      title: 'Được tạo vào lúc',
       dataIndex: 'createdAt',
       key: 'createdAt',
       render: (date: string) => format(new Date(date), 'dd/MM/yyyy HH:mm', { locale: vi }),
     },
     {
-      title: 'Actions',
+      title: 'Hành động',
       key: 'actions',
       render: (_: unknown, record: OrderDetail) => (
         <Space>
@@ -450,7 +451,7 @@ const OrderList: React.FC = () => {
         }}
       >
         <Title level={2} style={{ margin: 0 }}>
-          Order Management
+          Quản lý đơn hàng
         </Title>
 
         <Select<OrderStatus | ''>
@@ -459,16 +460,16 @@ const OrderList: React.FC = () => {
             setStatus(value);
           }}
           style={{ width: 200 }}
-          placeholder="Filter by status"
+          placeholder="Lọc theo trạng thái"
           options={[
-            { value: '', label: 'All Status' },
+            { value: '', label: 'Tất cả trạng thái' },
             ...orderStatusOptions
           ]}
         />
       </div>
 
       {orders.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">No orders found</div>
+        <div className="text-center text-gray-500 py-8">Không tìm thấy đơn đặt hàng</div>
       ) : (
         <Table
           columns={columns}
@@ -528,72 +529,72 @@ const OrderList: React.FC = () => {
       >
         {selectedOrderDetail && (
           <div className="space-y-6">
-            <Descriptions title="Customer Information" bordered>
-              <Descriptions.Item label="Name">{selectedOrderDetail.user?.name}</Descriptions.Item>
+            <Descriptions title="Thông tin khách hàng" bordered>
+              <Descriptions.Item label="Tên">{selectedOrderDetail.user?.name}</Descriptions.Item>
               <Descriptions.Item label="Email">{selectedOrderDetail.user?.email}</Descriptions.Item>
-              <Descriptions.Item label="Phone">{selectedOrderDetail.shippingPhone}</Descriptions.Item>
+              <Descriptions.Item label="Số điện thoại">{selectedOrderDetail.shippingPhone}</Descriptions.Item>
             </Descriptions>
 
-            <Descriptions title="Shipping Information" bordered>
-              <Descriptions.Item label="Name">{selectedOrderDetail.shippingName}</Descriptions.Item>
-              <Descriptions.Item label="Phone">{selectedOrderDetail.shippingPhone}</Descriptions.Item>
-              <Descriptions.Item label="Address" span={3}>{selectedOrderDetail.shippingAddress}</Descriptions.Item>
+            <Descriptions title="Thông tin giao hàng" bordered>
+              <Descriptions.Item label="Tên">{selectedOrderDetail.shippingName}</Descriptions.Item>
+              <Descriptions.Item label="Số điện thoại">{selectedOrderDetail.shippingPhone}</Descriptions.Item>
+              <Descriptions.Item label="Địa chỉ" span={3}>{selectedOrderDetail.shippingAddress}</Descriptions.Item>
             </Descriptions>
 
-            <Descriptions title="Order Information" bordered>
-              <Descriptions.Item label="Order Date">
+            <Descriptions title="Thông tin đơn hàng" bordered>
+              <Descriptions.Item label="Ngày đặt hàng">
                 {format(new Date(selectedOrderDetail.createdAt), 'dd/MM/yyyy HH:mm', { locale: vi })}
               </Descriptions.Item>
-              <Descriptions.Item label="Status">
+              <Descriptions.Item label="Trạng thái">
                 <Tag color={getStatusColor(selectedOrderDetail.status)}>
                   {getStatusLabel(selectedOrderDetail.status)}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Payment Method">
+              <Descriptions.Item label="Phương thức thanh toán">
                 {selectedOrderDetail.payment?.method}
               </Descriptions.Item>
-              <Descriptions.Item label="Payment Status">
-                <Tag color={selectedOrderDetail.payment?.status === 'COMPLETED' ? 'success' : 'warning'}>
+              <Descriptions.Item label="Trạng thái thanh toán">
+                <Tag color={selectedOrderDetail.payment?.status === 'COMPLETED' ? 'Thành công' : 'Cảnh báo'}>
                   {selectedOrderDetail.payment?.status}
                 </Tag>
               </Descriptions.Item>
               {selectedOrderDetail.payment?.transactionId && (
-                <Descriptions.Item label="Transaction ID">
+                <Descriptions.Item label="Mã giao dịch">
                   {selectedOrderDetail.payment.transactionId}
                 </Descriptions.Item>
               )}
               {selectedOrderDetail.payment?.paymentDate && (
-                <Descriptions.Item label="Payment Date">
+                <Descriptions.Item label="Ngày thanh toán">
                   {format(new Date(selectedOrderDetail.payment.paymentDate), 'dd/MM/yyyy HH:mm', { locale: vi })}
                 </Descriptions.Item>
               )}
             </Descriptions>
 
             {selectedOrderDetail.shipper && (
-              <Descriptions title="Shipper Information" bordered>
-                <Descriptions.Item label="Name">{selectedOrderDetail.shipper.name}</Descriptions.Item>
-                <Descriptions.Item label="Phone">{selectedOrderDetail.shipper.phone}</Descriptions.Item>
+              <Descriptions title="Thông tin shipper" bordered>
+                <Descriptions.Item label="Tên">{selectedOrderDetail.shipper.name}</Descriptions.Item>
+                <Descriptions.Item label="Số điện thoại">{selectedOrderDetail.shipper.phone}</Descriptions.Item>
                 <Descriptions.Item label="Email">{selectedOrderDetail.shipper.email}</Descriptions.Item>
-                <Descriptions.Item label="Address">{selectedOrderDetail.shipper.address}</Descriptions.Item>
-                <Descriptions.Item label="Assigned At">
+                <Descriptions.Item label="Địa chỉ">{selectedOrderDetail.shipper.address}</Descriptions.Item>
+                <Descriptions.Item label="Được giao vào lúc">
                   {format(new Date(selectedOrderDetail.updatedAt), 'dd/MM/yyyy HH:mm', { locale: vi })}
                 </Descriptions.Item>
               </Descriptions>
             )}
 
             <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-4">Order Items</h3>
+              <h3 className="text-lg font-semibold mb-4">Sản phẩm trong đơn hàng</h3>
               <Table
                 dataSource={selectedOrderDetail.items}
                 pagination={false}
                 columns={[
                   {
-                    title: 'Product',
+                    title: 'Tên sản phẩm',
                     dataIndex: ['product', 'name'],
                     key: 'product',
                   },
                   {
-                    title: 'Price',
+                    title: 'Giá',
                     dataIndex: 'price',
                     key: 'price',
                     render: (price: number) => (
@@ -604,12 +605,12 @@ const OrderList: React.FC = () => {
                     ),
                   },
                   {
-                    title: 'Quantity',
+                    title: 'Số lượng',
                     dataIndex: 'quantity',
                     key: 'quantity',
                   },
                   {
-                    title: 'Total',
+                    title: 'Tổng tiền',
                     key: 'total',
                     render: (_, record) => (
                       new Intl.NumberFormat('vi-VN', {
@@ -627,7 +628,7 @@ const OrderList: React.FC = () => {
             <div className="flex justify-end">
               <div className="text-right">
                 <div className="text-lg font-semibold">
-                  Total Amount: {new Intl.NumberFormat('vi-VN', {
+                  Tổng tiền: {new Intl.NumberFormat('vi-VN', {
                     style: 'currency',
                     currency: 'VND'
                   }).format(selectedOrderDetail.totalPrice)}

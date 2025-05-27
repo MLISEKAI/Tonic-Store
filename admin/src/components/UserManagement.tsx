@@ -101,7 +101,7 @@ const UserManagement: React.FC = () => {
 
   const columns = [
     {
-      title: 'Name',
+      title: 'Tên',
       dataIndex: 'name',
       key: 'name',
     },
@@ -111,24 +111,24 @@ const UserManagement: React.FC = () => {
       key: 'email',
     },
     {
-      title: 'Role',
+      title: 'Vai trò',
       dataIndex: 'role',
       key: 'role',
     },
     {
-      title: 'Phone',
+      title: 'Số điện thoại',
       dataIndex: 'phone',
       key: 'phone',
       render: (phone: string) => phone || '-',
     },
     {
-      title: 'Address',
+      title: 'Địa chỉ',
       dataIndex: 'address',
       key: 'address',
       render: (address: string) => address || '-',
     },
     {
-      title: 'Actions',
+      title: 'Hành động',
       key: 'actions',
       render: (_: any, record: User) => (
         <Space>
@@ -158,14 +158,14 @@ const UserManagement: React.FC = () => {
         }}
       >
         <Title level={2} style={{ margin: 0 }}>
-          User Management
+          Quản lý người dùng
         </Title>
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => showModal()}
         >
-          Add User
+          Thêm người dùng
         </Button>
       </div>
 
@@ -176,7 +176,7 @@ const UserManagement: React.FC = () => {
       />
 
       <Modal
-        title={selectedUser ? 'Edit User' : 'Add User'}
+        title={selectedUser ? 'Chỉnh sửa người dùng' : 'Thêm người dùng'}
         open={isModalVisible}
         onCancel={handleCancel}
         onOk={handleSubmit}
@@ -187,7 +187,7 @@ const UserManagement: React.FC = () => {
         >
           <Form.Item
             name="name"
-            label="Name"
+            label="Tên"
             rules={[{ required: true }]}
           >
             <Input />
@@ -210,7 +210,7 @@ const UserManagement: React.FC = () => {
                 checked={changePassword}
                 onChange={(e) => setChangePassword(e.target.checked)}
               >
-                Change Password
+                Đổi mật khẩu
               </Checkbox>
             </Form.Item>
           )}
@@ -218,7 +218,7 @@ const UserManagement: React.FC = () => {
           {(changePassword || !selectedUser) && (
             <Form.Item
               name="password"
-              label="Password"
+              label="Mật khẩu"
               rules={[{ required: !selectedUser }]}
             >
               <Input.Password />
@@ -227,26 +227,26 @@ const UserManagement: React.FC = () => {
 
           <Form.Item
             name="role"
-            label="Role"
+            label="Vai trò"
             rules={[{ required: true }]}
           >
             <Select>
-              <Select.Option value="CUSTOMER">Customer</Select.Option>
-              <Select.Option value="ADMIN">Admin</Select.Option>
-              <Select.Option value="DELIVERY">Delivery</Select.Option>
+              <Select.Option value="CUSTOMER">Khách hàng</Select.Option>
+              <Select.Option value="ADMIN">Quản trị viên</Select.Option>
+              <Select.Option value="DELIVERY">Shipper</Select.Option>
             </Select>
           </Form.Item>
 
           <Form.Item
             name="phone"
-            label="Phone"
+            label="Số điện thoại"
           >
             <Input />
           </Form.Item>
 
           <Form.Item
             name="address"
-            label="Address"
+            label="Địa chỉ"
           >
             <Input.TextArea rows={4} />
           </Form.Item>

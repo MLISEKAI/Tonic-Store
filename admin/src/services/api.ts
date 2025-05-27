@@ -11,6 +11,11 @@ const handleResponse = async (response: Response) => {
   return JSON.parse(text);
 };
 
+const getHeaders = () => ({
+  'Authorization': `Bearer ${localStorage.getItem('token')}`,
+  'Content-Type': 'application/json',
+});
+
 // Auth API
 export const login = async (email: string, password: string) => {
   const response = await fetch(`${API_URL}/auth/login`, {
@@ -102,4 +107,143 @@ export const setDefaultShippingAddress = async (id: number) => {
     }
   });
   return handleResponse(response);
+};
+
+// Categories API
+export const categoryService = {
+  getAll: async () => {
+    const response = await fetch(`${API_URL}/categories`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch categories');
+    return response.json();
+  },
+
+  create: async (data: any) => {
+    const response = await fetch(`${API_URL}/categories`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to create category');
+    return response.json();
+  },
+
+  update: async (id: string, data: any) => {
+    const response = await fetch(`${API_URL}/categories/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to update category');
+    return response.json();
+  },
+
+  delete: async (id: string) => {
+    const response = await fetch(`${API_URL}/categories/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete category');
+    return response.json();
+  },
+};
+
+// Promotions API
+export const promotionService = {
+  getAll: async () => {
+    const response = await fetch(`${API_URL}/discount-codes`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch promotions');
+    return response.json();
+  },
+
+  create: async (data: any) => {
+    const response = await fetch(`${API_URL}/discount-codes`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to create promotion');
+    return response.json();
+  },
+
+  update: async (id: string, data: any) => {
+    const response = await fetch(`${API_URL}/discount-codes/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to update promotion');
+    return response.json();
+  },
+
+  delete: async (id: string) => {
+    const response = await fetch(`${API_URL}/discount-codes/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete promotion');
+    return response.json();
+  },
+};
+
+// Shipper API
+export const shipperService = {
+  getAll: async () => {
+    const response = await fetch(`${API_URL}/users`, {
+      headers: getHeaders(),
+    });
+    const data = await handleResponse(response);
+    // Filter only users with DELIVERY role
+    return data.filter((user: any) => user.role === 'DELIVERY');
+  },
+
+  updateStatus: async (id: string, isActive: boolean) => {
+    const response = await fetch(`${API_URL}/users/${id}/status`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ isActive }),
+    });
+    return handleResponse(response);
+  },
+
+  delete: async (id: string) => {
+    const response = await fetch(`${API_URL}/users/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+};
+
+// Reviews API
+export const reviewService = {
+  getAll: async () => {
+    const response = await fetch(`${API_URL}/reviews`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch reviews');
+    return response.json();
+  },
+
+  updateStatus: async (id: string, status: string) => {
+    const response = await fetch(`${API_URL}/reviews/${id}/status`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ status }),
+    });
+    if (!response.ok) throw new Error('Failed to update review status');
+    return response.json();
+  },
+
+  delete: async (id: string) => {
+    const response = await fetch(`${API_URL}/reviews/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete review');
+    return response.json();
+  },
 }; 
