@@ -45,7 +45,7 @@ const Login: React.FC = () => {
         }}>
             <Card style={{ width: 400, padding: '24px' }}>
                 <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                    <Title level={2}>Admin Login</Title>
+                    <Title level={2}>Đăng nhập Admin</Title>
                 </div>
                 <Form
                     form={form}
@@ -56,8 +56,8 @@ const Login: React.FC = () => {
                         name="email"
                         label="Email"
                         rules={[
-                            { required: true, message: 'Please input your email!' },
-                            { type: 'email', message: 'Please enter a valid email!' }
+                            { required: true, message: 'Vui lòng nhập email!' },
+                            { type: 'email', message: 'Vui lòng nhập email hợp lệ!' }
                         ]}
                     >
                         <Input size="large" />
@@ -65,8 +65,8 @@ const Login: React.FC = () => {
 
                     <Form.Item
                         name="password"
-                        label="Password"
-                        rules={[{ required: true, message: 'Please input your password!' }]}
+                        label="Mật khẩu"
+                        rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
                     >
                         <Input.Password size="large" />
                     </Form.Item>
@@ -79,7 +79,7 @@ const Login: React.FC = () => {
                             block
                             loading={loading}
                         >
-                            Sign In
+                            Đăng nhập
                         </Button>
                     </Form.Item>
                 </Form>

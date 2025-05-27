@@ -66,7 +66,7 @@ const ShipperManagement: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <button
-                    onClick={() => {/* TODO: Xem chi tiết */}}
+                    onClick={() => {}}
                     className="text-indigo-600 hover:text-indigo-900 mr-4"
                   >
                     Chi tiết

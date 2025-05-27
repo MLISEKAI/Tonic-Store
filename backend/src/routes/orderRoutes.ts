@@ -188,6 +188,62 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
   }
 });
 
+// Get delivery orders
+router.get('/delivery', authenticate, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (req.user.role !== 'DELIVERY') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const { page = 1, limit = 10 } = req.query;
+    const orders = await prisma.order.findMany({
+      where: {
+        shipperId: req.user.id
+      },
+      include: {
+        items: {
+          include: {
+            product: true
+          }
+        },
+        user: true,
+        payment: {
+          select: {
+            method: true,
+            status: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit)
+    });
+
+    const total = await prisma.order.count({
+      where: {
+        shipperId: req.user.id
+      }
+    });
+
+    res.json({
+      orders,
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      totalPages: Math.ceil(total / Number(limit))
+    });
+  } catch (error) {
+    console.error('Error getting delivery orders:', error);
+    res.status(500).json({ error: 'Failed to get order' });
+  }
+});
+
 // Get order by ID
 router.get('/:id', authenticate, async (req: Request, res: Response) => {
   try {

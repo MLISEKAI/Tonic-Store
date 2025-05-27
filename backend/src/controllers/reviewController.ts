@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { createReview, getProductReviews, getUserReviews, updateReview, deleteReview } from '../services/reviewService';
+import { createReview, getProductReviews, getUserReviews, updateReview, deleteReview, getAllReviews} from '../services/reviewService';
 import { updateProductRating } from '../services/productService';
 
 export const getProductReviewsController = async (req: Request, res: Response) => {
@@ -76,4 +76,13 @@ export const deleteReviewController = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete review' });
   }
-}; 
+};
+
+export const getAllReviewsController = async (req: Request, res: Response) => {
+  try {
+    const reviews = await getAllReviews();
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get all reviews' });
+  }
+};

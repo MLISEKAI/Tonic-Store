@@ -8,6 +8,7 @@ import orderRoutes from './routes/orderRoutes';
 import statsRoutes from './routes/statsRoutes';
 import categoryRoutes from "./routes/categoryRoutes";
 import shippingAddressRoutes from './routes/shippingAddressRoutes';
+import discountCodeRoutes from './routes/discountCodeRoutes';
 
 const app = express();
 
@@ -22,5 +23,6 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/shipping-addresses', shippingAddressRoutes);
+app.use('/api/discount-codes', discountCodeRoutes);
 
 export default app; 

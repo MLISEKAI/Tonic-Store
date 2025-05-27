@@ -145,7 +145,7 @@ const ShippingAddressesPage: React.FC = () => {
 
   const columns = [
     {
-      title: 'Customer',
+      title: 'Khách hàng',
       dataIndex: ['user', 'name'],
       key: 'customer',
       render: (text: string, record: ShippingAddress) => (
@@ -181,7 +181,7 @@ const ShippingAddressesPage: React.FC = () => {
       ),
     },
     {
-      title: 'Actions',
+      title: 'Hành động',
       key: 'actions',
       render: (_: any, record: ShippingAddress) => (
         <Space>
@@ -224,14 +224,14 @@ const ShippingAddressesPage: React.FC = () => {
         }}
       >
         <Title level={2} style={{ margin: 0 }}>
-          Shipping Addresses Management
+          Quản lý địa chỉ giao hàng
         </Title>
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => showModal()}
         >
-          Add New Address
+          Thêm địa chỉ mới
         </Button>
       </div>
 
@@ -255,7 +255,7 @@ const ShippingAddressesPage: React.FC = () => {
         >
           <Form.Item
             name="name"
-            label="Name"
+            label="Tên"
             rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
           >
             <Input />
@@ -263,7 +263,7 @@ const ShippingAddressesPage: React.FC = () => {
 
           <Form.Item
             name="phone"
-            label="Phone"
+            label="Số điện thoại"
             rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
           >
             <Input />
@@ -271,7 +271,7 @@ const ShippingAddressesPage: React.FC = () => {
 
           <Form.Item
             name="address"
-            label="Address"
+            label="Địa chỉ"
             rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
           >
             <TextArea rows={4} />
@@ -279,7 +279,7 @@ const ShippingAddressesPage: React.FC = () => {
 
           <Form.Item
             name="userId"
-            label="User ID"
+            label="ID người dùng"
             rules={[{ required: true, message: 'Vui lòng nhập ID người dùng!' }]}
           >
             <Input type="number" />

@@ -24,6 +24,7 @@ import shippingAddressRoutes from "./routes/shippingAddressRoutes";
 import shipperRoutes from './routes/shipperRoutes';
 import wishlistRoutes from './routes/wishlistRoutes';
 import notificationRoutes from "./routes/notificationRoutes";
+import discountCodeRoutes from './routes/discountCodeRoutes';
 
 dotenv.config();
 const app = express();
@@ -109,6 +110,7 @@ app.use('/api/shipping-addresses', shippingAddressRoutes);
 app.use('/api/shippers', shipperRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/discount-codes', discountCodeRoutes);
 
 
 // Middleware để bắt lỗi

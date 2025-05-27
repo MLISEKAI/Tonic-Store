@@ -9,13 +9,22 @@ import {
   ShoppingCartOutlined,
   CarOutlined,
   LogoutOutlined,
+  AppstoreOutlined,
+  TagOutlined,
+  TeamOutlined,
+  CommentOutlined,
+  GiftOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ProductManagement from '../components/ProductManagement';
+import ProductCategories from '../components/ProductCategories';
 import UserManagement from '../components/UserManagement';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import OrderList from '../components/OrderList';
 import ShippingAddressesPage from '../components/ShippingAddressesPage';
+import Promotions from '../components/Promotions';
+import Reviews from '../components/Reviews';
+import ShipperList from '../components/ShipperList';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -96,32 +105,62 @@ const AdminDashboard: React.FC = () => {
     {
       key: 'dashboard',
       icon: <DashboardOutlined />,
-      label: 'Dashboard',
+      label: 'Bảng điều khiển',
     },
     {
       key: 'products',
       icon: <ShoppingOutlined />,
-      label: 'Products',
-    },
-    {
-      key: 'users',
-      icon: <UserOutlined />,
-      label: 'Users',
+      label: 'Sản phẩm',
+      children: [
+        {
+          key: 'product-list',
+          label: 'Danh sách sản phẩm',
+        },
+        {
+          key: 'product-categories',
+          label: 'Danh mục sản phẩm',
+        },
+      ],
     },
     {
       key: 'orders',
       icon: <ShoppingCartOutlined />,
-      label: 'Orders',
+      label: 'Đơn hàng',
     },
     {
       key: 'shipping',
       icon: <CarOutlined />,
-      label: 'Shipping Addresses',
+      label: 'Địa chỉ giao hàng',
+    },
+    {
+      key: 'users',
+      icon: <UserOutlined />,
+      label: 'Người dùng',
+      children: [
+        {
+          key: 'user-list',
+          label: 'Danh sách user',
+        },
+        {
+          key: 'shippers',
+          label: 'Shipper',
+        },
+      ],
+    },
+    {
+      key: 'discount-codes',
+      icon: <GiftOutlined />,
+      label: 'Mã giảm giá / Khuyến mãi',
+    },
+    {
+      key: 'reviews',
+      icon: <CommentOutlined />,
+      label: 'Bình luận / Đánh giá',
     },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
-      label: 'Logout',
+      label: 'Đăng xuất',
     },
   ];
 
@@ -131,14 +170,14 @@ const AdminDashboard: React.FC = () => {
     }
 
     if (!stats) {
-      return <Typography>Error loading statistics</Typography>;
+      return <Typography>Lỗi tải thống kê</Typography>;
     }
 
     const statCards = [
-      { title: 'Total Products', value: stats.totalProducts, color: '#4caf50' },
-      { title: 'Total Users', value: stats.totalUsers, color: '#2196f3' },
-      { title: 'Total Orders', value: stats.totalOrders, color: '#f44336' },
-      { title: 'Total Revenue', value: `$${stats.totalRevenue.toFixed(2)}`, color: '#ff9800' },
+      { title: 'Tổng sản phẩm', value: stats.totalProducts, color: '#4caf50' },
+      { title: 'Tổng người dùng', value: stats.totalUsers, color: '#2196f3' },
+      { title: 'Tổng đơn hàng', value: stats.totalOrders, color: '#f44336' },
+      { title: 'Tổng doanh thu', value: `$${stats.totalRevenue.toFixed(2)}`, color: '#ff9800' },
     ];
 
     return (
@@ -159,7 +198,7 @@ const AdminDashboard: React.FC = () => {
 
         <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
           <Col xs={24} md={12}>
-            <Card title="Orders by Status">
+            <Card title="Đơn hàng theo trạng thái">
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -186,7 +225,7 @@ const AdminDashboard: React.FC = () => {
             </Card>
           </Col>
           <Col xs={24} md={12}>
-            <Card title="Top Selling Products">
+            <Card title="Sản phẩm bán chạy nhất">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={stats.topProducts}>
                   <XAxis 
@@ -225,6 +264,7 @@ const AdminDashboard: React.FC = () => {
           theme="dark"
           mode="inline"
           selectedKeys={[selectedKey]}
+          defaultOpenKeys={['products', 'users']}
           items={menuItems}
           onClick={({ key }) => handleMenuClick(key)}
         />
@@ -240,10 +280,14 @@ const AdminDashboard: React.FC = () => {
         </Header>
         <Content style={{ padding: 24, background: '#fff', minHeight: 280 }}>
           {selectedKey === 'dashboard' && <Dashboard />}
-          {selectedKey === 'products' && <ProductManagement />}
-          {selectedKey === 'users' && <UserManagement />}
+          {selectedKey === 'product-list' && <ProductManagement />}
+          {selectedKey === 'product-categories' && <ProductCategories />}
+          {selectedKey === 'user-list' && <UserManagement />}
+          {selectedKey === 'shippers' && <ShipperList />}
           {selectedKey === 'orders' && <OrderList />}
           {selectedKey === 'shipping' && <ShippingAddressesPage />}
+          {selectedKey === 'discount-codes' && <Promotions />}
+          {selectedKey === 'reviews' && <Reviews />}
         </Content>
       </Layout>
     </Layout>
