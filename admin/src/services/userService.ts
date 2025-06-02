@@ -1,33 +1,7 @@
+import { User, CreateUserData, UpdateUserData } from '../types/user';
+
 const API_URL = `${import.meta.env.VITE_API_URL}/users`;
 const AUTH_URL = `${import.meta.env.VITE_API_URL}/auth`;
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  phone?: string;
-  address?: string;
-  createdAt: string;
-}
-
-export interface CreateUserData {
-  name: string;
-  email: string;
-  password: string;
-  role: string;
-  phone?: string;
-  address?: string;
-}
-
-export interface UpdateUserData {
-  name?: string;
-  email?: string;
-  password?: string;
-  role?: string;
-  phone?: string;
-  address?: string;
-}
 
 const handleResponse = async (res: Response) => {
   if (!res.ok) {

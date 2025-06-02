@@ -25,27 +25,11 @@ import ShippingAddressesPage from '../components/ShippingAddressesPage';
 import Promotions from '../components/DiscountCode';
 import Reviews from '../components/Reviews';
 import ShipperList from '../components/ShipperList';
+import { StatsData } from '../types/stats';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 const API_URL = import.meta.env.VITE_API_URL;
-
-interface StatsData {
-  totalProducts: number;
-  totalUsers: number;
-  totalOrders: number;
-  totalRevenue: number;
-  ordersByStatus: Array<{
-    status: string;
-    _count: {
-      status: number;
-    };
-  }>;
-  topProducts: Array<{
-    name: string;
-    value: number;
-  }>;
-}
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 

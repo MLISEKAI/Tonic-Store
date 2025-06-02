@@ -1,18 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Button,
-  Table,
-  Modal,
-  Form,
-  Input,
-  Select,
-  Checkbox,
-  Space,
-  Card,
-  Typography,
-} from 'antd';
+import { Button, Table, Modal, Form, Input, Select, Checkbox, Space, Card, Typography } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { userService, User, CreateUserData, UpdateUserData } from '../services/userService';
+import { userService } from '../services/userService';
+import { User, CreateUserData, UpdateUserData } from '../types/user';
 
 const { Title } = Typography;
 

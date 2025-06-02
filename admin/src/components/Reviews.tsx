@@ -2,26 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, message, Popconfirm, Rate, Tag, Modal, Typography } from 'antd';
 import { DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { reviewService } from '../services/api';
+import { Review } from '../types/review';
 
 const { Text } = Typography;
-
-interface Review {
-  id: string;
-  productId: string;
-  product: {
-    id: string;
-    name: string;
-  };
-  userId: string;
-  user: {
-    id: string;
-    name: string;
-  };
-  rating: number;
-  comment: string;
-  createdAt: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-}
 
 const Reviews: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);

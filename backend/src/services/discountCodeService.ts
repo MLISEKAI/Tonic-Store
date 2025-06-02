@@ -298,5 +298,33 @@ export const discountCodeService = {
       where: { id: usage.id },
       data: { orderId }
     });
+  },
+
+  // Reset số lần sử dụng của mã giảm giá
+  resetUsage: async (id: number) => {
+    // Kiểm tra mã tồn tại
+    const existingCode = await prisma.discountCode.findUnique({
+      where: { id }
+    });
+
+    if (!existingCode) {
+      throw new Error('Mã giảm giá không tồn tại');
+    }
+
+    // Sử dụng transaction để đảm bảo tính nhất quán
+    return await prisma.$transaction(async (tx) => {
+      // Xóa tất cả bản ghi sử dụng mã
+      await tx.discountCodeUsage.deleteMany({
+        where: { discountCodeId: id }
+      });
+
+      // Reset số lần sử dụng về 0
+      return tx.discountCode.update({
+        where: { id },
+        data: {
+          usedCount: 0
+        }
+      });
+    });
   }
 }; 

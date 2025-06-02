@@ -1,25 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, DatePicker, InputNumber, Select } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, DatePicker, InputNumber, Select, Tooltip } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { promotionService } from '../services/api';
+import { Promotion } from '../types/promotion';
 
 const { RangePicker } = DatePicker;
-
-interface Promotion {
-  id: string;
-  code: string;
-  description: string;
-  discountType: 'PERCENTAGE' | 'FIXED_AMOUNT';
-  discountValue: number;
-  minOrderValue: number;
-  maxDiscount: number;
-  startDate: string;
-  endDate: string;
-  usageLimit: number;
-  usedCount: number;
-  isActive: boolean;
-}
 
 const Promotions: React.FC = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -59,13 +45,23 @@ const Promotions: React.FC = () => {
     setModalVisible(true);
   };
 
+  const handleResetUsage = async (id: string) => {
+    try {
+      await promotionService.resetUsage(id);
+      message.success('Đã reset số lần sử dụng thành công. Tất cả tài khoản có thể sử dụng lại mã này.');
+      fetchPromotions();
+    } catch (error) {
+      message.error('Không thể reset số lần sử dụng. Vui lòng thử lại sau.');
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await promotionService.delete(id);
-      message.success('Promotion deleted successfully');
+      message.success('Mã giảm giá đã được xóa thành công.');
       fetchPromotions();
     } catch (error) {
-      message.error('Failed to delete promotion');
+      message.error('Không thể xóa mã giảm giá. Vui lòng thử lại sau.');
     }
   };
 
@@ -119,10 +115,12 @@ const Promotions: React.FC = () => {
       ),
     },
     {
-      title: 'Số lần sử dụng',
+      title: 'Số tài khoản đã sử dụng / Tổng số tài khoản cho phép',
       key: 'usage',
       render: (record: Promotion) => (
-        `${record.usedCount}/${record.usageLimit}`
+        <Tooltip title="Số tài khoản đã sử dụng mã này. Mỗi tài khoản chỉ được sử dụng một lần. Nhấn nút Reset để cho phép tất cả tài khoản sử dụng lại.">
+          <span>{`${record.usedCount}/${record.usageLimit}`}</span>
+        </Tooltip>
       ),
     },
     {
@@ -145,8 +143,22 @@ const Promotions: React.FC = () => {
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
           >
-            Edit
+            Sửa
           </Button>
+          <Popconfirm
+            title="Reset số lần sử dụng?"
+            description="Điều này sẽ cho phép tất cả tài khoản sử dụng lại mã này. Bạn có chắc chắn muốn tiếp tục?"
+            onConfirm={() => handleResetUsage(record.id)}
+            okText="Có"
+            cancelText="Không"
+          >
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={(e) => e.stopPropagation()}
+            >
+              Reset
+            </Button>
+          </Popconfirm>
           <Popconfirm
             title="Bạn có chắc chắn muốn xóa mã giảm giá này không?"
             onConfirm={() => handleDelete(record.id)}

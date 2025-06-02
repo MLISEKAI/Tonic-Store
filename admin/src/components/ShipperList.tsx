@@ -2,15 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, message, Popconfirm, Tag, Switch } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import { shipperService } from '../services/api';
-
-interface Shipper {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  isActive: boolean;
-  createdAt: string;
-}
+import { Shipper } from '../types/user';
 
 const ShipperList: React.FC = () => {
   const [shippers, setShippers] = useState<Shipper[]>([]);
@@ -32,7 +24,7 @@ const ShipperList: React.FC = () => {
     fetchShippers();
   }, []);
 
-  const handleStatusChange = async (id: string, isActive: boolean) => {
+  const handleStatusChange = async (id: number, isActive: boolean) => {
     try {
       await shipperService.updateStatus(id, isActive);
       message.success('Shipper status updated successfully');
@@ -42,7 +34,7 @@ const ShipperList: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await shipperService.delete(id);
       message.success('Shipper deleted successfully');

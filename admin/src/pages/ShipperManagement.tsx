@@ -1,14 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ShipperService } from '../services/shipperService';
-
-interface Shipper {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  createdAt: string;
-}
+import { Shipper } from '../types/shiper'
 
 const ShipperManagement: React.FC = () => {
   const [shippers, setShippers] = useState<Shipper[]>([]);

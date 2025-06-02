@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Button,
-  Table,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Checkbox,
-  Space,
-  Card,
-  Typography,
-  notification,
-} from 'antd';
+import { Button, Table, Modal, Form, Input, InputNumber, Select, Checkbox, Space, Card, Typography, notification } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { productService, Product, CreateProductData, UpdateProductData } from '../services/productService';
+import { productService } from '../services/productService';
+import { Product, CreateProductData, UpdateProductData } from '../types/product';
 
 const { Title } = Typography;
 const { TextArea } = Input;

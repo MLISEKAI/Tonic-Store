@@ -129,7 +129,7 @@ export const categoryService = {
     return response.json();
   },
 
-  update: async (id: string, data: any) => {
+  update: async (id: number, data: any) => {
     const response = await fetch(`${API_URL}/categories/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
@@ -139,7 +139,7 @@ export const categoryService = {
     return response.json();
   },
 
-  delete: async (id: string) => {
+  delete: async (id: number) => {
     const response = await fetch(`${API_URL}/categories/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
@@ -187,6 +187,15 @@ export const promotionService = {
     if (!response.ok) throw new Error('Failed to delete promotion');
     return response.json();
   },
+
+  resetUsage: async (id: string) => {
+    const response = await fetch(`${API_URL}/discount-codes/${id}/reset`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to reset promotion usage');
+    return response.json();
+  },
 };
 
 // Shipper API
@@ -200,7 +209,7 @@ export const shipperService = {
     return data.filter((user: any) => user.role === 'DELIVERY');
   },
 
-  updateStatus: async (id: string, isActive: boolean) => {
+  updateStatus: async (id: number, isActive: boolean) => {
     const response = await fetch(`${API_URL}/users/${id}/status`, {
       method: 'PUT',
       headers: getHeaders(),
@@ -209,7 +218,7 @@ export const shipperService = {
     return handleResponse(response);
   },
 
-  delete: async (id: string) => {
+  delete: async (id: number) => {
     const response = await fetch(`${API_URL}/users/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
