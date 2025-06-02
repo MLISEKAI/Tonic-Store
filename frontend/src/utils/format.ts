@@ -2,7 +2,9 @@ export const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
-  }).format(price);
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(Math.floor(price * 100) / 100);
 };
 
 export const formatDate = (date: string | Date): string => {

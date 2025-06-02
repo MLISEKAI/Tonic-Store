@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { Button, notification, Modal } from 'antd';
-import { CartService } from '../services/carts/cartService';
 import { ShippingAddressService } from '../services/shipping/shippingAddressService';
 import { formatPrice } from '../utils/format';
 
@@ -14,7 +13,6 @@ export const CartPage: FC = () => {
 
   const handleUpdateQuantity = async (cartItemId: number, quantity: number) => {
     try {
-      await CartService.updateCartItem(cartItemId, quantity);
       await updateQuantity(cartItemId, quantity);
     } catch (err) {
       console.error('Không thể cập nhật số lượng:', err);
@@ -23,7 +21,6 @@ export const CartPage: FC = () => {
 
   const handleRemoveItem = async (cartItemId: number) => {
     try {
-      await CartService.removeFromCart(cartItemId);
       await removeFromCart(cartItemId);
     } catch (err) {
       console.error('Không thể xóa sản phẩm:', err);

@@ -74,6 +74,8 @@ interface Order {
   createdAt: string;
   items: OrderItem[];
   payment?: Payment;
+  promotionCode?: string;
+  discount: number;
 }
 
 const OrderDetailPage: React.FC = () => {
@@ -214,17 +216,29 @@ const OrderDetailPage: React.FC = () => {
 
       <Card title="Thông tin đơn hàng">
         <Descriptions column={1} bordered size="small">
-          <Descriptions.Item label="Trạng thái">{order.status}</Descriptions.Item>
+          <Descriptions.Item label="Trạng thái">{getStatusLabel(order.status)}</Descriptions.Item>
           <Descriptions.Item label="Ngày đặt">{formatDate(order.createdAt)}</Descriptions.Item>
-          <Descriptions.Item label="Tổng tiền"><strong className="text-indigo-600">{formatPrice(order.totalPrice)}</strong></Descriptions.Item>
-              {order.payment && (
-                <>
+          {order.promotionCode && (
+            <>
+              <Descriptions.Item label="Mã giảm giá đã áp dụng">
+                <span className="text-green-600 font-semibold">{order.promotionCode}</span>
+              </Descriptions.Item>
+              <Descriptions.Item label="Số tiền được giảm">
+                <span className="text-red-600 font-semibold">-{formatPrice(order.discount)}</span>
+              </Descriptions.Item>
+            </>
+          )}
+          <Descriptions.Item label="Tổng tiền">
+            <strong className="text-indigo-600">{formatPrice(order.totalPrice)}</strong>
+          </Descriptions.Item>
+          {order.payment && (
+            <>
               <Descriptions.Item label="Phương thức thanh toán">{order.payment.method}</Descriptions.Item>
               <Descriptions.Item label="Trạng thái thanh toán">
                 <Space>{getPaymentStatusIcon(order.payment.status)} {order.payment.status}</Space>
               </Descriptions.Item>
-                </>
-              )}
+            </>
+          )}
         </Descriptions>
         {order.payment?.method === 'BANK_TRANSFER' && (
           <div className="mt-4">
@@ -253,6 +267,9 @@ const OrderDetailPage: React.FC = () => {
         <Divider />
         <div className="text-right font-bold text-lg text-indigo-600">
           Tổng cộng: {formatPrice(order.totalPrice)}
+          {order.promotionCode && order.discount > 0 && (
+            <div className="text-sm text-green-600 font-normal">Đã áp dụng mã: <b>{order.promotionCode}</b> (-{formatPrice(order.discount)})</div>
+          )}
         </div>
       </Card>
 

@@ -28,7 +28,7 @@ import BrandsPage from './pages/BrandsPage';
 import BlogPage from "./pages/BlogPage";
 import FeaturedProductsPage from "./pages/FeaturedProductsPage";
 import NotificationsPage from './pages/NotificationsPage';
-import PromotionCode from "./components/promotion/PromotionCode";
+import PromotionCode from "./components/discount-codes/DiscountCode";
 
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {

@@ -28,6 +28,8 @@ export const OrderController = {
         shippingName,
         note,
         paymentMethod,
+        promotionCode,
+        discount,
       } = req.body;
 
       // Validate input
@@ -37,7 +39,9 @@ export const OrderController = {
         !shippingAddress ||
         !shippingPhone ||
         !shippingName ||
-        !paymentMethod
+        !paymentMethod ||
+        !promotionCode ||
+        !discount
       ) {
         return res.status(400).json({ error: "Missing required fields" });
       }
@@ -48,6 +52,12 @@ export const OrderController = {
         0
       );
 
+      console.log("Creating order with:", {
+        promotionCode,
+        discount,
+        typeOfDiscount: typeof discount
+      });
+      
       // Create order
       const order = await prisma.order.create({
         data: {
@@ -58,12 +68,14 @@ export const OrderController = {
           shippingName,
           note,
           status: "PENDING",
+          promotionCode: typeof promotionCode === 'string' ? promotionCode : undefined,
+          discount: discount !== undefined ? Number(discount) : undefined,
           items: {
             create: items.map((item: OrderItem) => ({
               productId: item.productId,
               quantity: item.quantity,
-              price: item.price,
-            })),
+              price: item.price
+            }))
           },
           payment: {
             create: {
@@ -72,17 +84,21 @@ export const OrderController = {
               amount: Number(totalPrice),
               currency: "VND"
             }
-          },
+          }
         },
         include: {
-          items: {
-            include: {
-              product: true,
-            },
-          },
-          payment: true,
-        },
+          items: { include: { product: true } },
+          payment: true
+        }
       });
+
+      // Nếu có promotionCode, tăng usedCount
+      if (promotionCode) {
+        await prisma.discountCode.update({
+          where: { code: promotionCode },
+          data: { usedCount: { increment: 1 } }
+        });
+      }
 
       // Create initial delivery log
       await prisma.deliveryLog.create({

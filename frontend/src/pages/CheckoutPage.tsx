@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,8 +7,17 @@ import { ShippingAddressService } from '../services/shipping/shippingAddressServ
 import { PaymentService } from '../services/order/paymentService';
 import { formatPrice } from '../utils/format';
 import VNPayPayment from '../components/payment/VNPayPayment';
+import PromotionCodeInput, { PromotionCodeInputRef } from '../components/checkout/PromotionCodeInput';
 import { Order, PaymentMethod, PaymentStatus } from '../types';
 import { message, Form, Input, Select, Button, Radio, Spin, Checkbox, Modal } from 'antd';
+
+interface CartItem {
+  product: {
+    id: number;
+    price: number;
+  };
+  quantity: number;
+}
 
 const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,6 +38,10 @@ const CheckoutPage: React.FC = () => {
   const [editAddress, setEditAddress] = useState('');
   const [bankTransferModalVisible, setBankTransferModalVisible] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<any>(null);
+  const [discount, setDiscount] = useState(0);
+  const [finalPrice, setFinalPrice] = useState(0);
+  const promotionCodeRef = useRef<PromotionCodeInputRef>(null);
+  const [appliedPromotionCode, setAppliedPromotionCode] = useState<string | null>(null);
 
   const fetchAddresses = async () => {
     try {
@@ -111,23 +124,28 @@ const CheckoutPage: React.FC = () => {
       }
   
       // Chuẩn bị dữ liệu đơn hàng
+      const cartTotal = cart.items.reduce((sum, item) => 
+        sum + parseFloat(item.product.price.toString().replace(',', '.')) * item.quantity, 
+        0
+      );
+
       const orderData = {
         items: cart.items.map(item => ({
           productId: item.product.id,
           quantity: item.quantity,
           price: parseFloat(item.product.price.toString().replace(',', '.'))
         })),
-        totalPrice: cart.items.reduce((sum, item) => 
-          sum + parseFloat(item.product.price.toString().replace(',', '.')) * item.quantity, 
-          0
-        ),
+        totalPrice: finalPrice || cartTotal,
+        originalPrice: cartTotal,
+        discount: discount,
         shippingAddress: shippingInfo.address,
         shippingPhone: shippingInfo.phone,
         shippingName: shippingInfo.name,
         note: values.note,
         paymentMethod: values.paymentMethod,
         userId: user.id,
-        shippingAddressId: shippingInfo.id || selectedAddress
+        shippingAddressId: shippingInfo.id || selectedAddress,
+        promotionCode: appliedPromotionCode
       };
   
       console.log('Creating order with data:', orderData);
@@ -139,6 +157,11 @@ const CheckoutPage: React.FC = () => {
       // Kiểm tra phản hồi từ backend
       if (!data || !data.order) {
         throw new Error('Không thể tạo đơn hàng');
+      }
+
+      // Xóa mã giảm giá sau khi đặt hàng thành công
+      if (promotionCodeRef.current) {
+        promotionCodeRef.current.clearAppliedCode();
       }
 
       // Xử lý theo phương thức thanh toán
@@ -253,8 +276,8 @@ const CheckoutPage: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-8">Thanh toán</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2">
           <h2 className="text-xl font-bold mb-4">Địa chỉ nhận hàng</h2>
 
           {shippingAddresses.filter(addr => addr.isDefault).map(defaultAddress => (
@@ -413,47 +436,46 @@ const CheckoutPage: React.FC = () => {
           </Form>
         </div>
 
-        <div>
-          <h2 className="text-xl font-bold mb-4">Đơn hàng</h2>
-          <div className="bg-white shadow rounded-lg p-6">
-            <ul className="divide-y divide-gray-200">
-              {cart.items.map((item) => (
-                <li key={item.id} className="py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      {item.product.imageUrl && (
-                        <img
-                          src={item.product.imageUrl}
-                          alt={item.product.name}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                      )}
-                      <div className="ml-4">
-                        <h4 className="text-lg font-medium text-gray-900">
-                          {item.product.name}
-                        </h4>
-                        <p className="text-gray-500">
-                          Số lượng: {item.quantity}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-indigo-600 font-medium">
-                      {formatPrice(item.product.price * item.quantity)}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+        <div className="md:col-span-1">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4">Đơn hàng của bạn</h2>
+            
+            <PromotionCodeInput
+              ref={promotionCodeRef}
+              orderValue={cart.items.reduce((sum, item) => 
+                sum + parseFloat(item.product.price.toString().replace(',', '.')) * item.quantity, 
+                0
+              )}
+              onDiscountApplied={(discount, final, code) => {
+                setDiscount(discount);
+                setFinalPrice(final);
+                setAppliedPromotionCode(code || null);
+              }}
+            />
 
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="flex justify-between text-lg font-bold">
+            <div className="space-y-2 mb-4">
+              {cart.items.map((item) => (
+                <div key={item.product.id} className="flex justify-between">
+                  <span>{item.product.name} x {item.quantity}</span>
+                  <span>{formatPrice(item.product.price * item.quantity)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t pt-4 space-y-2">
+              <div className="flex justify-between">
+                <span>Tạm tính:</span>
+                <span>{formatPrice(cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0))}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Giảm giá:</span>
+                  <span>-{formatPrice(discount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-semibold">
                 <span>Tổng cộng:</span>
-                <span className="text-indigo-600">
-                  {formatPrice(cart.items.reduce(
-                    (sum, item) => sum + item.product.price * item.quantity,
-                    0
-                  ))}
-                </span>
+                <span>{formatPrice(finalPrice || cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0))}</span>
               </div>
             </div>
           </div>

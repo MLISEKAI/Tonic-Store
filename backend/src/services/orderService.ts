@@ -29,7 +29,9 @@ export const createOrder = async (
   shippingAddress: string,
   shippingPhone: string,
   shippingName: string,
-  note?: string
+  note?: string,
+  promotionCode?: string,
+  discount?: number
 ) => {
   try {
     // Check stock availability for all items
@@ -45,6 +47,8 @@ export const createOrder = async (
       shippingPhone,
       shippingName,
       note,
+      promotionCode,
+      discount,
       items: {
         create: items.map((item) => ({
           productId: item.productId,
