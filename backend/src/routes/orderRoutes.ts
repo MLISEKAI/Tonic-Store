@@ -128,7 +128,7 @@ router.get('/user', authenticate, async (req: Request, res: Response) => {
 // Create new order
 router.post('/', authenticate, async (req: Request, res: Response) => {
   try {
-    const { items, totalPrice, shippingAddress, shippingPhone, shippingName, note, paymentMethod } = req.body;
+    const { items, totalPrice, shippingAddress, shippingPhone, shippingName, note, paymentMethod, promotionCode, discount } = req.body;
     const userId = req.user!.id;
 
     // Validate required fields
@@ -164,7 +164,9 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
       shippingAddress,
       shippingPhone,
       shippingName,
-      note
+      note,
+      promotionCode,
+      discount
     );
 
     // Create payment record

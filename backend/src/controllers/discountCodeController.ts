@@ -68,21 +68,80 @@ export const deleteDiscountCode = async (req: Request, res: Response) => {
 
 export const validateDiscountCode = async (req: Request, res: Response) => {
   try {
-    const { code, orderValue } = req.body;
-    
-    if (!code || !orderValue) {
-      return res.status(400).json({ 
-        message: 'Discount code and order value are required' 
+    const { code } = req.body;
+    const userId = req.user?.id;
+
+    if (!code) {
+      return res.status(400).json({
+        message: 'Mã giảm giá là bắt buộc'
       });
     }
 
-    const result = await discountCodeService.validateAndApply(code, orderValue);
+    if (!userId) {
+      return res.status(401).json({
+        message: 'Vui lòng đăng nhập để sử dụng mã giảm giá'
+      });
+    }
+
+    const result = await discountCodeService.validateAndApply(code, userId);
     res.json(result);
   } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
-      res.status(500).json({ message: 'Failed to validate discount code' });
+      res.status(500).json({ message: 'Không thể xác thực mã giảm giá' });
+    }
+  }
+};
+
+// Thêm controller mới để lưu thông tin sử dụng mã
+export const saveDiscountCodeUsage = async (req: Request, res: Response) => {
+  try {
+    const { discountCodeId, orderId } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId || !discountCodeId || !orderId) {
+      return res.status(400).json({
+        message: 'Thiếu thông tin cần thiết'
+      });
+    }
+
+    await discountCodeService.saveDiscountCodeUsage(userId, discountCodeId, orderId);
+    res.status(200).json({ message: 'Đã lưu thông tin sử dụng mã giảm giá' });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Không thể lưu thông tin sử dụng mã giảm giá' });
+    }
+  }
+};
+
+// Thêm controller mới để áp dụng mã giảm giá trong checkout
+export const applyDiscountCode = async (req: Request, res: Response) => {
+  try {
+    const { code, orderValue } = req.body;
+    const userId = req.user?.id;
+    
+    if (!code || !orderValue) {
+      return res.status(400).json({ 
+        message: 'Mã giảm giá và giá trị đơn hàng là bắt buộc' 
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        message: 'Vui lòng đăng nhập để sử dụng mã giảm giá'
+      });
+    }
+
+    const result = await discountCodeService.applyDiscountCode(code, orderValue, userId);
+    res.json(result);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Không thể áp dụng mã giảm giá' });
     }
   }
 }; 

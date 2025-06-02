@@ -31,6 +31,8 @@ interface OrderDetail extends Omit<Order, 'status' | 'items'> {
     phone: string;
     address: string;
   };
+  promotionCode?: string;
+  discount: number;
 }
 
 const { Title } = Typography;
@@ -558,6 +560,16 @@ const OrderList: React.FC = () => {
                   {selectedOrderDetail.payment?.status}
                 </Tag>
               </Descriptions.Item>
+              {selectedOrderDetail.promotionCode && (
+                <Descriptions.Item label="Mã giảm giá đã áp dụng">
+                  <span className="text-green-600 font-semibold">{selectedOrderDetail.promotionCode}</span>
+                </Descriptions.Item>
+              )}
+              {selectedOrderDetail.discount > 0 && (
+                <Descriptions.Item label="Số tiền được giảm">
+                  <span className="text-red-600 font-semibold">-{selectedOrderDetail.discount.toLocaleString('vi-VN')}₫</span>
+                </Descriptions.Item>
+              )}
               {selectedOrderDetail.payment?.transactionId && (
                 <Descriptions.Item label="Mã giao dịch">
                   {selectedOrderDetail.payment.transactionId}
@@ -632,6 +644,9 @@ const OrderList: React.FC = () => {
                     style: 'currency',
                     currency: 'VND'
                   }).format(selectedOrderDetail.totalPrice)}
+                  {selectedOrderDetail.promotionCode && selectedOrderDetail.discount > 0 && (
+                    <div className="text-sm text-green-600 font-normal">Đã áp dụng mã: <b>{selectedOrderDetail.promotionCode}</b> (-{selectedOrderDetail.discount.toLocaleString('vi-VN')}₫)</div>
+                  )}
                 </div>
               </div>
             </div>

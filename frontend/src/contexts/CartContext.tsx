@@ -109,7 +109,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
       await CartService.removeFromCart(cartItemId);
-      await fetchCart();
+      setCart(prevCart => ({
+        ...prevCart,
+        items: prevCart.items.filter(item => item.id !== cartItemId)
+      }));
     } catch (err) {
       setError('Không thể xóa sản phẩm');
       console.error('Error removing from cart:', err);

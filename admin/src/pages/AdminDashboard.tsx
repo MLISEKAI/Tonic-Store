@@ -22,7 +22,7 @@ import UserManagement from '../components/UserManagement';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import OrderList from '../components/OrderList';
 import ShippingAddressesPage from '../components/ShippingAddressesPage';
-import Promotions from '../components/Promotions';
+import Promotions from '../components/DiscountCode';
 import Reviews from '../components/Reviews';
 import ShipperList from '../components/ShipperList';
 
@@ -255,9 +255,17 @@ const AdminDashboard: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider trigger={null} collapsible collapsed={collapsed}>
-        <div style={{ height: 32, margin: 16, background: 'rgba(255, 255, 255, 0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
+        <div style={{ 
+          height: 32, 
+          margin: 16, 
+          background: 'rgba(255, 255, 255, 0.2)', 
+          display: 'flex', 
+          justifyContent: collapsed ? 'center' : 'start', 
+          alignItems: 'center',
+          paddingLeft: collapsed ? 0 : 16,
+        }}>
           <a href="/" style={{ color: 'white', fontSize: '1rem', fontWeight: 'bold' }}>
-            Admin Dashboard
+            {collapsed ? 'AD' : 'Admin Dashboard'}
           </a>
         </div>
         <Menu

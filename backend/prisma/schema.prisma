@@ -29,6 +29,7 @@ model User {
   wishlist  Wishlist[]
   notifications Notification[]
   deliveryRatings DeliveryRating[]
+  discountCodeUsages DiscountCodeUsage[]
 }
 
 model Category {
@@ -115,6 +116,9 @@ model Order {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   shipperId       Int?
+
+  promotionCode   String?        // mã giảm giá đã áp dụng
+  discount        Float?         // số tiền được giảm
 
   user            User           @relation(fields: [userId], references: [id])
   items           OrderItem[]
@@ -315,6 +319,21 @@ model DiscountCode {
   isActive      Boolean     @default(true)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  usages        DiscountCodeUsage[]
 
   @@map("discount_codes")
+}
+
+model DiscountCodeUsage {
+  id             Int           @id @default(autoincrement())
+  userId         Int
+  discountCodeId Int
+  orderId        Int?
+  usedAt         DateTime      @default(now())
+
+  user           User          @relation(fields: [userId], references: [id])
+  discountCode   DiscountCode  @relation(fields: [discountCodeId], references: [id])
+
+  @@unique([userId, discountCodeId])
+  @@index([discountCodeId])
 }
