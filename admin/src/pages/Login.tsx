@@ -6,34 +6,34 @@ import { login } from '../services/api';
 const { Title } = Typography;
 
 const Login: React.FC = () => {
-    const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
-    const [form] = Form.useForm();
+const [loading, setLoading] = useState(false);
+const navigate = useNavigate();
+const [form] = Form.useForm();
 
-    const handleSubmit = async (values: { email: string; password: string }) => {
-        try {
-            setLoading(true);
-            const data = await login(values.email, values.password);
-            
-            // Check if user is admin
-            if (data.user.role !== 'ADMIN') {
-                throw new Error('Bạn không có quyền truy cập trang admin');
-            }
-            
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            navigate('/');
-        } catch (error) {
-            notification.error({
-                message: 'Lỗi',
-                description: error instanceof Error ? error.message : 'Invalid email or password',
-                placement: 'topRight',
-                duration: 2,
-            });
-        } finally {
-            setLoading(false);
+const handleSubmit = async (values: { email: string; password: string }) => {
+    try {
+        setLoading(true);
+        const data = await login(values.email, values.password);
+        
+        // Check if user is admin
+        if (data.user.role !== 'ADMIN') {
+            throw new Error('Bạn không có quyền truy cập trang admin');
         }
-    };
+        
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        navigate('/');
+    } catch (error) {
+        notification.error({
+            message: 'Lỗi',
+            description: error instanceof Error ? error.message : 'Invalid email or password',
+            placement: 'topRight',
+            duration: 2,
+        });
+    } finally {
+        setLoading(false);
+    }
+};
 
     return (
         <div style={{

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { discountCodeService } from '../services/discountCodeService';
 
+// Lấy tất cả mã giảm giá
 export const getAllDiscountCodes = async (req: Request, res: Response) => {
   try {
     const discountCodes = await discountCodeService.getAll();
@@ -10,6 +11,7 @@ export const getAllDiscountCodes = async (req: Request, res: Response) => {
   }
 };
 
+// Lấy mã giảm giá theo ID
 export const getDiscountCodeById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -25,6 +27,7 @@ export const getDiscountCodeById = async (req: Request, res: Response) => {
   }
 };
 
+// Tạo mã giảm giá
 export const createDiscountCode = async (req: Request, res: Response) => {
   try {
     const discountCode = await discountCodeService.create(req.body);
@@ -38,6 +41,7 @@ export const createDiscountCode = async (req: Request, res: Response) => {
   }
 };
 
+// Cập nhật mã giảm giá
 export const updateDiscountCode = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -52,6 +56,7 @@ export const updateDiscountCode = async (req: Request, res: Response) => {
   }
 };
 
+// Xóa mã giảm giá
 export const deleteDiscountCode = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -66,6 +71,7 @@ export const deleteDiscountCode = async (req: Request, res: Response) => {
   }
 };
 
+// Kiểm tra và áp dụng mã giảm giá
 export const validateDiscountCode = async (req: Request, res: Response) => {
   try {
     const { code } = req.body;
@@ -94,7 +100,7 @@ export const validateDiscountCode = async (req: Request, res: Response) => {
   }
 };
 
-// Thêm controller mới để lưu thông tin sử dụng mã
+// Lưu thông tin sử dụng mã
 export const saveDiscountCodeUsage = async (req: Request, res: Response) => {
   try {
     const { discountCodeId, orderId } = req.body;
@@ -117,7 +123,7 @@ export const saveDiscountCodeUsage = async (req: Request, res: Response) => {
   }
 };
 
-// Thêm controller mới để áp dụng mã giảm giá trong checkout
+// Áp dụng mã giảm giá trong checkout
 export const applyDiscountCode = async (req: Request, res: Response) => {
   try {
     const { code, orderValue } = req.body;
@@ -142,6 +148,21 @@ export const applyDiscountCode = async (req: Request, res: Response) => {
       res.status(400).json({ message: error.message });
     } else {
       res.status(500).json({ message: 'Không thể áp dụng mã giảm giá' });
+    }
+  }
+};
+
+// Reset số lần sử dụng
+export const resetDiscountCodeUsage = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const result = await discountCodeService.resetUsage(Number(id));
+    res.json(result);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Không thể reset số lần sử dụng' });
     }
   }
 }; 

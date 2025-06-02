@@ -1,41 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Select, notification, Spin, Modal, Input, Card, Typography, Tag, Descriptions, Divider, Space } from 'antd';
+import { Table, Button, Select, notification, Spin, Modal, Input, Card, Typography, Tag, Descriptions, Divider, Space, message, Popconfirm } from 'antd';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import OrderService, { Order } from '../services/orderService';
+import OrderService from '../services/orderService';
 import { ShipperService } from '../services/shipperService';
+import { Order, OrderDetail, OrderStatus, PaymentMethod, PaymentStatus } from '../types/order';
+import { DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 
-type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
-type PaymentMethod = 'COD' | 'BANK_TRANSFER' | 'VNPAY';
-
-interface OrderDetail extends Omit<Order, 'status' | 'items'> {
-  status: OrderStatus;
-  items: Array<{
-    id: string;
-    productId: string;
-    quantity: number;
-    price: number;
-    product: {
-      name: string;
-      image: string;
-    };
-  }>;
-  shippingAddress: string;
-  shippingPhone: string;
-  shippingName: string;
-  shipper?: {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-  };
-  promotionCode?: string;
-  discount: number;
-}
-
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const orderStatusOptions = [
   { value: 'PENDING', label: 'Pending' },

@@ -2,14 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, Space, message, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { categoryService } from '../services/api';
-
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Category } from '../types/product';
 
 const ProductCategories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -46,13 +39,13 @@ const ProductCategories: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await categoryService.delete(id);
-      message.success('Category deleted successfully');
+      message.success('Danh mục đã được xóa thành công');
       fetchCategories();
     } catch (error) {
-      message.error('Failed to delete category');
+      message.error('Không thể xóa danh mục. Vui lòng thử lại sau.');
     }
   };
 

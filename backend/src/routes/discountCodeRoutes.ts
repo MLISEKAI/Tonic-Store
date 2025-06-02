@@ -8,7 +8,8 @@ import {
   deleteDiscountCode,
   validateDiscountCode,
   saveDiscountCodeUsage,
-  applyDiscountCode
+  applyDiscountCode,
+  resetDiscountCodeUsage
 } from '../controllers/discountCodeController';
 
 const router = express.Router();
@@ -25,5 +26,6 @@ router.post('/', createDiscountCode);
 router.put('/:id', updateDiscountCode);
 router.delete('/:id', deleteDiscountCode);
 router.post('/usage', saveDiscountCodeUsage);
+router.post('/:id/reset', resetDiscountCodeUsage);
 
 export default router; 

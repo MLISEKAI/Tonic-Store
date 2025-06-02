@@ -1,43 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Button,
-  Card,
-  Modal,
-  Form,
-  Input,
-  Table,
-  Space,
-  Typography,
-  Tag,
-  Tooltip,
-  message,
-  Checkbox,
-} from 'antd';
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  StarOutlined,
-  HomeOutlined,
-} from '@ant-design/icons';
+import { Button, Card, Modal, Form, Input, Table, Space, Typography, Tag, Tooltip, message, Checkbox } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, StarOutlined, HomeOutlined } from '@ant-design/icons';
 import { getShippingAddresses, createShippingAddress, updateShippingAddress, deleteShippingAddress, setDefaultShippingAddress } from '../services/api';
+import { ShippingAddress, CreateShippingAddressData, UpdateShippingAddressData } from '../types/shipping';
 
 const { Title } = Typography;
 const { TextArea } = Input;
-
-interface ShippingAddress {
-  id: number;
-  name: string;
-  phone: string;
-  address: string;
-  isDefault: boolean;
-  userId: number;
-  user?: {
-    id: number;
-    name: string;
-    email: string;
-  };
-}
 
 const ShippingAddressesPage: React.FC = () => {
   const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
@@ -66,10 +34,11 @@ const ShippingAddressesPage: React.FC = () => {
   const handleCreate = async () => {
     try {
       const values = await form.validateFields();
-      await createShippingAddress({
+      const data: CreateShippingAddressData = {
         ...values,
         userId: parseInt(values.userId),
-      });
+      };
+      await createShippingAddress(data);
       setIsModalVisible(false);
       form.resetFields();
       fetchAddresses();
@@ -84,10 +53,11 @@ const ShippingAddressesPage: React.FC = () => {
     if (!editingAddress) return;
     try {
       const values = await form.validateFields();
-      await updateShippingAddress(editingAddress.id, {
+      const data: UpdateShippingAddressData = {
         ...values,
         userId: parseInt(values.userId),
-      });
+      };
+      await updateShippingAddress(editingAddress.id, data);
       setIsModalVisible(false);
       form.resetFields();
       fetchAddresses();
