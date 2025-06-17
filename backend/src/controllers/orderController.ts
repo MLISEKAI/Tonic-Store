@@ -92,14 +92,6 @@ export const OrderController = {
         }
       });
 
-      // Nếu có promotionCode, tăng usedCount
-      if (promotionCode) {
-        await prisma.discountCode.update({
-          where: { code: promotionCode },
-          data: { usedCount: { increment: 1 } }
-        });
-      }
-
       // Create initial delivery log
       await prisma.deliveryLog.create({
         data: {

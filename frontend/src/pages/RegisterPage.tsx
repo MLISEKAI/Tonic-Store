@@ -1,8 +1,7 @@
-import { Form, Input, Button, Card, notification } from 'antd';
+import { Form, Input, Button, notification } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, HomeOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { UserService } from '../services/user/userService';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -27,25 +26,13 @@ const RegisterPage = () => {
       };
 
       // Đăng ký tài khoản
-      const response = await UserService.register(formData);
-      
-      if (response && response.user) {
-        // Đăng ký thành công
-        notification.success({
-          message: 'Thành công',
-          description: 'Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.',
-          placement: 'topRight',
-          duration: 3,
-        });
-        
-        // Reset form
-        form.resetFields();
-        
-        // Chuyển hướng đến trang đăng nhập
-        navigate('/login');
-      } else {
-        throw new Error('Không nhận được thông tin người dùng từ server');
-      }
+      await register(formData);
+
+      // Reset form
+      form.resetFields();
+
+      // Chuyển hướng đến trang đăng nhập
+      navigate('/login');
     } catch (error) {
       let errorMessage = 'Đăng ký thất bại';
       if (error instanceof Error) {
@@ -61,98 +48,120 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Đăng ký tài khoản
-        </h2>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <Form
-            form={form}
-            name="register"
-            className="login-form"
-            onFinish={onFinish}
-            validateTrigger="onBlur"
-          >
-            <Form.Item
-              name="fullName"
-              rules={[
-                { required: true, message: 'Vui lòng nhập họ tên!' },
-                { min: 2, message: 'Họ tên phải có ít nhất 2 ký tự!' },
-                { whitespace: true, message: 'Họ tên không được chỉ chứa khoảng trắng!' }
-              ]}
-            >
-              <Input
-                prefix={<UserOutlined className="site-form-item-icon" />}
-                placeholder="Họ tên"
-              />
-            </Form.Item>
-            <Form.Item
-              name="email"
-              rules={[
-                { required: true, message: 'Vui lòng nhập email!' },
-                { type: 'email', message: 'Email không hợp lệ!' },
-                { whitespace: true, message: 'Email không được chứa khoảng trắng!' }
-              ]}
-            >
-              <Input
-                prefix={<MailOutlined className="site-form-item-icon" />}
-                placeholder="Email"
-              />
-            </Form.Item>
-            <Form.Item
-              name="password"
-              rules={[
-                { required: true, message: 'Vui lòng nhập mật khẩu!' },
-                { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
-                { whitespace: true, message: 'Mật khẩu không được chứa khoảng trắng!' }
-              ]}
-            >
-              <Input.Password
-                prefix={<LockOutlined className="site-form-item-icon" />}
-                placeholder="Mật khẩu"
-              />
-            </Form.Item>
-            <Form.Item
-              name="phone"
-              rules={[
-                { required: true, message: 'Vui lòng nhập số điện thoại!' },
-                { pattern: /^[0-9]{10,11}$/, message: 'Số điện thoại phải có 10-11 chữ số!' },
-                { whitespace: true, message: 'Số điện thoại không được chứa khoảng trắng!' }
-              ]}
-            >
-              <Input
-                prefix={<PhoneOutlined className="site-form-item-icon" />}
-                placeholder="Số điện thoại"
-              />
-            </Form.Item>
-            <Form.Item
-              name="address"
-              rules={[
-                { required: true, message: 'Vui lòng nhập địa chỉ!' },
-                { min: 5, message: 'Địa chỉ phải có ít nhất 5 ký tự!' },
-                { whitespace: true, message: 'Địa chỉ không được chỉ chứa khoảng trắng!' }
-              ]}
-            >
-              <Input
-                prefix={<HomeOutlined className="site-form-item-icon" />}
-                placeholder="Địa chỉ"
-              />
-            </Form.Item>
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                className="login-form-button w-full"
-              >
-                Đăng ký
-              </Button>
-            </Form.Item>
-          </Form>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-50">
+      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-xl shadow-md border">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-800">Đăng ký tài khoản</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Vui lòng nhập thông tin bên dưới để tạo tài khoản
+          </p>
         </div>
+
+        <Form
+          form={form}
+          name="register"
+          layout="vertical"
+          onFinish={onFinish}
+          validateTrigger="onBlur"
+        >
+          <Form.Item
+            name="fullName"
+            label="Họ tên"
+            rules={[
+              { required: true, message: 'Vui lòng nhập họ tên!' },
+              { min: 2, message: 'Họ tên phải có ít nhất 2 ký tự!' },
+              { whitespace: true, message: 'Họ tên không được chỉ chứa khoảng trắng!' }
+            ]}
+          >
+            <Input
+              size="large"
+              placeholder="Họ tên"
+              prefix={<UserOutlined className="text-gray-400" />}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Vui lòng nhập email!' },
+              { type: 'email', message: 'Email không hợp lệ!' },
+              { whitespace: true, message: 'Email không được chứa khoảng trắng!' }
+            ]}
+          >
+            <Input
+              size="large"
+              placeholder="Email"
+              prefix={<MailOutlined className="text-gray-400" />}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            label="Mật khẩu"
+            rules={[
+              { required: true, message: 'Vui lòng nhập mật khẩu!' },
+              { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
+              { whitespace: true, message: 'Mật khẩu không được chứa khoảng trắng!' }
+            ]}
+          >
+            <Input.Password
+              size="large"
+              placeholder="Mật khẩu"
+              prefix={<LockOutlined className="text-gray-400" />}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="phone"
+            label="Số điện thoại"
+            rules={[
+              { required: true, message: 'Vui lòng nhập số điện thoại!' },
+              { pattern: /^[0-9]{10,11}$/, message: 'Số điện thoại phải có 10-11 chữ số!' },
+              { whitespace: true, message: 'Số điện thoại không được chứa khoảng trắng!' }
+            ]}
+          >
+            <Input
+              size="large"
+              placeholder="Số điện thoại"
+              prefix={<PhoneOutlined className="text-gray-400" />}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="address"
+            label="Địa chỉ"
+            rules={[
+              { required: true, message: 'Vui lòng nhập địa chỉ!' },
+              { min: 5, message: 'Địa chỉ phải có ít nhất 5 ký tự!' },
+              { whitespace: true, message: 'Địa chỉ không được chỉ chứa khoảng trắng!' }
+            ]}
+          >
+            <Input
+              size="large"
+              placeholder="Địa chỉ"
+              prefix={<HomeOutlined className="text-gray-400" />}
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="w-full"
+              size="large"
+            >
+              Đăng ký
+            </Button>
+          </Form.Item>
+
+          <div className="text-center text-sm text-gray-600">
+            Đã có tài khoản?{' '}
+            <Link to="/login" className="text-blue-600 hover:underline">
+              Đăng nhập
+            </Link>
+          </div>
+        </Form>
       </div>
     </div>
   );

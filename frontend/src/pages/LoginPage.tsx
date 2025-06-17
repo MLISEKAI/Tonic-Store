@@ -1,6 +1,6 @@
 import { Form, Input, Button, Card, notification } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage = () => {
@@ -14,14 +14,9 @@ const LoginPage = () => {
         email: values.email.toLowerCase().trim(),
         password: values.password
       };
-      
+
       await login(loginData);
-      notification.success({
-        message: 'Thành công',
-        description: 'Đăng nhập thành công',
-        placement: 'topRight',
-        duration: 2,
-      });
+
       navigate('/');
     } catch (error) {
       notification.error({
@@ -34,55 +29,69 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Đăng nhập
-        </h2>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <Form
-            name="normal_login"
-            className="login-form"
-            initialValues={{ remember: true }}
-            onFinish={onFinish}
-          >
-            <Form.Item
-              name="email"
-              rules={[
-                { required: true, message: 'Vui lòng nhập email!' },
-                { type: 'email', message: 'Email không hợp lệ!' }
-              ]}
-            >
-              <Input
-                prefix={<UserOutlined className="site-form-item-icon" />}
-                placeholder="Email"
-                autoComplete="email"
-              />
-            </Form.Item>
-            <Form.Item
-              name="password"
-              rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
-            >
-              <Input.Password
-                prefix={<LockOutlined className="site-form-item-icon" />}
-                placeholder="Mật khẩu"
-                autoComplete="current-password"
-              />
-            </Form.Item>
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                className="login-form-button w-full"
-              >
-                Đăng nhập
-              </Button>
-            </Form.Item>
-          </Form>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-xl shadow-md border">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-800">Đăng nhập</h2>
+          <p className="mt-2 text-sm text-gray-500">Vui lòng nhập thông tin để tiếp tục</p>
         </div>
+
+        <Form
+          name="login_form"
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={{ remember: true }}
+        >
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Vui lòng nhập email!' },
+              { type: 'email', message: 'Email không hợp lệ!' }
+            ]}
+          >
+            <Input
+              size="large"
+              placeholder="Nhập email"
+              prefix={<UserOutlined className="text-gray-400" />}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            label="Mật khẩu"
+            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+          >
+            <Input.Password
+              size="large"
+              placeholder="Nhập mật khẩu"
+              prefix={<LockOutlined className="text-gray-400" />}
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="w-full"
+              size="large"
+            >
+              Đăng nhập
+            </Button>
+          </Form.Item>
+
+          <div className="flex justify-between text-sm text-gray-600">
+            <Link to="/forgot-password" className="hover:text-blue-600">
+              Quên mật khẩu?
+            </Link>
+            <span>
+              Chưa có tài khoản?{' '}
+              <Link to="/register" className="text-blue-600 hover:underline">
+                Đăng ký
+              </Link>
+            </span>
+          </div>
+        </Form>
       </div>
     </div>
   );

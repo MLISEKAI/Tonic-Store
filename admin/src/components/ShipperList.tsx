@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, message, Popconfirm, Tag, Switch } from 'antd';
+import { Table, Button, Space, message, Popconfirm, Card, Typography } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import { shipperService } from '../services/api';
 import { Shipper } from '../types/user';
+
+const { Title } = Typography;
 
 const ShipperList: React.FC = () => {
   const [shippers, setShippers] = useState<Shipper[]>([]);
@@ -23,16 +25,6 @@ const ShipperList: React.FC = () => {
   useEffect(() => {
     fetchShippers();
   }, []);
-
-  const handleStatusChange = async (id: number, isActive: boolean) => {
-    try {
-      await shipperService.updateStatus(id, isActive);
-      message.success('Shipper status updated successfully');
-      fetchShippers();
-    } catch (error) {
-      message.error('Failed to update shipper status');
-    }
-  };
 
   const handleDelete = async (id: number) => {
     try {
@@ -61,22 +53,6 @@ const ShipperList: React.FC = () => {
       key: 'phone',
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (isActive: boolean, record: Shipper) => (
-        <Space>
-          <Switch
-            checked={isActive}
-            onChange={(checked) => handleStatusChange(record.id, checked)}
-          />
-          <Tag color={isActive ? 'success' : 'error'}>
-            {isActive ? 'Active' : 'Inactive'}
-          </Tag>
-        </Space>
-      ),
-    },
-    {
       title: 'Ngày tạo',
       dataIndex: 'createdAt',
       key: 'createdAt',
@@ -103,15 +79,33 @@ const ShipperList: React.FC = () => {
   ];
 
   return (
-    <div>
+    <Card>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16,
+        }}
+      >
+        <Title level={2} style={{ margin: 0 }}>
+          Danh sách người giao hàng
+        </Title>
+      </div>
+
       <Table
         columns={columns}
         dataSource={shippers}
         rowKey="id"
         loading={loading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Tổng ${total} người giao hàng `,
+        }}
       />
-    </div>
+    </Card>
   );
-};
+}
 
 export default ShipperList; 

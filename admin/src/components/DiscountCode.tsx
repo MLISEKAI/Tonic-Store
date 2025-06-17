@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, DatePicker, InputNumber, Select, Tooltip } from 'antd';
+import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, DatePicker, InputNumber, Select, Tooltip, Card, Typography } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { promotionService } from '../services/api';
 import { Promotion } from '../types/promotion';
 
+const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
 const Promotions: React.FC = () => {
@@ -146,7 +147,7 @@ const Promotions: React.FC = () => {
             Sửa
           </Button>
           <Popconfirm
-            title="Reset số lần sử dụng?"
+            title="Cài lại số lần sử dụng?"
             description="Điều này sẽ cho phép tất cả tài khoản sử dụng lại mã này. Bạn có chắc chắn muốn tiếp tục?"
             onConfirm={() => handleResetUsage(record.id)}
             okText="Có"
@@ -156,7 +157,7 @@ const Promotions: React.FC = () => {
               icon={<ReloadOutlined />}
               onClick={(e) => e.stopPropagation()}
             >
-              Reset
+              Cài lại
             </Button>
           </Popconfirm>
           <Popconfirm
@@ -175,22 +176,37 @@ const Promotions: React.FC = () => {
   ];
 
   return (
-    <div>
-      <div style={{ marginBottom: 16 }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-        >
-          Thêm mã giảm giá
-        </Button>
-      </div>
+    <Card>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+      }}
+    >
+      <Title level={2} style={{ margin: 0 }}>
+        Quản lý đơn hàng
+      </Title>
+      <Button
+        type="primary"
+        icon={<PlusOutlined />}
+        onClick={handleAdd}
+      >
+        Thêm mã giảm giá
+      </Button>
+    </div>
 
       <Table
         columns={columns}
         dataSource={promotions}
         rowKey="id"
         loading={loading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Tổng ${total} mã giảm giá`,
+        }}
       />
 
       <Modal
@@ -295,7 +311,7 @@ const Promotions: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </Card>
   );
 };
 

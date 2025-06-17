@@ -7,7 +7,7 @@ import { ShippingAddress, CreateShippingAddressData, UpdateShippingAddressData }
 const { Title } = Typography;
 const { TextArea } = Input;
 
-const ShippingAddressesPage: React.FC = () => {
+const DeliveryAddress: React.FC = () => {
   const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -155,20 +155,21 @@ const ShippingAddressesPage: React.FC = () => {
       key: 'actions',
       render: (_: any, record: ShippingAddress) => (
         <Space>
-          <Tooltip title="Edit">
             <Button
               type="primary"
               icon={<EditOutlined />}
               onClick={() => showModal(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Delete">
+            >
+              Sửa
+            </Button>
             <Button
               danger
               icon={<DeleteOutlined />}
               onClick={() => handleDelete(record.id)}
-            />
-          </Tooltip>
+            >
+              Xóa
+            </Button>
+
           {!record.isDefault && (
             <Tooltip title="Đặt làm mặc định">
               <Button
@@ -210,6 +211,11 @@ const ShippingAddressesPage: React.FC = () => {
         dataSource={addresses}
         rowKey="id"
         loading={loading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Tổng ${total} địa chỉ giao hàng`,
+        }}
       />
 
       <Modal
@@ -267,4 +273,4 @@ const ShippingAddressesPage: React.FC = () => {
   );
 };
 
-export default ShippingAddressesPage; 
+export default DeliveryAddress; 

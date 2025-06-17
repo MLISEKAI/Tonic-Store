@@ -17,48 +17,54 @@ export interface PromotionCodeInputRef {
 const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputProps>(({ orderValue, onDiscountApplied }, ref) => {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [savedCodes, setSavedCodes] = useState<string[]>([]);
+  const [claimedCodes, setClaimedCodes] = useState<any[]>([]);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
 
   useImperativeHandle(ref, () => ({
     clearAppliedCode: () => {
-      if (selectedCode) {
-        const newCodes = savedCodes.filter((c) => c !== selectedCode);
-        localStorage.setItem('appliedPromotionCodes', JSON.stringify(newCodes));
-        setSavedCodes(newCodes);
-        setSelectedCode(null);
-        setDiscountAmount(0);
-        setCode('');
-        onDiscountApplied(0, orderValue, undefined);
-      }
+      setSelectedCode(null);
+      setDiscountAmount(0);
+      setCode('');
+      onDiscountApplied(0, orderValue, undefined);
     }
   }));
 
   useEffect(() => {
-    // Load các mã đã lưu từ localStorage
-    const codes = JSON.parse(localStorage.getItem('appliedPromotionCodes') || '[]');
-    setSavedCodes(codes);
-    if (codes.length > 0) {
-      setSelectedCode(codes[0]);
-      handleSelectCode(codes[0]);
-    }
+    fetchClaimedCodes();
   }, []);
 
-  const handleReceiveCode = () => {
+  const fetchClaimedCodes = async () => {
+    try {
+      const codes = await PromotionService.getClaimedPromotionCodes();
+      setClaimedCodes(codes);
+    } catch (error) {
+      console.error('Error fetching claimed codes:', error);
+    }
+  };
+
+  const handleReceiveCode = async () => {
     if (!code.trim()) {
       message.warning('Vui lòng nhập mã giảm giá');
       return;
     }
-    if (savedCodes.includes(code.trim())) {
-      message.info('Bạn đã nhận mã này rồi!');
-      return;
+
+    try {
+      setLoading(true);
+      const result = await PromotionService.claimPromotionCode(code.trim());
+      if (result.isValid) {
+        message.success('Đã nhận mã giảm giá thành công!');
+        setCode('');
+        // Refresh danh sách mã đã nhận
+        await fetchClaimedCodes();
+      } else {
+        message.error(result.message || 'Không thể nhận mã giảm giá');
+      }
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : 'Không thể nhận mã giảm giá');
+    } finally {
+      setLoading(false);
     }
-    const newCodes = [...savedCodes, code.trim()];
-    setSavedCodes(newCodes);
-    localStorage.setItem('appliedPromotionCodes', JSON.stringify(newCodes));
-    message.success('Đã nhận mã giảm giá thành công!');
-    setCode('');
   };
 
   const handleSelectCode = async (codeToUse: string) => {
@@ -89,17 +95,6 @@ const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputP
     }
   };
 
-  const handleRemoveCode = (codeToRemove: string) => {
-    const newCodes = savedCodes.filter((c) => c !== codeToRemove);
-    setSavedCodes(newCodes);
-    localStorage.setItem('appliedPromotionCodes', JSON.stringify(newCodes));
-    if (selectedCode === codeToRemove) {
-      setSelectedCode(null);
-      setDiscountAmount(0);
-      onDiscountApplied(0, orderValue, undefined);
-    }
-  };
-
   return (
     <Card className="mb-4">
       <Space direction="vertical" style={{ width: '100%' }}>
@@ -119,7 +114,7 @@ const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputP
             Nhận mã
           </Button>
         </Space.Compact>
-        {savedCodes.length > 0 && (
+        {claimedCodes.length > 0 && (
           <>
             <Text strong>Chọn mã để áp dụng:</Text>
             <Radio.Group
@@ -128,22 +123,17 @@ const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputP
               style={{ width: '100%' }}
             >
               <List
-                dataSource={savedCodes}
+                dataSource={claimedCodes}
                 renderItem={item => (
-                  <List.Item
-                    actions={[
-                      <Button
-                        danger
-                        icon={<DeleteOutlined />}
-                        size="small"
-                        onClick={() => handleRemoveCode(item)}
-                        key="remove"
-                      >
-                        Xóa
-                      </Button>
-                    ]}
-                  >
-                    <Radio value={item}>{item}</Radio>
+                  <List.Item>
+                    <Radio value={item.code}>
+                      <Space direction="vertical" size={0}>
+                        <Text>{item.code}</Text>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                          {item.description}
+                        </Text>
+                      </Space>
+                    </Radio>
                   </List.Item>
                 )}
               />

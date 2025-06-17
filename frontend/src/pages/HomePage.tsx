@@ -51,7 +51,7 @@ const HomePage = () => {
     ? filteredProducts.bestSellers
     : getRandomProducts(4);
 
-  // Get random products for today's suggestions
+  // Lây sản phẩm ngẫu nhiên cho các đề xuất ngày hôm nay
   const todaySuggestions = getRandomProducts(products.length);
 
   const handleLoadMore = () => {

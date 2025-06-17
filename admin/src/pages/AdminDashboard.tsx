@@ -9,9 +9,6 @@ import {
   ShoppingCartOutlined,
   CarOutlined,
   LogoutOutlined,
-  AppstoreOutlined,
-  TagOutlined,
-  TeamOutlined,
   CommentOutlined,
   GiftOutlined,
 } from '@ant-design/icons';
@@ -21,14 +18,13 @@ import ProductCategories from '../components/ProductCategories';
 import UserManagement from '../components/UserManagement';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import OrderList from '../components/OrderList';
-import ShippingAddressesPage from '../components/ShippingAddressesPage';
+import DeliveryAddress from '../components/DeliveryAddress';
 import Promotions from '../components/DiscountCode';
 import Reviews from '../components/Reviews';
 import ShipperList from '../components/ShipperList';
 import { StatsData } from '../types/stats';
 
 const { Header, Sider, Content } = Layout;
-const { Title } = Typography;
 const API_URL = import.meta.env.VITE_API_URL;
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
@@ -40,7 +36,7 @@ const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Get current path and set selected key
+  // Nhận đường dẫn hiện tại và đặt khóa đã chọn
   const path = location.pathname.split('/').pop() || 'dashboard';
   const [selectedKey, setSelectedKey] = useState(path);
 
@@ -123,18 +119,18 @@ const AdminDashboard: React.FC = () => {
       children: [
         {
           key: 'user-list',
-          label: 'Danh sách user',
+          label: 'Danh sách người dùng',
         },
         {
           key: 'shippers',
-          label: 'Shipper',
+          label: 'Danh sách người giao hàng',
         },
       ],
     },
     {
       key: 'discount-codes',
       icon: <GiftOutlined />,
-      label: 'Mã giảm giá / Khuyến mãi',
+      label: 'Mã giảm giá',
     },
     {
       key: 'reviews',
@@ -277,7 +273,7 @@ const AdminDashboard: React.FC = () => {
           {selectedKey === 'user-list' && <UserManagement />}
           {selectedKey === 'shippers' && <ShipperList />}
           {selectedKey === 'orders' && <OrderList />}
-          {selectedKey === 'shipping' && <ShippingAddressesPage />}
+          {selectedKey === 'shipping' && <DeliveryAddress />}
           {selectedKey === 'discount-codes' && <Promotions />}
           {selectedKey === 'reviews' && <Reviews />}
         </Content>

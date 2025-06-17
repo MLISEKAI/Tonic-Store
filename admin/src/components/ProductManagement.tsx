@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Button, Table, Modal, Form, Input, InputNumber, Select, Checkbox, Space, Card, Typography, notification } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { productService } from '../services/productService';
-import { Product, CreateProductData, UpdateProductData } from '../types/product';
+import { Product } from '../types/product';
 
 const { Title } = Typography;
 const { TextArea } = Input;
 
 const ProductManagement: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [form] = Form.useForm();
@@ -19,6 +20,7 @@ const ProductManagement: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
+      setLoading(true);
       const data = await productService.getAllProducts();
       console.log('Raw data from API:', data);
       const formattedProducts = Array.isArray(data) ? data.map(product => {
@@ -57,6 +59,8 @@ const ProductManagement: React.FC = () => {
     } catch (error) {
       console.error('Error fetching products:', error);
       setProducts([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -264,19 +268,23 @@ const ProductManagement: React.FC = () => {
       title: 'Hành động',
       key: 'actions',
       fixed: 'right' as const,
-      width: 120,
+      width: 180,
       render: (_: any, record: Product) => (
         <Space>
           <Button
             type="primary"
             icon={<EditOutlined />}
             onClick={() => showModal(record)}
-          />
+          >
+            Sửa
+          </Button>
           <Button
             danger
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(record.id)}
-          />
+          >
+            Xóa
+          </Button>
         </Space>
       ),
     },

@@ -3,7 +3,7 @@ import { Card, Form, Input, Button, Typography, notification } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/api';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const Login: React.FC = () => {
 const [loading, setLoading] = useState(false);
@@ -35,56 +35,66 @@ const handleSubmit = async (values: { email: string; password: string }) => {
     }
 };
 
-    return (
-        <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            background: '#f0f2f5'
-        }}>
-            <Card style={{ width: 400, padding: '24px' }}>
-                <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                    <Title level={2}>Đăng nhập Admin</Title>
-                </div>
-                <Form
-                    form={form}
-                    layout="vertical"
-                    onFinish={handleSubmit}
+return (
+    <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        background: 'white',
+    }}
+    >
+        <Card
+            style={{
+                width: 420,
+                padding: 32,
+                borderRadius: 16,
+                boxShadow: '0 12px 24px rgba(0, 0, 0, 0.1)',
+                backgroundColor: '#fff',
+            }}
+            >
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                <Title level={3} style={{ marginBottom: 0 }}>
+                    Đăng nhập Admin
+                </Title>
+                <Text type="secondary">Vui lòng nhập thông tin của bạn</Text>
+            </div>
+
+            <Form form={form} layout="vertical" onFinish={handleSubmit}>
+                <Form.Item
+                    name="email"
+                    label="Email"
+                    rules={[
+                        { required: true, message: 'Vui lòng nhập email!' },
+                        { type: 'email', message: 'Vui lòng nhập email hợp lệ!' },
+                    ]}
                 >
-                    <Form.Item
-                        name="email"
-                        label="Email"
-                        rules={[
-                            { required: true, message: 'Vui lòng nhập email!' },
-                            { type: 'email', message: 'Vui lòng nhập email hợp lệ!' }
-                        ]}
-                    >
-                        <Input size="large" />
-                    </Form.Item>
+                    <Input size="large" placeholder="example@email.com" />
+                </Form.Item>
 
-                    <Form.Item
-                        name="password"
-                        label="Mật khẩu"
-                        rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
-                    >
-                        <Input.Password size="large" />
-                    </Form.Item>
+                <Form.Item
+                    name="password"
+                    label="Mật khẩu"
+                    rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                >
+                    <Input.Password size="large" placeholder="Nhập mật khẩu" />
+                </Form.Item>
 
-                    <Form.Item>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            size="large"
-                            block
-                            loading={loading}
-                        >
-                            Đăng nhập
-                        </Button>
-                    </Form.Item>
-                </Form>
-            </Card>
-        </div>
+                <Form.Item>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        size="large"
+                        block
+                        loading={loading}
+                        style={{ borderRadius: 8 }}
+                    >
+                        Đăng nhập
+                    </Button>
+                </Form.Item>
+            </Form>
+        </Card>
+    </div>
     );
 };
 
