@@ -140,16 +140,16 @@ export const discountCodeService = {
       throw new Error('Mã giảm giá đã hết lượt sử dụng');
     }
 
-    // Kiểm tra xem user đã sử dụng mã này chưa
-    const existingUsage = await prisma.discountCodeUsage.findFirst({
+    // Kiểm tra xem user đã nhận mã này chưa
+    const existingClaim = await prisma.discountCodeClaim.findFirst({
       where: {
         userId,
         discountCodeId: discountCode.id
       }
     });
 
-    if (existingUsage) {
-      throw new Error('Bạn đã sử dụng mã giảm giá này trước đó');
+    if (existingClaim) {
+      throw new Error('Bạn đã nhận mã giảm giá này trước đó');
     }
 
     return {
@@ -158,24 +158,145 @@ export const discountCodeService = {
     };
   },
 
-  // Lưu thông tin sử dụng mã giảm giá
-  saveDiscountCodeUsage: async (userId: number, discountCodeId: number, orderId: number) => {
-    // Tạo bản ghi sử dụng mã
-    await prisma.discountCodeUsage.create({
-      data: {
-        userId,
-        discountCodeId,
-        orderId
+  // Nhận mã giảm giá
+  claimDiscountCode: async (code: string, userId: number) => {
+    console.log('Starting claim process for code:', code, 'userId:', userId);
+    
+    const discountCode = await prisma.discountCode.findFirst({
+      where: {
+        code,
+        isActive: true,
+        startDate: { lte: new Date() },
+        endDate: { gte: new Date() }
       }
     });
 
-    // Tăng số lượt sử dụng của mã
-    await prisma.discountCode.update({
-      where: { id: discountCodeId },
-      data: {
-        usedCount: {
-          increment: 1
+    console.log('Found discount code:', discountCode);
+
+    if (!discountCode) {
+      throw new Error('Mã giảm giá không hợp lệ hoặc đã hết hạn');
+    }
+
+    // Kiểm tra điều kiện sử dụng
+    if (discountCode.usageLimit && discountCode.usedCount >= discountCode.usageLimit) {
+      console.log('Code usage limit reached:', {
+        limit: discountCode.usageLimit,
+        used: discountCode.usedCount
+      });
+      throw new Error('Mã giảm giá đã hết lượt sử dụng');
+    }
+
+    // Sử dụng transaction để đảm bảo tính nhất quán
+    return await prisma.$transaction(async (tx) => {
+      // Kiểm tra xem user đã nhận mã này chưa
+      const existingClaim = await tx.discountCodeClaim.findFirst({
+        where: {
+          userId,
+          discountCodeId: discountCode.id
         }
+      });
+
+      console.log('Existing claim check:', existingClaim);
+
+      if (existingClaim) {
+        throw new Error('Bạn đã nhận mã giảm giá này trước đó');
+      }
+
+      // Tạo bản ghi nhận mã
+      const newClaim = await tx.discountCodeClaim.create({
+        data: {
+          userId,
+          discountCodeId: discountCode.id
+        }
+      });
+
+      console.log('Created new claim:', newClaim);
+      return discountCode;
+    });
+  },
+
+  // Lấy danh sách mã giảm giá đã nhận của user
+  getClaimedCodes: async (userId: number) => {
+    // Kiểm tra xem user có tồn tại không
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      throw new Error('Người dùng không tồn tại');
+    }
+
+    // Lấy danh sách mã đã nhận
+    const claimedCodes = await prisma.discountCodeClaim.findMany({
+      where: {
+        userId,
+        isUsed: false,
+        discountCode: {
+          isActive: true,
+          startDate: { lte: new Date() },
+          endDate: { gte: new Date() }
+        }
+      },
+      include: {
+        discountCode: true
+      },
+      orderBy: {
+        id: 'desc'
+      }
+    });
+
+    console.log('Found claimed codes:', claimedCodes);
+    return claimedCodes;
+  },
+
+  // Lưu thông tin sử dụng mã giảm giá khi thanh toán thành công
+  saveDiscountCodeUsage: async (userId: number, discountCodeId: number, orderId: number) => {
+    // Sử dụng transaction để đảm bảo tính nhất quán
+    return await prisma.$transaction(async (tx) => {
+      try {
+        // Kiểm tra xem user đã nhận và chưa sử dụng mã này chưa
+        const claim = await tx.discountCodeClaim.findFirst({
+          where: {
+            userId,
+            discountCodeId,
+            isUsed: false
+          }
+        });
+
+        if (!claim) {
+          throw new Error('Bạn chưa nhận mã giảm giá này hoặc đã sử dụng');
+        }
+
+        // Tạo bản ghi sử dụng mã
+        await tx.discountCodeUsage.create({
+          data: {
+            userId,
+            discountCodeId,
+            orderId
+          }
+        });
+
+        // Đánh dấu mã đã được sử dụng
+        await tx.discountCodeClaim.update({
+          where: { id: claim.id },
+          data: { isUsed: true }
+        });
+
+        // Tăng số lượt sử dụng của mã
+        await tx.discountCode.update({
+          where: { id: discountCodeId },
+          data: {
+            usedCount: {
+              increment: 1
+            }
+          }
+        });
+      } catch (error: any) {
+        // Nếu lỗi là do vi phạm ràng buộc unique, có thể là do race condition
+        if (error.code === 'P2002' && error.meta?.target?.includes('userId_discountCodeId')) {
+          throw new Error('Bạn đã sử dụng mã giảm giá này');
+        }
+        throw error;
       }
     });
   },
@@ -250,34 +371,12 @@ export const discountCodeService = {
       discountAmount = discountCode.discountValue;
     }
 
-    // Sử dụng transaction để đảm bảo tính nhất quán của dữ liệu
-    return await prisma.$transaction(async (tx) => {
-      // Lưu thông tin sử dụng mã
-      await tx.discountCodeUsage.create({
-        data: {
-          userId,
-          discountCodeId: discountCode.id,
-          orderId: null // Sẽ cập nhật sau khi tạo đơn hàng
-        }
-      });
-
-      // Tăng số lượt sử dụng của mã
-      await tx.discountCode.update({
-        where: { id: discountCode.id },
-        data: {
-          usedCount: {
-            increment: 1
-          }
-        }
-      });
-
-      return {
-        isValid: true,
-        discountCode,
-        discountAmount,
-        finalAmount: orderValue - discountAmount
-      };
-    });
+    return {
+      isValid: true,
+      discountCode,
+      discountAmount,
+      finalAmount: orderValue - discountAmount
+    };
   },
 
   // Cập nhật thông tin đơn hàng cho mã giảm giá đã sử dụng
@@ -318,11 +417,17 @@ export const discountCodeService = {
         where: { discountCodeId: id }
       });
 
+      // Xóa tất cả bản ghi nhận mã
+      await tx.discountCodeClaim.deleteMany({
+        where: { discountCodeId: id }
+      });
+
       // Reset số lần sử dụng về 0
       return tx.discountCode.update({
         where: { id },
         data: {
-          usedCount: 0
+          usedCount: 0,
+          isActive: true
         }
       });
     });

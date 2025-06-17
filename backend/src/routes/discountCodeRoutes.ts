@@ -9,7 +9,9 @@ import {
   validateDiscountCode,
   saveDiscountCodeUsage,
   applyDiscountCode,
-  resetDiscountCodeUsage
+  resetDiscountCodeUsage,
+  getClaimedDiscountCodes,
+  claimDiscountCode
 } from '../controllers/discountCodeController';
 
 const router = express.Router();
@@ -21,6 +23,8 @@ router.post('/apply', authenticate, applyDiscountCode);
 // Protected routes (require authentication)
 router.use(authenticate);
 router.get('/', getAllDiscountCodes);
+router.get('/claimed', getClaimedDiscountCodes);
+router.post('/claim', claimDiscountCode);
 router.get('/:id', getDiscountCodeById);
 router.post('/', createDiscountCode);
 router.put('/:id', updateDiscountCode);

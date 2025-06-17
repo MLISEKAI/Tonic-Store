@@ -11,6 +11,7 @@ const UserManagement: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [changePassword, setChangePassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -19,10 +20,13 @@ const UserManagement: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
       const data = await userService.getAllUsers();
       setUsers(data);
     } catch (error) {
       console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -126,12 +130,16 @@ const UserManagement: React.FC = () => {
             type="primary"
             icon={<EditOutlined />}
             onClick={() => showModal(record)}
-          />
+          >
+            Sửa
+          </Button>
           <Button
             danger
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(record.id)}
-          />
+          >
+            Xóa
+          </Button>
         </Space>
       ),
     },
@@ -163,6 +171,12 @@ const UserManagement: React.FC = () => {
         columns={columns}
         dataSource={users}
         rowKey="id"
+        loading={loading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Tổng ${total} người dùng`,
+        }}
       />
 
       <Modal

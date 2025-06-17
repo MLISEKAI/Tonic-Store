@@ -6,13 +6,11 @@ import {
   Menu,
   Badge,
   Dropdown,
-  Avatar,
   notification,
   Popover,
   Space
 } from 'antd';
 import {
-  MenuOutlined,
   SearchOutlined,
   ShoppingCartOutlined,
   UserOutlined,
@@ -45,7 +43,6 @@ interface Notification {
 }
 
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const { isAuthenticated, logout, user } = useAuth();

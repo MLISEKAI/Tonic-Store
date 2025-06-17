@@ -30,6 +30,7 @@ model User {
   notifications Notification[]
   deliveryRatings DeliveryRating[]
   discountCodeUsages DiscountCodeUsage[]
+  discountCodeClaims DiscountCodeClaim[]
 }
 
 model Category {
@@ -320,6 +321,7 @@ model DiscountCode {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   usages        DiscountCodeUsage[]
+  claims        DiscountCodeClaim[]
 
   @@map("discount_codes")
 }
@@ -336,4 +338,19 @@ model DiscountCodeUsage {
 
   @@unique([userId, discountCodeId])
   @@index([discountCodeId])
+}
+
+model DiscountCodeClaim {
+  id             Int           @id @default(autoincrement())
+  userId         Int
+  discountCodeId Int
+  claimedAt      DateTime      @default(now())
+  isUsed         Boolean       @default(false)
+
+  user           User          @relation(fields: [userId], references: [id])
+  discountCode   DiscountCode  @relation(fields: [discountCodeId], references: [id])
+
+  @@unique([userId, discountCodeId])
+  @@index([discountCodeId])
+  @@index([userId])
 }

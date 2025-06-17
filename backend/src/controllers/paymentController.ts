@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient, PaymentMethod, PaymentStatus, OrderStatus } from '@prisma/client';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
+import { discountCodeService } from '../services/discountCodeService';
 
 const prisma = new PrismaClient();
 
@@ -40,6 +41,14 @@ export const createPaymentController = async (req: Request, res: Response) => {
       return res.json({ payment, paymentUrl });
     }
 
+    // Nếu là COD, cập nhật trạng thái order thành PENDING
+    if (method === PaymentMethod.COD) {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { status: 'PENDING' }
+      });
+    }
+
     res.json({ payment });
   } catch (error) {
     console.error('Create payment error:', error);
@@ -55,7 +64,7 @@ export const verifyPaymentController = async (req: Request, res: Response) => {
       const isValid = verifyPayment(req.query as Record<string, string>);
       
       if (isValid) {
-        // Get order to check shipper
+        // Get order to check shipper and promotion code
         const order = await prisma.order.findUnique({
           where: { id: Number(orderId) }
         });
@@ -80,6 +89,52 @@ export const verifyPaymentController = async (req: Request, res: Response) => {
           data: { status: 'CONFIRMED' }
         });
 
+        // Nếu có sử dụng mã giảm giá, cập nhật trạng thái sử dụng
+        if (order.promotionCode) {
+          // Tìm mã giảm giá theo code
+          const discountCode = await prisma.discountCode.findFirst({
+            where: { code: order.promotionCode }
+          });
+
+          if (discountCode) {
+            // Tìm claim của mã giảm giá này
+            const claim = await prisma.discountCodeClaim.findFirst({
+              where: {
+                userId: order.userId,
+                discountCodeId: discountCode.id,
+                isUsed: false
+              }
+            });
+
+            if (claim) {
+              // Cập nhật trạng thái sử dụng của claim
+              await prisma.discountCodeClaim.update({
+                where: { id: claim.id },
+                data: { isUsed: true }
+              });
+
+              // Tạo bản ghi sử dụng
+              await prisma.discountCodeUsage.create({
+                data: {
+                  userId: order.userId,
+                  discountCodeId: discountCode.id,
+                  orderId: order.id
+                }
+              });
+
+              // Tăng số lượt sử dụng của mã
+              await prisma.discountCode.update({
+                where: { id: discountCode.id },
+                data: {
+                  usedCount: {
+                    increment: 1
+                  }
+                }
+              });
+            }
+          }
+        }
+
         // Create delivery log for confirmed status
         if (order.shipperId) {
           await prisma.deliveryLog.create({
@@ -96,7 +151,6 @@ export const verifyPaymentController = async (req: Request, res: Response) => {
       }
     } else if (method === PaymentMethod.COD) {
       // Đối với COD, trạng thái thanh toán vẫn đang chờ xử lý cho đến khi Shipper xác nhận nhận khoản thanh toán
-      // Không hiển thị nút xác nhận thanh toán cho COD
       return res.redirect(`${process.env.FRONTEND_URL}/payment/pending?orderId=${orderId}`);
     }
 

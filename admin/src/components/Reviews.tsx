@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, message, Popconfirm, Rate, Tag, Modal, Typography } from 'antd';
+import { Table, Button, Space, message, Popconfirm, Rate, Tag, Modal, Typography, Card } from 'antd';
 import { DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { reviewService } from '../services/api';
 import { Review } from '../types/review';
@@ -11,6 +11,8 @@ const Reviews: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+const { Title } = Typography;
 
   const fetchReviews = async () => {
     try {
@@ -90,16 +92,6 @@ const Reviews: React.FC = () => {
       ellipsis: true,
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: Review['status']) => (
-        <Tag color={getStatusColor(status)}>
-          {status}
-        </Tag>
-      ),
-    },
-    {
       title: 'Ngày tạo',
       dataIndex: 'createdAt',
       key: 'createdAt',
@@ -112,10 +104,9 @@ const Reviews: React.FC = () => {
         <Space>
           <Button
             type="primary"
-            icon={<EyeOutlined />}
             onClick={() => handleView(record)}
           >
-            Lượt xem 
+            Chi tiết
           </Button>
           {record.status === 'PENDING' && (
             <>
@@ -149,12 +140,29 @@ const Reviews: React.FC = () => {
   ];
 
   return (
-    <div>
+    <Card>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+      }}
+    >
+      <Title level={2} style={{ margin: 0 }}>
+        Danh sách bình luận và đánh giá
+      </Title>
+    </div>
       <Table
         columns={columns}
         dataSource={reviews}
         rowKey="id"
         loading={loading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Tổng ${total} bình luận và đánh giá`,
+        }}
       />
 
       <Modal
@@ -168,14 +176,12 @@ const Reviews: React.FC = () => {
             <p><strong>Product:</strong> {selectedReview.product.name}</p>
             <p><strong>User:</strong> {selectedReview.user.name}</p>
             <p><strong>Rating:</strong> <Rate disabled defaultValue={selectedReview.rating} /></p>
-            <p><strong>Comment:</strong></p>
-            <Text>{selectedReview.comment}</Text>
+            <p><strong>Comment:</strong><Text>{selectedReview.comment}</Text></p>
             <p><strong>Date:</strong> {new Date(selectedReview.createdAt).toLocaleString()}</p>
-            <p><strong>Status:</strong> <Tag color={getStatusColor(selectedReview.status)}>{selectedReview.status}</Tag></p>
           </div>
         )}
       </Modal>
-    </div>
+    </Card>
   );
 };
 

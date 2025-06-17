@@ -42,6 +42,7 @@ const OrderList: React.FC = () => {
   const [shippers, setShippers] = useState<any[]>([]);
   const [selectedShipperId, setSelectedShipperId] = useState<number | null>(null);
   const [assigningShipper, setAssigningShipper] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
   const getNextValidStatusOptions = (order: OrderDetail) => {
     const current = order.status;
@@ -85,10 +86,6 @@ const OrderList: React.FC = () => {
     return orderStatusOptions.find(opt => opt.value === status)?.label || status;
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, [page, status]);
-
   const fetchOrders = async () => {
     try {
       setLoading(true);
@@ -124,6 +121,10 @@ const OrderList: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    fetchOrders();
+  }, [page, status]);
+
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     try {
       await OrderService.updateOrderStatus(orderId, newStatus);
@@ -141,31 +142,6 @@ const OrderList: React.FC = () => {
         placement: 'topRight',
         duration: 2,
       });
-    }
-  };
-
-  const handlePaymentStatusChange = async (orderId: string, newStatus: PaymentStatus) => {
-    if (newStatus === 'COMPLETED') {
-      setSelectedOrder(orders.find(order => order.id === orderId) || null);
-      setConfirmModalVisible(true);
-    } else {
-      try {
-        await OrderService.updatePaymentStatus(orderId, newStatus);
-        notification.success({
-          message: 'Thành công',
-          description: 'Payment status updated successfully',
-          placement: 'topRight',
-          duration: 2,
-        });
-        fetchOrders();
-      } catch (err) {
-        notification.error({
-          message: 'Lỗi',
-          description: 'Failed to update payment status',
-          placement: 'topRight',
-          duration: 2,
-        });
-      }
     }
   };
 
@@ -296,6 +272,15 @@ const OrderList: React.FC = () => {
     }
   };
 
+  const filteredOrders = orders.filter(order => {
+    const search = searchText.toLowerCase();
+    return (
+      order.id.toLowerCase().includes(search) ||
+      order.user.name.toLowerCase().includes(search) ||
+      order.user.email.toLowerCase().includes(search)
+    );
+  });
+
   const columns = [
     {
       title: 'Mã đơn hàng',
@@ -411,9 +396,6 @@ const OrderList: React.FC = () => {
     },
   ];
 
-  if (loading) return <Spin size="large" />;
-  if (error) return <div className="text-red-500">{error}</div>;
-
   return (
     <Card>
       <div
@@ -428,18 +410,28 @@ const OrderList: React.FC = () => {
           Quản lý đơn hàng
         </Title>
 
-        <Select<OrderStatus | ''>
-          value={status}
-          onChange={(value: OrderStatus | '') => {
-            setStatus(value);
-          }}
-          style={{ width: 200 }}
-          placeholder="Lọc theo trạng thái"
-          options={[
-            { value: '', label: 'Tất cả trạng thái' },
-            ...orderStatusOptions
-          ]}
-        />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Input.Search
+            allowClear
+            placeholder="Tìm mã đơn, tên, email..."
+            style={{ width: 300 }}
+            onChange={e => setSearchText(e.target.value)}
+            value={searchText}
+          />
+
+          <Select<OrderStatus | ''>
+            value={status}
+            onChange={(value: OrderStatus | '') => {
+              setStatus(value);
+            }}
+            style={{ width: 200 }}
+            placeholder="Lọc theo trạng thái"
+            options={[
+              { value: '', label: 'Tất cả trạng thái' },
+              ...orderStatusOptions
+            ]}
+          />
+        </div>
       </div>
 
       {orders.length === 0 ? (
@@ -447,13 +439,14 @@ const OrderList: React.FC = () => {
       ) : (
         <Table
           columns={columns}
-          dataSource={orders}
+          dataSource={filteredOrders}
           rowKey="id"
           pagination={{
             current: page,
             total: totalPages * 10,
             onChange: (page: number) => setPage(page),
             showSizeChanger: false,
+            showTotal: (total) => `Tổng ${total} đơn hàng`,
           }}
           loading={loading}
         />

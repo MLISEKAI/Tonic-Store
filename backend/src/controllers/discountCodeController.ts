@@ -165,4 +165,90 @@ export const resetDiscountCodeUsage = async (req: Request, res: Response) => {
       res.status(500).json({ message: 'Không thể reset số lần sử dụng' });
     }
   }
+};
+
+// Lấy danh sách mã giảm giá đã nhận của user
+export const getClaimedDiscountCodes = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: 'Vui lòng đăng nhập để xem mã giảm giá đã nhận'
+      });
+    }
+
+    console.log('Getting claimed codes for user:', userId);
+    const claimedCodes = await discountCodeService.getClaimedCodes(userId);
+    console.log('Claimed codes:', claimedCodes);
+    
+    // Format lại dữ liệu trả về
+    const formattedCodes = claimedCodes.map(claim => ({
+      ...claim.discountCode,
+      claimedAt: claim.claimedAt,
+      isUsed: claim.isUsed
+    }));
+
+    console.log('Formatted codes:', formattedCodes);
+    res.json(formattedCodes);
+  } catch (error) {
+    console.error('Error getting claimed codes:', error);
+    if (error instanceof Error) {
+      res.status(400).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Không thể lấy danh sách mã giảm giá đã nhận' });
+    }
+  }
+};
+
+// Nhận mã giảm giá
+export const claimDiscountCode = async (req: Request, res: Response) => {
+  try {
+    const { code } = req.body;
+    const userId = req.user?.id;
+
+    if (!code) {
+      return res.status(400).json({
+        message: 'Mã giảm giá là bắt buộc'
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        message: 'Vui lòng đăng nhập để nhận mã giảm giá'
+      });
+    }
+
+    console.log('Claiming discount code:', { code, userId });
+    const result = await discountCodeService.claimDiscountCode(code, userId);
+    console.log('Claim result:', result);
+
+    // Format lại dữ liệu trả về theo đúng format frontend mong đợi
+    const formattedResult = {
+      isValid: true,
+      discountCode: {
+        id: result.id,
+        code: result.code,
+        description: result.description,
+        type: result.discountType,
+        discount: result.discountValue,
+        minOrderValue: result.minOrderValue,
+        maxDiscount: result.maxDiscount,
+        startDate: result.startDate.toISOString(),
+        endDate: result.endDate.toISOString(),
+        usageLimit: result.usageLimit,
+        usedCount: result.usedCount,
+        isActive: result.isActive
+      }
+    };
+
+    res.json(formattedResult);
+  } catch (error) {
+    console.error('Error claiming discount code:', error);
+    if (error instanceof Error) {
+      res.status(400).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Không thể nhận mã giảm giá' });
+    }
+  }
 }; 

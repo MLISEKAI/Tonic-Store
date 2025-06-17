@@ -8,9 +8,9 @@ const Footer = () => {
       title: 'Cửa hàng',
       links: [
         { label: 'Tất cả sản phẩm', path: '/products' },
-        { label: 'Nổi bật', path: '/products?featured=true' },
-        { label: 'Hàng mới', path: '/products?new=true' },
-        { label: 'Khuyến mãi', path: '/products?sale=true' },
+        { label: 'Nổi bật', path: '/featured-products' },
+        { label: 'Hàng mới', path: '/new-arrivals' },
+        { label: 'Khuyến mãi', path: '/flash-sale' },
       ],
     },
     {
@@ -28,7 +28,7 @@ const Footer = () => {
         { label: 'Liên hệ', path: '/contact' },
         { label: 'Câu hỏi thường gặp', path: '/faq' },
         { label: 'Vận chuyển & Đổi trả', path: '/shipping' },
-        { label: 'Theo dõi đơn hàng', path: '/track-order' },
+        { label: 'Theo dõi đơn hàng', path: '/user/orders' },
       ],
     },
   ];

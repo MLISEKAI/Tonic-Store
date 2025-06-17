@@ -7,17 +7,21 @@ import { formatDate } from '../../utils/dateUtils';
 
 const PromotionCode: React.FC = () => {
   const [promotionCodes, setPromotionCodes] = useState<PromotionCode[]>([]);
+  const [claimedCodes, setClaimedCodes] = useState<PromotionCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [appliedCodes, setAppliedCodes] = useState<string[]>([]);
   const [selectedCode, setSelectedCode] = useState<PromotionCode | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const fetchPromotionCodes = async () => {
     try {
       setLoading(true);
-      const codes = await PromotionService.getAvailablePromotionCodes();
-      setPromotionCodes(codes);
+      const [availableCodes, claimedCodes] = await Promise.all([
+        PromotionService.getAvailablePromotionCodes(),
+        PromotionService.getClaimedPromotionCodes()
+      ]);
+      setPromotionCodes(availableCodes);
+      setClaimedCodes(claimedCodes);
       setError(null);
     } catch (err) {
       setError('Không thể tải danh sách mã giảm giá');
@@ -29,12 +33,6 @@ const PromotionCode: React.FC = () => {
 
   useEffect(() => {
     fetchPromotionCodes();
-  }, []);
-
-  useEffect(() => {
-    // Load các mã đã nhận từ localStorage
-    const savedCodes = JSON.parse(localStorage.getItem('appliedPromotionCodes') || '[]');
-    setAppliedCodes(savedCodes);
   }, []);
 
   const handleViewCode = (code: PromotionCode) => {
@@ -50,7 +48,7 @@ const PromotionCode: React.FC = () => {
       }
 
       // Kiểm tra xem mã có hợp lệ không
-      const result = await PromotionService.validatePromotionCode(code);
+      const result = await PromotionService.claimPromotionCode(code);
       
       if (!result.isValid) {
         message.error(result.message || 'Mã giảm giá không hợp lệ');
@@ -62,17 +60,10 @@ const PromotionCode: React.FC = () => {
         return;
       }
 
-      // Lưu mã đã nhận vào localStorage
-      const savedCodes = JSON.parse(localStorage.getItem('appliedPromotionCodes') || '[]');
-      if (!savedCodes.includes(code)) {
-        savedCodes.push(code);
-        localStorage.setItem('appliedPromotionCodes', JSON.stringify(savedCodes));
-        setAppliedCodes(savedCodes);
-        message.success('Đã nhận mã giảm giá thành công!');
-        setIsModalVisible(false);
-      } else {
-        message.info('Bạn đã nhận mã này rồi!');
-      }
+      setClaimedCodes(prev => [...prev, result.discountCode!]);
+
+      message.success('Đã nhận mã giảm giá thành công!');
+      setIsModalVisible(false);
     } catch (error) {
       console.error('Error applying code:', error);
       message.error('Không thể nhận mã giảm giá');
@@ -140,9 +131,9 @@ const PromotionCode: React.FC = () => {
                   type="primary"
                   icon={<GiftOutlined />}
                   onClick={() => handleApplyCode(code.code)}
-                  disabled={appliedCodes.includes(code.code)}
+                  disabled={claimedCodes.some(c => c.id === code.id)}
                 >
-                  {appliedCodes.includes(code.code) ? 'Đã nhận' : 'Nhận mã'}
+                  {claimedCodes.some(c => c.id === code.id) ? 'Đã nhận' : 'Nhận mã'}
                 </Button>
               ]}
             >
@@ -180,9 +171,9 @@ const PromotionCode: React.FC = () => {
                 handleApplyCode(selectedCode.code);
                 setIsModalVisible(false);
               }}
-              disabled={appliedCodes.includes(selectedCode.code)}
+              disabled={claimedCodes.some(c => c.id === selectedCode.id)}
             >
-              {appliedCodes.includes(selectedCode.code) ? 'Đã nhận' : 'Nhận mã'}
+              {claimedCodes.some(c => c.id === selectedCode.id) ? 'Đã nhận' : 'Nhận mã'}
             </Button>
           )
         ]}

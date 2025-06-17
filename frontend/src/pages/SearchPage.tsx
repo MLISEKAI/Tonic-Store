@@ -40,7 +40,7 @@ const SearchPage = () => {
     }
   }, [query]);
 
-  const handleAddToCart = async (productId: number) => {
+  const handleAddToCart = async ( product: Product) => {
     try {
       if (!isAuthenticated) {
         notification.warning({
@@ -52,7 +52,7 @@ const SearchPage = () => {
         navigate('/login');
         return;
       }
-      await CartService.addToCart(productId, 1);
+      await addToCart(product, 1);
       notification.success({
         message: 'Thành công',
         description: 'Đã thêm sản phẩm vào giỏ hàng',
@@ -101,10 +101,10 @@ const SearchPage = () => {
               hoverable
               className="cursor-pointer"
             >
-              <div onClick={() => navigate(`/products/${product.id}`)}>
+              <div onClick={(e) => handleProductClick(e, product.id)}>
                 <img
                   alt={product.name}
-                  src={product.imageUrl || 'https://via.placeholder.com/300'}
+                  src={product.imageUrl}
                   className="h-48 w-full object-cover"
                 />
                 <Card.Meta
@@ -135,7 +135,7 @@ const SearchPage = () => {
                   icon={<ShoppingCartOutlined />}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleAddToCart(product.id);
+                    handleAddToCart(product);
                   }}
                 >
                   Thêm vào giỏ

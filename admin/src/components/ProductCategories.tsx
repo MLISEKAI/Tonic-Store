@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Space, message, Popconfirm } from 'antd';
+import { Table, Button, Modal, Form, Input, Space, message, Popconfirm, Typography, Card } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { categoryService } from '../services/api';
 import { Category } from '../types/product';
+
+const { Title } = Typography;
 
 const ProductCategories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -92,7 +94,7 @@ const ProductCategories: React.FC = () => {
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
           >
-            Edit
+            Sửa
           </Button>
           <Popconfirm
             title="Bạn có chắc chắn muốn xóa danh mục này không?"
@@ -110,8 +112,18 @@ const ProductCategories: React.FC = () => {
   ];
 
   return (
-    <div>
-      <div style={{ marginBottom: 16 }}>
+    <Card>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16,
+        }}
+      >
+        <Title level={2} style={{ margin: 0 }}>
+          Quản lý danh mục
+        </Title>
         <Button
           type="primary"
           icon={<PlusOutlined />}
@@ -126,6 +138,11 @@ const ProductCategories: React.FC = () => {
         dataSource={categories}
         rowKey="id"
         loading={loading}
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Tổng ${total} danh mục`,
+        }}
       />
 
       <Modal
@@ -165,7 +182,7 @@ const ProductCategories: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </Card>
   );
 };
 
