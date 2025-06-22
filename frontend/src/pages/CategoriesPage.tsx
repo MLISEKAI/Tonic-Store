@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Spin, message, notification } from 'antd';
+import { Spin, notification } from 'antd';
 import { CategoryService } from '../services/category/categoryService';
 import { ProductService } from '../services/product/productService';
 import { CartService } from '../services/carts/cartService';

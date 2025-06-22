@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Rate, Avatar, Spin, message } from 'antd';
+import { Card, Rate, Avatar, Spin } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { Review, Product } from '../../types';
 import { ReviewService } from '../../services/product/reviewService';
 import { ProductService } from '../../services/product/productService';
 
-const CustomerReviews = () => {
+const Reviews = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +14,7 @@ const CustomerReviews = () => {
     try {
       setError(null);
       // Lấy danh sách sản phẩm
-      const products = await ProductService.getProducts('');
+      const products = await ProductService.getProducts();
       
       // Lấy reviews của các sản phẩm
       const allReviewsPromises = products.map((product: Product) => 
@@ -112,4 +112,4 @@ const CustomerReviews = () => {
   );
 };
 
-export default CustomerReviews; 
+export default Reviews; 

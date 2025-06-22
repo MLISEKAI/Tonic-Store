@@ -8,6 +8,7 @@ import { Product, ProductStatus } from '../../types';
 import ProductReviews from '../../components/product/ProductReviews';
 import { ProductService } from '../../services/product/productService';
 import WishlistButton from '../../components/home/WishlistButton';
+import { formatPrice } from '../../utils/format';
 
 const { TabPane } = Tabs;
 
@@ -119,17 +120,11 @@ const ProductDetailPage = () => {
   
           <div className="flex items-center space-x-4">
             <span className="text-2xl font-bold text-red-500">
-              {new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND',
-              }).format(product.price)}
+              {formatPrice(product.price)}
             </span>
             {product.promotionalPrice && (
               <span className="text-base text-gray-400 line-through">
-                {new Intl.NumberFormat('vi-VN', {
-                  style: 'currency',
-                  currency: 'VND',
-                }).format(product.promotionalPrice)}
+                {formatPrice(product.promotionalPrice)}
               </span>
             )}
           </div>

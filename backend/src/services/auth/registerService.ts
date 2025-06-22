@@ -14,7 +14,7 @@ export const registerUser = async (
   password: string, 
   phone: string,
   address: string,
-  role: "CUSTOMER" | "ADMIN" = "CUSTOMER"
+  role: "CUSTOMER" | "ADMIN" | "DELIVERY" = "CUSTOMER"
 ) => {
   // Validate required fields
   if (!name || !email || !password || !phone || !address) {

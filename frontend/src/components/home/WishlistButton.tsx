@@ -44,7 +44,11 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({ productId, className, s
       loading={loading}
       className={className}
     >
-      {showText && (isInWishlist ? 'Xóa yêu thích' : 'Yêu thích')}
+      {showText && (
+      <span className="text-base">
+        {isInWishlist ? 'Xóa yêu thích' : 'Yêu thích'}
+      </span>
+    )}
     </Button>
   );
 };

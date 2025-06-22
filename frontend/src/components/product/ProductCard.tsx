@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Rate, Button, Tag } from 'antd';
-import { ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
+import { Rate, Button, Tag } from 'antd';
+import { ShoppingCartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { Product, ProductStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
@@ -27,67 +27,95 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
   };
 
   return (
-    <Card
-      hoverable
-      className="product-card"
-      cover={
-        <img
-          alt={product.name}
-          src={product.imageUrl || 'https://via.placeholder.com/400'}
-          className="h-48 object-cover"
-          onClick={handleClick}
-        />
-      }
+    <div
+      className="rounded-xl border hover:shadow-lg transition-shadow duration-300 bg-white overflow-hidden cursor-pointer"
       onClick={handleClick}
     >
-      <div className="space-y-2">
-        <div className="flex justify-between items-start">
-          <h3 className="text-lg font-medium text-gray-900 truncate">
-            {product.name}
-          </h3>
-          <div className="flex space-x-1">
-            {product.isNew && <Tag color="blue">Mới</Tag>}
-            {product.isFeatured && <Tag color="gold">Nổi bật</Tag>}
-            {product.isBestSeller && <Tag color="red">Bán chạy</Tag>}
-          </div>
+      {/* Hình ảnh và nút Wishlist */}
+      <div className="relative">
+        <img
+          alt={product.name}
+          src={product.imageUrl}
+          className="h-48 w-full object-cover"
+        />
+        <WishlistButton
+          productId={product.id}
+          showText={false}
+          className="!p-1.5 absolute top-2 right-2"
+        />
+      </div>
+    
+      <div className="p-4 space-y-2">
+        {/* Tên sản phẩm */}
+        <h3 className="text-base font-semibold text-gray-900 truncate" onClick={handleClick}>
+          {product.name}
+        </h3>
+    
+        {/* Tags */}
+        <div className="flex gap-1">
+          {/* Đối với các sản phẩm bán flash, hãy hiển thị thẻ nếu họ có chương trình quảng cáo*/}
+          {product.promotionalPrice && product.promotionalPrice < product.price ? (
+            <>
+              <Tag color="blue" className="text-xs">Mới</Tag>
+              <Tag color="gold">Nổi bật</Tag>
+              <Tag color="red" className="text-xs">Bán chạy</Tag>
+            </>
+          ) : (
+            <>
+              {product.isNew && <Tag color="blue" className="text-xs">Mới</Tag>}
+              {product.isFeatured && <Tag color="gold">Nổi bật</Tag>}
+              {product.isBestSeller && <Tag color="red" className="text-xs">Bán chạy</Tag>}
+            </>
+          )}
         </div>
-
-        <div className="flex items-center">
-          <Rate disabled defaultValue={product.rating || 0} />
-          <span className="ml-2 text-gray-500 text-sm">
-            ({product.reviewCount || 0})
-          </span>
+    
+        {/* Đánh giá */}
+        <div className="flex items-center text-sm">
+          <Rate disabled defaultValue={product.rating || 0} className="text-xs" />
+          <span className="ml-1 text-gray-500">({product.reviewCount || 0})</span>
         </div>
-
-        <div className="flex items-center space-x-2">
-          <span className="text-xl font-bold text-red-500">
-            {formatPrice(product.price)}
-          </span>
-          {product.promotionalPrice && (
-            <span className="text-gray-500 line-through">
-              {formatPrice(product.promotionalPrice)}
+    
+        {/* Giá sản phẩm */}
+        <div>
+          {product.promotionalPrice && product.promotionalPrice < product.price ? (
+            <div className="flex items-center space-x-2">
+              <div className="text-xl font-bold text-red-500">
+                {formatPrice(product.promotionalPrice)}
+              </div>
+              <div className="text-sm text-gray-500 line-through">
+                {formatPrice(product.price)}
+              </div>
+              <div className="text-sm text-red-500 bg-red-100">
+                -3%
+              </div>
+            </div>
+          ) : (
+            <span className="text-lg font-bold text-red-500">
+              {formatPrice(product.price)}
             </span>
           )}
         </div>
-
-        <div className="flex justify-between items-center">
-          <span className="text-gray-500">
-            Đã bán: {product.soldCount || 0}
-          </span>
-          <div className="flex space-x-2">
-            <WishlistButton productId={product.id} showText={false} className="!p-2" />
-            <Button
-              type="primary"
-              icon={<ShoppingCartOutlined />}
-              onClick={handleAddToCart}
-              disabled={product.status === ProductStatus.OUT_OF_STOCK}
-            >
-              {product.status === ProductStatus.OUT_OF_STOCK ? 'Hết hàng' : 'Thêm vào giỏ'}
-            </Button>
-          </div>
+    
+    
+        {/* Số lượng đã bán + Thêm vào giỏ hàng */}
+        <div className="flex justify-between items-center !pt-1">
+          <div className="text-gray-500 text-sm">Đã bán: {product.soldCount || 0}</div>
+          <Button
+            type="primary"
+            size="small"
+            className='!p-4 rounded-lg'
+            icon={<ShoppingCartOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddToCart(e);
+            }}
+            disabled={product.status === ProductStatus.OUT_OF_STOCK}
+          >
+            {product.status === ProductStatus.OUT_OF_STOCK ? 'Hết hàng' : 'Thêm vào giỏ'}
+          </Button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 

@@ -8,7 +8,7 @@ import { useCart } from '../contexts/CartContext';
 import BestSellersProducts from '../components/home/BestSellersProducts';
 import FeaturedProducts from '../components/home/FeaturedProducts';
 import ProductCard from '../components/product/ProductCard';
-import FlashSale from '../components/home/FlashSale';
+import FlashSale from '../components/flash-sale/FlashSale';
 import Sidebar from '../components/layout/Sidebar';
 import Footer from '../components/layout/Footer';
 
@@ -89,12 +89,13 @@ const HomePage = () => {
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col gap-8 max-w-[1200px]">
-            {/* Top Banner Section */}
+            {/* Banner */}
             <div className='bg-white p-6 rounded-lg'>
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Main Large Banner */}
                 <div className="w-full lg:w-2/3">
-                  <div className="carousel-container h-[20vh] sm:h-[30vh] lg:h-[30vh] rounded-lg overflow-hidden relative">
+                <Link to="/">
+                  <div className="carousel-container h-[20vh] sm:h-[30vh] lg:h-[30vh] rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
                     <Carousel
                       autoplay
                       dots={true}
@@ -119,11 +120,13 @@ const HomePage = () => {
                       ))}
                     </Carousel>
                   </div>
+                </Link>
                 </div>
 
                 {/* Right Side Banner */}
                 <div className="w-full lg:w-1/3">
-                  <div className="h-[20vh] sm:h-[20vh] lg:h-[30vh] bg-white rounded-lg overflow-hidden relative">
+                <Link to="/">
+                  <div className="h-[20vh] sm:h-[20vh] lg:h-[30vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
                     <img
                       src="https://img.freepik.com/premium-photo/beautiful-bouquet-flowers_136595-4199.jpg"
                       alt="Giảm giá khủng"
@@ -136,52 +139,59 @@ const HomePage = () => {
                       </div>
                     </div>
                   </div>
+                </Link>
                 </div>
               </div>
 
               {/* Bottom Banners */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
                 {/* Banner 1 */}
-                <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative">
-                  <img
-                    src="https://img.freepik.com/free-photo/pink-roses-bouquet-with-copy-space_23-2148860032.jpg"
-                    alt="Banner 1"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
-                    <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
-                      <h3 className="text-lg sm:text-xl font-bold text-white">Hoa Tươi Mới</h3>
+                <Link to="/">
+                  <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
+                    <img
+                      src="https://img.freepik.com/free-photo/pink-roses-bouquet-with-copy-space_23-2148860032.jpg"
+                      alt="Banner 1"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
+                      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
+                        <h3 className="text-lg sm:text-xl font-bold text-white">Hoa Tươi Mới</h3>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
 
                 {/* Banner 2 */}
-                <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative">
-                  <img
-                    src="https://img.freepik.com/premium-photo/beautiful-bouquet-pink-roses_136595-1591.jpg"
-                    alt="Banner 2"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
-                    <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
-                      <h3 className="text-lg sm:text-xl font-bold text-white">Gifts that Keep Giving</h3>
+                <Link to="/">
+                  <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
+                    <img
+                      src="https://img.freepik.com/premium-photo/beautiful-bouquet-pink-roses_136595-1591.jpg"
+                      alt="Banner 2"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
+                      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
+                        <h3 className="text-lg sm:text-xl font-bold text-white">Gifts that Keep Giving</h3>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
 
                 {/* Banner 3 */}
-                <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative">
-                  <img
-                    src="https://img.freepik.com/premium-photo/pink-english-roses-bouquet-white-background_176873-7325.jpg"
-                    alt="Banner 3"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
-                    <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
-                      <h3 className="text-lg sm:text-xl font-bold text-white">Hoa Hồng Cao Cấp</h3>
+                <Link to="/">
+                  <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
+                    <img
+                      src="https://img.freepik.com/premium-photo/pink-english-roses-bouquet-white-background_176873-7325.jpg"
+                      alt="Banner 3"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
+                      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
+                        <h3 className="text-lg sm:text-xl font-bold text-white">Hoa Hồng Cao Cấp</h3>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               </div>
             </div>
 

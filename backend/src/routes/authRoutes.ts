@@ -2,6 +2,7 @@ import express from "express";
 import { registerUser } from "../services/auth/registerService";
 import { loginUser } from "../services/auth/loginService";
 import { Prisma } from "@prisma/client";
+import { sendResetPasswordEmail, resetPasswordByToken } from '../services/auth/forgotPasswordService';
 
 const router = express.Router();
 
@@ -50,6 +51,26 @@ router.post("/login", async (req, res) => {
       }
     }
     res.status(500).json({ error: "Login failed", details: error instanceof Error ? error.message : "Unknown error" });
+  }
+});
+
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    await sendResetPasswordEmail(email);
+    res.json({ message: 'Đã gửi email khôi phục mật khẩu, vui lòng kiểm tra hộp thư.' });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Có lỗi xảy ra!' });
+  }
+});
+
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    await resetPasswordByToken(token, password);
+    res.json({ message: 'Đặt lại mật khẩu thành công!' });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Có lỗi xảy ra!' });
   }
 });
 
