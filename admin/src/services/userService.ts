@@ -45,6 +45,8 @@ export const userService = {
         email: data.email,
         password: data.password,
         role: data.role,
+        phone: data.phone,
+        address: data.address,
       }),
     });
     return handleResponse(res);

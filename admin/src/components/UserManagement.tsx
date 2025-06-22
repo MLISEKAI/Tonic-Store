@@ -223,7 +223,10 @@ const UserManagement: React.FC = () => {
             <Form.Item
               name="password"
               label="Mật khẩu"
-              rules={[{ required: !selectedUser }]}
+              rules={[
+                { required: !selectedUser, message: 'Vui lòng nhập mật khẩu' },
+                { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự' }
+              ]}
             >
               <Input.Password />
             </Form.Item>
@@ -244,6 +247,7 @@ const UserManagement: React.FC = () => {
           <Form.Item
             name="phone"
             label="Số điện thoại"
+            rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
           >
             <Input />
           </Form.Item>
@@ -251,6 +255,7 @@ const UserManagement: React.FC = () => {
           <Form.Item
             name="address"
             label="Địa chỉ"
+            rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
           >
             <Input.TextArea rows={4} />
           </Form.Item>

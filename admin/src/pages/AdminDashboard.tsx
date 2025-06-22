@@ -157,7 +157,7 @@ const AdminDashboard: React.FC = () => {
       { title: 'Tổng sản phẩm', value: stats.totalProducts, color: '#4caf50' },
       { title: 'Tổng người dùng', value: stats.totalUsers, color: '#2196f3' },
       { title: 'Tổng đơn hàng', value: stats.totalOrders, color: '#f44336' },
-      { title: 'Tổng doanh thu', value: `$${stats.totalRevenue.toFixed(2)}`, color: '#ff9800' },
+      { title: 'Tổng doanh thu', value: `${stats.totalRevenue.toLocaleString('vi-VN')} ₫`, color: '#ff9800' },
     ];
 
     return (

@@ -29,6 +29,9 @@ import BlogPage from "./pages/BlogPage";
 import FeaturedProductsPage from "./pages/FeaturedProductsPage";
 import NotificationsPage from './pages/NotificationsPage';
 import PromotionCode from "./components/discount-codes/DiscountCode";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+
 
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -203,6 +206,10 @@ const App = () => {
                 </DefaultLayout>
               </ProtectedRoute>
             } />
+
+            {/* Reset and forgot Password route */}
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Routes>
         </CartProvider>
       </AuthProvider>

@@ -213,3 +213,29 @@ export const setDefaultShippingAddress = async (token: string, id: number) => {
   return handleResponse(response);
 };
 
+export async function forgotPassword(email: string) {
+  const res = await fetch(ENDPOINTS.AUTH.FORGOT_PASSWORD, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || 'Có lỗi xảy ra!');
+  }
+  return res.json();
+}
+
+export async function resetPassword(token: string, password: string) {
+  const res = await fetch(ENDPOINTS.AUTH.RESET_PASSWORD, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password })
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || 'Có lỗi xảy ra!');
+  }
+  return res.json();
+}
+
