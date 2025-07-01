@@ -9,15 +9,21 @@ const LoginPage = () => {
 
   const onFinish = async (values: { email: string; password: string }) => {
     try {
-      // Chuẩn hóa dữ liệu trước khi gửi
       const loginData = {
         email: values.email.toLowerCase().trim(),
         password: values.password
       };
-
-      await login(loginData);
-
-      navigate('/');
+  
+      // Đăng nhập và nhận về user + token
+      const data = await login(loginData);
+  
+      // Chuyển hướng dựa vào role
+      if (data.user.role === 'ADMIN') {
+        const adminUrl = import.meta.env.VITE_ADMIN_URL;
+        window.open(`${adminUrl}/admin?token=${encodeURIComponent(data.token)}&role=${encodeURIComponent(data.user.role)}`, '_blank');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       notification.error({
         message: 'Lỗi',

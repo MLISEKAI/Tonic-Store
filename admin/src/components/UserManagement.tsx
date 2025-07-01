@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Table, Modal, Form, Input, Select, Checkbox, Space, Card, Typography } from 'antd';
+import { Button, Table, Modal, Form, Input, Select, Checkbox, Space, Card, Typography, message } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { userService } from '../services/userService';
-import { User, CreateUserData, UpdateUserData } from '../types/user';
+import { User, UpdateUserData } from '../types/user';
 
 const { Title } = Typography;
 
@@ -74,22 +74,27 @@ const UserManagement: React.FC = () => {
         if (changePassword && values.password) {
           await userService.changeUserPassword(selectedUser.id, values.password);
         }
+        message.success('Cập nhật người dùng thành công!');
       } else {
         await userService.createUser(values);
+        message.success('Thêm người dùng thành công!');
       }
       fetchUsers();
       handleCancel();
     } catch (error) {
       console.error('Error saving user:', error);
+      message.error('Có lỗi xảy ra. Vui lòng thử lại!');
     }
   };
 
   const handleDelete = async (id: number) => {
     try {
       await userService.deleteUser(id);
+      message.error('Xóa người dùng thành công!');
       fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
+      message.error('Có lỗi xảy ra. Vui lòng thử lại!');
     }
   };
 
@@ -192,7 +197,11 @@ const UserManagement: React.FC = () => {
           <Form.Item
             name="name"
             label="Tên"
-            rules={[{ required: true }]}
+            rules={[
+              { required: true, message: 'Vui lòng nhập họ tên!' },
+              { min: 2, message: 'Họ tên phải có ít nhất 2 ký tự!' },
+              { whitespace: true, message: 'Họ tên không được chỉ chứa khoảng trắng!' }
+            ]}
           >
             <Input />
           </Form.Item>
@@ -201,8 +210,9 @@ const UserManagement: React.FC = () => {
             name="email"
             label="Email"
             rules={[
-              { required: true },
-              { type: 'email' }
+              { required: true, message: 'Vui lòng nhập email!' },
+              { type: 'email', message: 'Email không hợp lệ!' },
+              { whitespace: true, message: 'Email không được chứa khoảng trắng!' }
             ]}
           >
             <Input />
@@ -224,18 +234,19 @@ const UserManagement: React.FC = () => {
               name="password"
               label="Mật khẩu"
               rules={[
-                { required: !selectedUser, message: 'Vui lòng nhập mật khẩu' },
-                { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự' }
+                { required: changePassword || !selectedUser, message: 'Vui lòng nhập mật khẩu!' },
+                { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
+                { whitespace: true, message: 'Mật khẩu không được chứa khoảng trắng!' }
               ]}
             >
-              <Input.Password />
+              <Input.Password autoComplete="new-password" />
             </Form.Item>
           )}
 
           <Form.Item
             name="role"
             label="Vai trò"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
           >
             <Select>
               <Select.Option value="CUSTOMER">Khách hàng</Select.Option>
@@ -247,7 +258,11 @@ const UserManagement: React.FC = () => {
           <Form.Item
             name="phone"
             label="Số điện thoại"
-            rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
+            rules={[
+              { required: true, message: 'Vui lòng nhập số điện thoại!' },
+              { pattern: /^[0-9]{10,11}$/, message: 'Số điện thoại phải có 10-11 chữ số!' },
+              { whitespace: true, message: 'Số điện thoại không được chứa khoảng trắng!' }
+            ]}
           >
             <Input />
           </Form.Item>
@@ -255,7 +270,11 @@ const UserManagement: React.FC = () => {
           <Form.Item
             name="address"
             label="Địa chỉ"
-            rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
+            rules={[
+              { required: true, message: 'Vui lòng nhập địa chỉ!' },
+              { min: 5, message: 'Địa chỉ phải có ít nhất 5 ký tự!' },
+              { whitespace: true, message: 'Địa chỉ không được chỉ chứa khoảng trắng!' }
+            ]}
           >
             <Input.TextArea rows={4} />
           </Form.Item>

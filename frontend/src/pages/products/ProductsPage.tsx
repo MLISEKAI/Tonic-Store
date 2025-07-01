@@ -1,15 +1,18 @@
 import { Button, Input, Select, notification, Spin } from 'antd';
 import { SearchOutlined, FilterOutlined, ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { ProductService } from '../../services/product/productService';
 import { Product } from '../../types';
 import ProductCard from '../../components/product/ProductCard';
+import { getBreadcrumbFromPath } from '../../utils/breadcrumb';
 
 const ProductsPage = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const breadcrumb = getBreadcrumbFromPath(location.pathname, location.search);
   const categoryId = searchParams.get('category');
   const [sortBy, setSortBy] = useState('featured');
   const [products, setProducts] = useState<Product[]>([]);
@@ -137,7 +140,8 @@ const ProductsPage = () => {
             <ProductCard
               key={product.id}
               product={product}
-              onAddToCart={handleAddToCart}
+              onAddToCart={() => handleAddToCart(product)}
+              breadcrumb={breadcrumb}
             />
           ))}
         </div>

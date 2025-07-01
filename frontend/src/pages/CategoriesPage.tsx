@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { Spin, notification } from 'antd';
 import { CategoryService } from '../services/category/categoryService';
 import { ProductService } from '../services/product/productService';
@@ -7,6 +7,7 @@ import { CartService } from '../services/carts/cartService';
 import { useCart } from '../contexts/CartContext';
 import ProductCard from '../components/product/ProductCard';
 import { Product } from '../types';
+import { getBreadcrumbFromPath } from '../utils/breadcrumb';
 
 interface Category {
   id: number;
@@ -17,6 +18,8 @@ interface Category {
 
 const CategoriesPage: FC = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const breadcrumb = getBreadcrumbFromPath(location.pathname, location.search);
   const selectedCategory = searchParams.get('category');
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -28,10 +31,10 @@ const CategoriesPage: FC = () => {
       try {
         const [categoriesData, productsData] = await Promise.all([
           CategoryService.getCategories(),
-          ProductService.getProducts()
+          ProductService.getProducts(undefined)
         ]);
 
-        // Calculate product count for each category
+        // Tính số lượng sản phẩm cho từng loại
         const categoriesWithCount = categoriesData.map((category: Category) => ({
           ...category,
           productCount: productsData.filter((product: Product) => product.category?.name === category.name).length
@@ -99,6 +102,7 @@ const CategoriesPage: FC = () => {
               key={product.id}
               product={product}
               onAddToCart={handleAddToCart}
+              breadcrumb={breadcrumb}
             />
           ))}
         </div>

@@ -1,6 +1,10 @@
 import { PrismaClient, ProductStatus } from '@prisma/client';
 const prisma = new PrismaClient();
 
+// Cooldown mechanism to prevent spamming flash sale notifications
+let lastFlashSaleNotificationSent = 0;
+const NOTIFICATION_COOLDOWN = 60 * 60 * 1000; // 1 hour in milliseconds
+
 export const getAllProducts = async (categoryName?: string, filters?: {
   status?: ProductStatus;
   isFeatured?: boolean;
@@ -349,14 +353,29 @@ export const getFlashSaleProducts = async () => {
       });
     }
 
-    // Create notification for flash sale
-    await prisma.notification.create({
-      data: {
-        userId: 1, // Replace with actual user ID or logic to determine user
-        message: `Flash Sale đang diễn ra! Hãy nhanh tay mua sắm.`,
-        isRead: false,
-      },
-    });
+    // Create notification for all users about the flash sale, with a cooldown
+    const now = Date.now();
+    if (products.length > 0 && (now - lastFlashSaleNotificationSent > NOTIFICATION_COOLDOWN)) {
+      const users = await prisma.user.findMany({
+        select: { id: true },
+      });
+
+      if (users.length > 0) {
+        const notificationData = users.map((user) => ({
+          userId: user.id,
+          message: `Flash Sale đang diễn ra! Hãy nhanh tay mua sắm.`,
+          isRead: false,
+        }));
+
+        await prisma.notification.createMany({
+          data: notificationData,
+        });
+
+        // Update the timestamp after sending notifications
+        lastFlashSaleNotificationSent = now;
+        console.log(`Flash sale notifications sent at ${new Date(now).toISOString()}`);
+      }
+    }
     
     return products;
   } catch (error) {

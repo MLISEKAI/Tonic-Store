@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, notification, Carousel } from 'antd';
 import { ArrowRightOutlined, RightOutlined } from '@ant-design/icons';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useProducts } from '../hooks';
 import { Product } from '../types';
 import { useCart } from '../contexts/CartContext';
@@ -17,6 +17,11 @@ const HomePage = () => {
   const { products, filteredProducts } = useProducts();
   const { addToCart } = useCart();
   const [visibleSuggestions, setVisibleSuggestions] = useState(8);
+
+  // Breadcrumb context cho từng mục
+  const flashSaleBreadcrumb = { path: '/flash-sale', label: 'Khuyến mãi' };
+  const featuredBreadcrumb = { path: '/featured-products', label: 'Sản phẩm nổi bật' };
+  const bestSellersBreadcrumb = { path: '/best-sellers', label: 'Sản phẩm bán chạy' };
 
   const handleAddToCart = async (product: Product) => {
     try {
@@ -196,18 +201,20 @@ const HomePage = () => {
             </div>
 
             {/* Flash Sale Section */}
-            <FlashSale />
+            <FlashSale breadcrumb={flashSaleBreadcrumb} />
 
             {/* Sản phẩm nổi bật */}
             <FeaturedProducts 
               products={featuredProducts}
               onAddToCart={handleAddToCart}
+              breadcrumb={featuredBreadcrumb}
             />
 
             {/* Sản phẩm bán chạy */}
             <BestSellersProducts 
               products={bestSellers}
               onAddToCart={handleAddToCart}
+              breadcrumb={bestSellersBreadcrumb}
             />
 
             {/* Gợi ý hôm nay */}
@@ -215,7 +222,7 @@ const HomePage = () => {
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold">Gợi ý hôm nay</h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
                 {todaySuggestions.slice(0, visibleSuggestions).map((product) => (
                   <ProductCard
                     key={product.id}

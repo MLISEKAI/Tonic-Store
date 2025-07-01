@@ -9,13 +9,25 @@ import WishlistButton from '../home/WishlistButton';
 interface ProductCardProps {
   product: Product;
   onAddToCart?: (product: Product) => void;
+  breadcrumb?: { path: string; label: string };
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, breadcrumb }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/products/${product.id}`);
+    let fromMenu;
+    if (breadcrumb?.path === '/flash-sale') fromMenu = 'flash-sale';
+    else if (breadcrumb?.path === '/featured-products') fromMenu = 'featured-products';
+    else if (breadcrumb?.path === '/best-sellers') fromMenu = 'best-sellers';
+    else if (breadcrumb?.path === '/new-arrivals') fromMenu = 'new-arrivals';
+    else if (breadcrumb?.path === '/products') fromMenu = 'products';
+    else if (breadcrumb?.path === '/categories') fromMenu = 'categories';
+    if (fromMenu) {
+      navigate(`/products/${product.id}?from=${fromMenu}`, { state: { breadcrumb, fromMenu } });
+    } else {
+      navigate(`/products/${product.id}`, { state: { breadcrumb } });
+    }
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {

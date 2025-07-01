@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Select, notification, Spin } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { Product } from '../types';
 import ProductCard from '../components/product/ProductCard';
 import { ProductService } from '../services/product/productService';
+import { getBreadcrumbFromPath } from '../utils/breadcrumb';
 
 const NewArrivalsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -14,6 +15,8 @@ const NewArrivalsPage = () => {
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const navigate = useNavigate();
+  const location = useLocation();
+  const breadcrumb = getBreadcrumbFromPath(location.pathname, location.search);
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
 
@@ -135,6 +138,7 @@ const NewArrivalsPage = () => {
               key={product.id}
               product={product}
               onAddToCart={handleAddToCart}
+              breadcrumb={breadcrumb}
             />
           ))}
         </div>
