@@ -14,7 +14,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
+  login: (credentials: { email: string; password: string }) => Promise<any>;
   register: (data: {
     name: string;
     email: string;
@@ -33,8 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated,
     loading,
     error,
-    setUser,
-    setIsAuthenticated,
     checkAuth,
     clearAuth
   } = useAuthState();
@@ -53,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.token) {
         localStorage.setItem('token', response.token.trim());
         await checkAuth();
+        return response;
       } else {
         throw new Error('No token received from server');
       }

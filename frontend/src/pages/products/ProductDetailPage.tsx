@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { Card, Button, notification, Spin, Image, Rate, InputNumber, Tabs, Tag, Space, Divider, Breadcrumb } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined, EyeOutlined, StarOutlined, FireOutlined, GiftOutlined } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,17 +9,27 @@ import ProductReviews from '../../components/product/ProductReviews';
 import { ProductService } from '../../services/product/productService';
 import WishlistButton from '../../components/home/WishlistButton';
 import { formatPrice } from '../../utils/format';
+import { getBreadcrumbFromPath } from '../../utils/breadcrumb';
 
 const { TabPane } = Tabs;
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
+
+  let breadcrumbParent = location.state?.breadcrumb;
+  if (!breadcrumbParent && product?.promotionalPrice && product?.promotionalPrice < product?.price) {
+    breadcrumbParent = { path: '/flash-sale', label: 'Khuyến mãi' };
+  }
+  if (!breadcrumbParent) {
+    breadcrumbParent = getBreadcrumbFromPath(location.pathname, location.search);
+  }
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -93,7 +103,7 @@ const ProductDetailPage = () => {
           <Link to="/" className="hover:text-blue-500">Trang chủ</Link>
         </Breadcrumb.Item>
         <Breadcrumb.Item>
-          <Link to="/products" className="hover:text-blue-500">Sản phẩm</Link>
+          <Link to={breadcrumbParent.path} className="hover:text-blue-500">{breadcrumbParent.label}</Link>
         </Breadcrumb.Item>
         <Breadcrumb.Item>{product.name}</Breadcrumb.Item>
       </Breadcrumb>
@@ -103,7 +113,7 @@ const ProductDetailPage = () => {
         {/* Left: Image */}
         <div>
           <Image
-            src={product.imageUrl || 'https://via.placeholder.com/400'}
+            src={product.imageUrl}
             alt={product.name}
             className="rounded-md"
           />
@@ -114,8 +124,9 @@ const ProductDetailPage = () => {
           <h1 className="text-3xl font-semibold">{product.name}</h1>
   
           <div className="flex items-center space-x-2">
-            <Rate disabled defaultValue={product.rating || 0} />
-            <span className="text-gray-500 text-sm">({product.reviewCount} đánh giá)</span>
+            <Rate disabled value={Math.round(product.rating || 0)} />
+            <span className="ml-2 font-semibold text-yellow-600">{product.rating?.toFixed(1) || 0}/5</span>
+            <span className="text-gray-500 text-sm ml-2">({product.reviewCount} đánh giá)</span>
           </div>
   
           <div className="flex items-center space-x-4">

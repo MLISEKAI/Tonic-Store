@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { notification } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { Product } from '../types';
 import ProductListPage from '../components/product/ProductListPage';
 import { useFlashSale } from '../hooks/useFlashSale';
+import { getBreadcrumbFromPath } from '../utils/breadcrumb';
 
 const FlashSalePage = () => {
   const { products, loading, error } = useFlashSale();
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState('featured');
   const navigate = useNavigate();
+  const location = useLocation();
+  const breadcrumb = getBreadcrumbFromPath(location.pathname, location.search);
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
 
@@ -74,19 +77,18 @@ const FlashSalePage = () => {
     { value: 'price-high', label: 'Giá: Cao đến thấp' },
     { value: 'rating', label: 'Đánh giá cao' },
   ];
-
   return (
     <ProductListPage
-      title="Flash Sale"
-      products={sortedProducts}
-      loading={loading}
-      error={error || undefined}
-      onAddToCart={handleAddToCart}
-      onSearch={handleSearch}
-      onSort={setSortBy}
-      sortOptions={sortOptions}
-      searchText={searchText}
-      sortBy={sortBy}
+    title="Flash Sale"
+    products={sortedProducts}
+    loading={loading}
+    error={error ?? undefined}
+    onAddToCart={handleAddToCart}
+    onSearch={handleSearch}
+    onSort={setSortBy}
+    sortOptions={sortOptions}
+    searchText={searchText}
+    sortBy={sortBy}
     />
   );
 };

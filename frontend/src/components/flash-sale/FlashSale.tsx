@@ -8,7 +8,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useFlashSale } from '../../hooks/useFlashSale';
 import ProductCard from '../product/ProductCard';
 
-const FlashSale: React.FC = () => {
+interface FlashSaleProps {
+  breadcrumb: { path: string; label: string };
+}
+
+const FlashSale: React.FC<FlashSaleProps> = ({ breadcrumb }) => {
   const { products, loading, error } = useFlashSale();
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -41,10 +45,6 @@ const FlashSale: React.FC = () => {
     }
   };
 
-  const navigateToProduct = (productId: number) => {
-    navigate(`/products/${productId}`);
-  };
-
   if (error) {
     return (
       <div className="text-center text-red-500 py-4">
@@ -72,13 +72,14 @@ const FlashSale: React.FC = () => {
           Xem tất cả <RightOutlined className="text-xs ml-1"/>
         </Link>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.map((product) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {products.slice(0, 5).map((product) => (
           <ProductCard
-          key={product.id}
-          product={product}
-          onAddToCart={handleAddToCart}
-        />
+            key={product.id}
+            product={product}
+            onAddToCart={() => handleAddToCart(product)}
+            breadcrumb={breadcrumb}
+          />
         ))}
       </div>
     </div>

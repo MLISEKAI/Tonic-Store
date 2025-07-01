@@ -1,56 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Card, Button, message, Empty } from 'antd';
 import { HeartOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import { WishlistService } from '../services/wishlist/wishlistService';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
-
-interface WishlistItem {
-  id: number;
-  product: {
-    id: number;
-    name: string;
-    price: number;
-    imageUrl: string;
-    category: {
-      name: string;
-    };
-  };
-}
+import { useWishlist } from '../contexts/WishlistContext';
 
 const WishlistPage: React.FC = () => {
-  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { wishlist, loading, removeFromWishlist } = useWishlist();
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
-  useEffect(() => {
-    loadWishlist();
-  }, []);
-
-  const loadWishlist = async () => {
-    try {
-      setLoading(true);
-      const data = await WishlistService.getWishlist();
-      setWishlist(data);
-    } catch (error) {
-      message.error('Failed to load wishlist');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleRemoveFromWishlist = async (productId: number) => {
     try {
-      await WishlistService.removeFromWishlist(productId);
+      await removeFromWishlist(productId);
       message.success('Product removed from wishlist');
-      loadWishlist();
     } catch (error) {
       message.error('Failed to remove from wishlist');
     }
   };
 
-  const handleAddToCart = async (product: WishlistItem['product']) => {
+  const handleAddToCart = async (product: any) => {
     try {
       await addToCart(product, 1);
       message.success('Product added to cart');
@@ -141,4 +110,4 @@ const WishlistPage: React.FC = () => {
   );
 };
 
-export default WishlistPage; 
+export default WishlistPage;
