@@ -41,6 +41,7 @@ services:
     restart: unless-stopped
     ports:
       - '8085:8085'
+      - '9229:9229'
     command: 'yarn run dev'
     depends_on:
       db:

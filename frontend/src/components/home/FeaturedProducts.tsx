@@ -16,7 +16,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   breadcrumb
 }) => {
   return (
-    <div className="mb-12">
+    <div className="bg-white p-6 rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Sản phẩm nổi bật</h2>
         {showViewAll && (

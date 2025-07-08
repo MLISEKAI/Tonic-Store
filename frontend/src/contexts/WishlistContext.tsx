@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
 import { WishlistService } from '../services/wishlist/wishlistService';
 
 interface WishlistItem {
@@ -26,6 +27,16 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadWishlist();
+    } else {
+      setWishlist([]);
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   const loadWishlist = async () => {
     try {
@@ -38,10 +49,6 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadWishlist();
-  }, []);
 
   const removeFromWishlist = async (productId: number) => {
     await WishlistService.removeFromWishlist(productId);

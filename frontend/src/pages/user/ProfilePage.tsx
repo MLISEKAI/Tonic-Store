@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { message, Spin, notification } from 'antd';
 import { useAuth } from '../../contexts/AuthContext';
-import { UserProfile, UpdateUserProfileData } from '../../types/user';
+import { UserProfile} from '../../types/user';
 import ProfileForm from '../../components/user/ProfileForm';
 import { UserService } from '../../services/user/userService';
 

@@ -13,4 +13,5 @@ RUN npx prisma generate
 
 COPY . .
 
-CMD ["yarn", "run", "dev"]
+# Start server (debug mode)
+CMD ["node", "--inspect=0.0.0.0:9229", "-r", "ts-node/register", "src/index.ts"]

@@ -13,6 +13,7 @@ const ProductManagement: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [form] = Form.useForm();
+  const [editSoldCount, setEditSoldCount] = useState(0);
 
   useEffect(() => {
     fetchProducts();
@@ -67,6 +68,7 @@ const ProductManagement: React.FC = () => {
   const showModal = (product?: Product) => {
     if (product) {
       setSelectedProduct(product);
+      setEditSoldCount(product.soldCount || 0);
       form.setFieldsValue({
         name: product.name,
         description: product.description,
@@ -92,6 +94,7 @@ const ProductManagement: React.FC = () => {
       });
     } else {
       setSelectedProduct(null);
+      setEditSoldCount(0);
       form.resetFields();
     }
     setIsModalVisible(true);
@@ -117,33 +120,54 @@ const ProductManagement: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    Modal.confirm({
-      title: 'Bạn có chắc chắn muốn xóa sản phẩm này?',
-      content: 'Hành động này không thể hoàn tác.',
-      okText: 'Có',
-      okType: 'danger',
-      cancelText: 'Không',
-      onOk: async () => {
-        try {
-          await productService.deleteProduct(id);
-          notification.success({
-            message: 'Thành công',
-            description: 'Đã xóa sản phẩm thành công',
-            placement: 'topRight',
-            duration: 2,
-          });
-          fetchProducts();
-        } catch (error) {
-          notification.error({
-            message: 'Lỗi',
-            description: error instanceof Error ? error.message : 'Không thể xóa sản phẩm',
-            placement: 'topRight',
-            duration: 2,
-          });
-        }
-      },
-    });
+  // const handleDelete = async (id: number) => {
+  //   Modal.confirm({
+  //     title: 'Bạn có chắc chắn muốn xóa sản phẩm này?',
+  //     content: 'Hành động này không thể hoàn tác.',
+  //     okText: 'Có',
+  //     okType: 'danger',
+  //     cancelText: 'Không',
+  //     onOk: async () => {
+  //       try {
+  //         await productService.deleteProduct(id);
+  //         notification.success({
+  //           message: 'Thành công',
+  //           description: 'Đã xóa sản phẩm thành công',
+  //           placement: 'topRight',
+  //           duration: 2,
+  //         });
+  //         fetchProducts();
+  //       } catch (error) {
+  //         notification.error({
+  //           message: 'Lỗi',
+  //           description: error instanceof Error ? error.message : 'Không thể xóa sản phẩm',
+  //           placement: 'topRight',
+  //           duration: 2,
+  //         });
+  //       }
+  //     },
+  //   });
+  // };
+
+  const handleToggleStatus = async (product: Product) => {
+    try {
+      const newStatus = product.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+      await productService.updateProduct(product.id, { status: newStatus });
+      notification.success({
+        message: 'Thành công',
+        description: `Sản phẩm đã được ${newStatus === 'ACTIVE' ? 'hiển thị' : 'ẩn'}`,
+        placement: 'topRight',
+        duration: 2,
+      });
+      fetchProducts();
+    } catch (error) {
+      notification.error({
+        message: 'Lỗi',
+        description: error instanceof Error ? error.message : 'Không thể cập nhật trạng thái sản phẩm',
+        placement: 'topRight',
+        duration: 2,
+      });
+    }
   };
 
   const columns = [
@@ -279,11 +303,12 @@ const ProductManagement: React.FC = () => {
             Sửa
           </Button>
           <Button
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
+            type={record.status === 'ACTIVE' ? 'default' : 'dashed'}
+            danger={record.status === 'ACTIVE'}
+            icon={null}
+            onClick={() => handleToggleStatus(record)}
           >
-            Xóa
+            {record.status === 'ACTIVE' ? 'Ẩn' : 'Hiển thị'}
           </Button>
         </Space>
       ),
@@ -340,7 +365,7 @@ const ProductManagement: React.FC = () => {
             label="Tên"
             rules={[{ required: true }]}
           >
-            <Input />
+            <Input disabled={editSoldCount > 0} />
           </Form.Item>
 
           <Form.Item
@@ -361,6 +386,7 @@ const ProductManagement: React.FC = () => {
               formatter={(value: number | undefined) => value ? `₫ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
               parser={(value: string | undefined) => value ? Number(value.replace(/₫\s?|(,*)/g, '')) : 0}
               style={{ width: '100%' }}
+              disabled={editSoldCount > 0}
             />
           </Form.Item>
 
@@ -374,6 +400,7 @@ const ProductManagement: React.FC = () => {
               formatter={(value: number | undefined) => value ? `₫ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
               parser={(value: string | undefined) => value ? Number(value.replace(/₫\s?|(,*)/g, '')) : 0}
               style={{ width: '100%' }}
+              disabled={editSoldCount > 0}
             />
           </Form.Item>
 
@@ -392,7 +419,7 @@ const ProductManagement: React.FC = () => {
             name="imageUrl"
             label="Ảnh sản phẩm"
           >
-            <Input />
+            <Input disabled={editSoldCount > 0} />
           </Form.Item>
 
           <Form.Item
@@ -403,6 +430,7 @@ const ProductManagement: React.FC = () => {
             <InputNumber
               style={{ width: '100%' }}
               min={1}
+              disabled={editSoldCount > 0}
             />
           </Form.Item>
 
@@ -410,14 +438,14 @@ const ProductManagement: React.FC = () => {
             name="sku"
             label="Mã sản phẩm"
           >
-            <Input />
+            <Input disabled={editSoldCount > 0} />
           </Form.Item>
 
           <Form.Item
             name="barcode"
             label="Mã vạch"
           >
-            <Input />
+            <Input disabled={editSoldCount > 0} />
           </Form.Item>
 
           <Form.Item
@@ -428,6 +456,7 @@ const ProductManagement: React.FC = () => {
               style={{ width: '100%' }}
               min={0}
               precision={2}
+              disabled={editSoldCount > 0}
             />
           </Form.Item>
 
@@ -435,28 +464,28 @@ const ProductManagement: React.FC = () => {
             name="dimensions"
             label="Kích thước"
           >
-            <Input />
+            <Input disabled={editSoldCount > 0} />
           </Form.Item>
 
           <Form.Item
             name="material"
             label="Chất liệu"
           >
-            <Input />
+            <Input disabled={editSoldCount > 0} />
           </Form.Item>
 
           <Form.Item
             name="origin"
             label="Xuất xứ"
           >
-            <Input />
+            <Input disabled={editSoldCount > 0} />
           </Form.Item>
 
           <Form.Item
             name="warranty"
             label="Bảo hành"
           >
-            <Input />
+            <Input disabled={editSoldCount > 0} />
           </Form.Item>
 
           <Form.Item

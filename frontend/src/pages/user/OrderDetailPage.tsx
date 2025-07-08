@@ -112,9 +112,7 @@ const OrderDetailPage: React.FC = () => {
         // Chỉ lấy đánh giá nếu đơn hàng đã được giao
         if (data.status === 'DELIVERED') {
           try {
-            console.log('Fetching rating for order:', data.id);
             const rating = await ShipperService.getShipperRating(data.id);
-            console.log('Rating result:', rating);
             setShipperRating(rating as ShipperRating);
           } catch (error) {
             console.log('Chưa có đánh giá cho đơn hàng này');

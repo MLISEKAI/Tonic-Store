@@ -47,13 +47,14 @@ const ProductsPage = () => {
     setSearchText(value);
   };
 
-  const filteredProducts = products.filter(product => {
-    const productName = product.name.toLowerCase();
-    const categoryName = product.category?.name?.toLowerCase() || '';
-    const searchTerm = searchText.toLowerCase();
-    
-    return productName.includes(searchTerm) || categoryName.includes(searchTerm);
-  });
+  const filteredProducts = products
+    .filter(product => product.status === 'ACTIVE')
+    .filter(product => {
+      const productName = product.name.toLowerCase();
+      const categoryName = product.category?.name?.toLowerCase() || '';
+      const searchTerm = searchText.toLowerCase();
+      return productName.includes(searchTerm) || categoryName.includes(searchTerm);
+    });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
@@ -135,7 +136,7 @@ const ProductsPage = () => {
           Không tìm thấy sản phẩm nào
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           {sortedProducts.map((product) => (
             <ProductCard
               key={product.id}

@@ -4,7 +4,6 @@ import { Tabs, notification } from 'antd';
 import { Order, OrderStatus } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { OrderService } from '../../services/order/orderService';
-import { UserService } from '../../services/user/userService';
 import OrderList from '../../components/user/OrderList';
 
 const { TabPane } = Tabs;
@@ -64,66 +63,69 @@ export const OrdersPage: FC = () => {
 
     fetchOrders();
 
-    // Subscribe to order status updates
-    const eventSource = new EventSource(`${import.meta.env.VITE_API_URL}/orders/updates`);
+    // Chỉ mở EventSource khi đã xác thực và có user
+    if (isAuthenticated && user?.id) {
+      const token = localStorage.getItem('token');
+      const eventSource = new EventSource(`${import.meta.env.VITE_API_URL}/orders/updates?token=${token}`);
 
-    eventSource.onmessage = (event) => {
-      const update = JSON.parse(event.data);
-      if (update.userId === user?.id) {
-        setOrders((prevOrders) =>
-          prevOrders.map((order) =>
-            order.id === update.orderId
-              ? { ...order, status: update.status }
-              : order
-          )
-        );
+      eventSource.onmessage = (event) => {
+        const update = JSON.parse(event.data);
+        if (update.userId === user?.id) {
+          setOrders((prevOrders) =>
+            prevOrders.map((order) =>
+              order.id === update.orderId
+                ? { ...order, status: update.status }
+                : order
+            )
+          );
 
-        // Show notification based on status
-        switch (update.status) {
-          case OrderStatus.PROCESSING:
-            notification.info({
-              message: 'Đơn hàng đang được xử lý',
-              description: `Đơn hàng #${update.orderId} đã được gán cho shipper và đang được xử lý.`,
-              placement: 'topRight',
-              duration: 5,
-            });
-            break;
-          case OrderStatus.SHIPPED:
-            notification.info({
-              message: 'Đơn hàng đang được giao',
-              description: `Đơn hàng #${update.orderId} đang được shipper giao đến bạn.`,
-              placement: 'topRight',
-              duration: 5,
-            });
-            break;
-          case OrderStatus.DELIVERED:
-            notification.success({
-              message: 'Đơn hàng đã được giao',
-              description: `Đơn hàng #${update.orderId} đã được giao thành công. Vui lòng đánh giá shipper.`,
-              placement: 'topRight',
-              duration: 5,
-            });
-            break;
-          case OrderStatus.CANCELLED:
-            notification.warning({
-              message: 'Đơn hàng đã bị hủy',
-              description: `Đơn hàng #${update.orderId} đã bị hủy.`,
-              placement: 'topRight',
-              duration: 5,
-            });
-            break;
+          // Show notification based on status
+          switch (update.status) {
+            case OrderStatus.PROCESSING:
+              notification.info({
+                message: 'Đơn hàng đang được xử lý',
+                description: `Đơn hàng #${update.orderId} đã được gán cho shipper và đang được xử lý.`,
+                placement: 'topRight',
+                duration: 5,
+              });
+              break;
+            case OrderStatus.SHIPPED:
+              notification.info({
+                message: 'Đơn hàng đang được giao',
+                description: `Đơn hàng #${update.orderId} đang được shipper giao đến bạn.`,
+                placement: 'topRight',
+                duration: 5,
+              });
+              break;
+            case OrderStatus.DELIVERED:
+              notification.success({
+                message: 'Đơn hàng đã được giao',
+                description: `Đơn hàng #${update.orderId} đã được giao thành công. Vui lòng đánh giá shipper.`,
+                placement: 'topRight',
+                duration: 5,
+              });
+              break;
+            case OrderStatus.CANCELLED:
+              notification.warning({
+                message: 'Đơn hàng đã bị hủy',
+                description: `Đơn hàng #${update.orderId} đã bị hủy.`,
+                placement: 'topRight',
+                duration: 5,
+              });
+              break;
+          }
         }
-      }
-    };
+      };
 
-    eventSource.onerror = (error) => {
-      console.error('EventSource error:', error);
-      eventSource.close();
-    };
+      eventSource.onerror = (error) => {
+        console.error('EventSource error:', error);
+        eventSource.close();
+      };
 
-    return () => {
-      eventSource.close();
-    };
+      return () => {
+        eventSource.close();
+      };
+    }
   }, [isAuthenticated, navigate, user]);
 
   const filteredOrders = (status?: OrderStatus) =>

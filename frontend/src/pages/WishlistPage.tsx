@@ -1,23 +1,12 @@
 import React from 'react';
-import { Card, Button, message, Empty } from 'antd';
-import { HeartOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { message, Empty } from 'antd';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
+import ProductCard from '../components/product/ProductCard';
 
 const WishlistPage: React.FC = () => {
-  const { wishlist, loading, removeFromWishlist } = useWishlist();
-  const navigate = useNavigate();
+  const { wishlist, loading } = useWishlist();
   const { addToCart } = useCart();
-
-  const handleRemoveFromWishlist = async (productId: number) => {
-    try {
-      await removeFromWishlist(productId);
-      message.success('Product removed from wishlist');
-    } catch (error) {
-      message.error('Failed to remove from wishlist');
-    }
-  };
 
   const handleAddToCart = async (product: any) => {
     try {
@@ -28,83 +17,68 @@ const WishlistPage: React.FC = () => {
     }
   };
 
-  const handleProductClick = (productId: number) => {
-    navigate(`/products/${productId}`);
-  };
-
   if (loading) {
     return <div>Loading...</div>;
-  }
-
-  if (wishlist.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Empty
-          description="Your wishlist is empty"
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        />
-      </div>
-    );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Danh sách yêu thích</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {wishlist.map((item) => (
-          <Card
-            key={item.id}
-            hoverable
-            cover={
-              <img
-                alt={item.product.name}
-                src={item.product.imageUrl}
-                className="h-48 object-cover cursor-pointer"
-                onClick={() => handleProductClick(item.product.id)}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        {wishlist.map((item) => {
+          const p = item.product;
+          const mappedProduct = {
+            id: p.id,
+            name: p.name,
+            description: 'Không có mô tả',
+            price: p.price,
+            promotionalPrice: (p as any).promotionalPrice ?? undefined,
+            stock: (p as any).stock ?? 0,
+            imageUrl: p.imageUrl,
+            categoryId: (p.category && (p.category as any).id) ? (p.category as any).id : 0,
+            category: p.category ? {
+              id: (p.category as any).id ?? 0,
+              name: p.category.name,
+              description: (p.category as any).description ?? '',
+              imageUrl: (p.category as any).imageUrl ?? '',
+              parentId: (p.category as any).parentId ?? null,
+              products: [],
+              createdAt: (p.category as any).createdAt ?? '',
+              updatedAt: (p.category as any).updatedAt ?? '',
+            } : undefined,
+            status: (p as any).status ?? 'ACTIVE',
+            sku: (p as any).sku ?? '',
+            barcode: (p as any).barcode ?? '',
+            weight: (p as any).weight ?? 0,
+            dimensions: (p as any).dimensions ?? '',
+            material: (p as any).material ?? '',
+            origin: (p as any).origin ?? '',
+            warranty: (p as any).warranty ?? '',
+            seoTitle: (p as any).seoTitle ?? '',
+            seoDescription: (p as any).seoDescription ?? '',
+            seoUrl: (p as any).seoUrl ?? '',
+            isFeatured: (p as any).isFeatured ?? false,
+            isNew: (p as any).isNew ?? false,
+            isBestSeller: (p as any).isBestSeller ?? false,
+            rating: (p as any).rating ?? 0,
+            reviewCount: (p as any).reviewCount ?? 0,
+            viewCount: (p as any).viewCount ?? 0,
+            soldCount: (p as any).soldCount ?? 0,
+            createdAt: (p as any).createdAt ?? '',
+            updatedAt: (p as any).updatedAt ?? '',
+            cartItems: [],
+            orderItems: [],
+            reviews: [],
+          };
+          return (
+            <div key={item.id} className="relative group">
+              <ProductCard 
+                product={mappedProduct}
+                onAddToCart={handleAddToCart}
               />
-            }
-            actions={[
-              <Button
-                key="cart"
-                type="primary"
-                icon={<ShoppingCartOutlined />}
-                onClick={() => handleAddToCart(item.product)}
-              >
-                Thêm vào giỏ hàng
-              </Button>,
-              <Button
-                key="remove"
-                danger
-                icon={<HeartOutlined />}
-                onClick={() => handleRemoveFromWishlist(item.product.id)}
-              >
-                Xóa khỏi danh sách yêu thích
-              </Button>
-            ]}
-          >
-            <Card.Meta
-              title={
-                <div 
-                  className="cursor-pointer hover:text-blue-600"
-                  onClick={() => handleProductClick(item.product.id)}
-                >
-                  {item.product.name}
-                </div>
-              }
-              description={
-                <div>
-                  <p className="text-gray-600">{item.product.category.name}</p>
-                  <p className="text-lg font-bold mt-2">
-                    {new Intl.NumberFormat('vi-VN', {
-                      style: 'currency',
-                      currency: 'VND'
-                    }).format(item.product.price)}
-                  </p>
-                </div>
-              }
-            />
-          </Card>
-        ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
