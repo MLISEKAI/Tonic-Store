@@ -44,3 +44,27 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
   next();
 };
   
+// Middleware xác thực JWT cho SSE (cho phép lấy token từ query string)
+export const authenticateSSE = (req: Request, res: Response, next: NextFunction): void => {
+    let token: string | undefined;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    } else if (req.query.token && typeof req.query.token === 'string') {
+      token = req.query.token;
+    }
+    console.log('SSE token:', token); 
+    if (!token) {
+      res.status(401).json({ error: "Bạn chưa đăng nhập" });
+      return;
+    }
+    try {
+      const decoded = jwt.verify(token, SECRET_KEY) as { id: number; role: string };
+      req.user = decoded;
+      next();
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      res.status(401).json({ error: "Token không hợp lệ hoặc đã hết hạn" });
+    }
+};
+  

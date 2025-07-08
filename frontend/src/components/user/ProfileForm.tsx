@@ -87,7 +87,7 @@ const ProfileForm: FC<ProfileFormProps> = ({ initialValues, loading, onSubmit })
 
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading}>
-          Cập nhật và tiếp tục thanh toán
+          Cập nhật
         </Button>
       </Form.Item>
     </Form>

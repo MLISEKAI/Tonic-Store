@@ -50,11 +50,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, breadcr
           src={product.imageUrl}
           className="h-48 w-full object-cover"
         />
-        <WishlistButton
-          productId={product.id}
-          showText={false}
-          className="!p-1.5 absolute top-2 right-2"
-        />
+          <WishlistButton
+            productId={product.id}
+            showText={false}
+            className="!p-1.5 absolute top-2 right-2"
+          />
       </div>
     
       <div className="p-4 space-y-2">

@@ -99,21 +99,6 @@ const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputP
     <Card className="mb-4">
       <Space direction="vertical" style={{ width: '100%' }}>
         <Text strong>Nhận mã giảm giá</Text>
-        <Space.Compact style={{ width: '100%' }}>
-          <Input
-            placeholder="Nhập mã giảm giá"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-          />
-          <Button
-            type="primary"
-            icon={<GiftOutlined />}
-            onClick={handleReceiveCode}
-            loading={loading}
-          >
-            Nhận mã
-          </Button>
-        </Space.Compact>
         {claimedCodes.length > 0 && (
           <>
             <Text strong>Chọn mã để áp dụng:</Text>

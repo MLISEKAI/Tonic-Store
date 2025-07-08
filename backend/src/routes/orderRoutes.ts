@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { authenticate } from '../middleware/auth';
+import { authenticate, authenticateSSE } from '../middleware/auth';
 import { createOrder, getOrder, updateOrderStatus, getAllOrders, cancelOrder } from '../services/orderService';
 import { createPayment, updatePaymentStatus } from '../services/paymentService';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
@@ -298,7 +298,7 @@ router.get('/vnpay/callback', async (req: Request, res: Response) => {
 });
 
 // SSE endpoint for order updates
-router.get('/updates', authenticate, (req: Request, res: Response) => {
+router.get('/updates', authenticateSSE, (req: Request, res: Response) => {
   // Set headers for SSE
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');

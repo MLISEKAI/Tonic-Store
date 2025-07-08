@@ -186,7 +186,7 @@ const Promotions: React.FC = () => {
       }}
     >
       <Title level={2} style={{ margin: 0 }}>
-        Quản lý đơn hàng
+        Danh sách mã giảm giá
       </Title>
       <Button
         type="primary"

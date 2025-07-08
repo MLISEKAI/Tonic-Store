@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { WishlistService } from '../services/wishlist/wishlistService';
+import { useWishlist as useWishlistContext } from '../contexts/WishlistContext';
 
 /**
  * Custom hook to manage wishlist functionality for a product
@@ -9,6 +10,7 @@ import { WishlistService } from '../services/wishlist/wishlistService';
 export function useWishlist(productId: number) {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { reloadWishlist } = useWishlistContext();
 
   const checkWishlistStatus = async () => {
     try {
@@ -28,6 +30,7 @@ export function useWishlist(productId: number) {
         await WishlistService.addToWishlist(productId);
       }
       setIsInWishlist(!isInWishlist);
+      await reloadWishlist();
       return true;
     } catch (error) {
       console.error('Error updating wishlist:', error);

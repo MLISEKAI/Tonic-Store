@@ -63,8 +63,8 @@ const FlashSale: React.FC<FlashSaleProps> = ({ breadcrumb }) => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
-      <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold">Flash Sale</h2>
+      <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Flash Sale</h2>
         <Link
           to="/flash-sale"
           className="text-blue-500 flex items-center hover:text-blue-600 transition-colors"

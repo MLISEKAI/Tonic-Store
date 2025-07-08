@@ -222,7 +222,7 @@ const HomePage = () => {
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold">Gợi ý hôm nay</h2>
               </div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {todaySuggestions.slice(0, visibleSuggestions).map((product) => (
                   <ProductCard
                     key={product.id}

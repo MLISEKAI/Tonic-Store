@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Check auth status when component mounts
   React.useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
+    if (token && token !== 'null') {
       checkAuth();
     }
   }, [checkAuth]);

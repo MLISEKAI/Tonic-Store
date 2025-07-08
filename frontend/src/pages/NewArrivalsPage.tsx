@@ -132,7 +132,7 @@ const NewArrivalsPage = () => {
           Không tìm thấy sản phẩm mới nào
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           {sortedProducts.map((product) => (
             <ProductCard
               key={product.id}

@@ -3,7 +3,13 @@ import { ENDPOINTS, handleResponse } from '../api';
 export const ProductService = {
   // Lấy danh sách sản phẩm
   async getProducts(p0: string | undefined) {
-    const response = await fetch(ENDPOINTS.PRODUCT.LIST);
+    let url = ENDPOINTS.PRODUCT.LIST;
+    if (p0) {
+      url += `?category=${encodeURIComponent(p0)}&status=ACTIVE`;
+    } else {
+      url += `?status=ACTIVE`;
+    }
+    const response = await fetch(url);
     return handleResponse(response);
   },
 

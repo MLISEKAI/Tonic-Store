@@ -37,7 +37,11 @@ import { WishlistProvider } from "./contexts/WishlistContext";
 
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Đang kiểm tra đăng nhập...</div>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
