@@ -1,50 +1,20 @@
-import { PrismaClient, PaymentMethod, PaymentStatus, Prisma } from "@prisma/client";
-const prisma = new PrismaClient();
+import { PaymentRepository } from '../repositories';
+import { PaymentMethod, PaymentStatus } from '@prisma/client';
+
+const paymentRepository = new PaymentRepository();
 
 export const getAllPayments = async () => {
-  return prisma.payment.findMany({
-    include: { order: true },
-  });
+  return paymentRepository.getAllPayments();
 };
 
 export const createPayment = async (orderId: number, method: PaymentMethod, amount: number) => {
-  return prisma.payment.create({
-    data: {
-      order: {
-        connect: { id: orderId }
-      },
-      method,
-      amount,
-      status: PaymentStatus.PENDING,
-      currency: "VND",
-    } as Prisma.PaymentCreateInput,
-    include: {
-      order: true
-    }
-  });
+  return paymentRepository.createPayment(orderId, method, amount);
 };
 
 export const updatePaymentStatus = async (orderId: number, status: PaymentStatus, transactionId?: string) => {
-  const data: Prisma.PaymentUpdateInput = {
-    status,
-    transactionId,
-    ...(status === PaymentStatus.COMPLETED && { paymentDate: new Date() })
-  };
-
-  return prisma.payment.update({
-    where: { orderId },
-    data,
-    include: {
-      order: true
-    }
-  });
+  return paymentRepository.updatePaymentStatus(orderId, status, transactionId);
 };
 
 export const getPaymentByOrderId = async (orderId: number) => {
-  return prisma.payment.findUnique({
-    where: { orderId },
-    include: {
-      order: true
-    }
-  });
+  return paymentRepository.getPaymentByOrderId(orderId);
 };
