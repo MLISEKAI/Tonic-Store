@@ -1,24 +1,32 @@
-import { PrismaClient, OrderStatus, Prisma, PaymentStatus } from '@prisma/client';
-import { checkAndUpdateStock, updateSoldCount } from './productService';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
+import { OrderRepository } from '../repositories/OrderRepository';
+import { ProductRepository } from '../repositories/ProductRepository';
 
-const prisma = new PrismaClient();
+const orderRepository = new OrderRepository();
+const productRepository = new ProductRepository();
+
+const orderIncludeRelations = {
+  user: true,
+  items: { include: { product: true } },
+  payment: true,
+  shipper: true
+};
+
+const orderWithItemsInclude = {
+  items: { include: { product: true } },
+  payment: true
+};
 
 export const getAllOrders = async () => {
-  return prisma.order.findMany({
-    include: { user: true, items: true, payment: true },
+  return orderRepository.findOrdersWithRelations({
+    user: true,
+    items: true,
+    payment: true
   });
 };
 
 export const getOrder = async (id: number) => {
-  return prisma.order.findUnique({
-    where: { id },
-    include: { 
-      user: true, 
-      items: { include: { product: true } }, 
-      payment: true,
-      shipper: true
-    },
-  });
+  return orderRepository.findOrderByIdWithRelations(id, orderIncludeRelations);
 };
 
 export const createOrder = async (
@@ -36,10 +44,14 @@ export const createOrder = async (
   try {
     // Check stock availability for all items
     for (const item of items) {
-      await checkAndUpdateStock(item.productId, item.quantity);
+      const product = await productRepository.findById(item.productId);
+      if (!product || product.stock < item.quantity) {
+        throw new Error(`Insufficient stock for product ${item.productId}`);
+      }
+      await productRepository.updateStock(item.productId, item.quantity);
     }
 
-    const orderData: Prisma.OrderUncheckedCreateInput = {
+    const orderData = {
       userId,
       totalPrice,
       status: status as OrderStatus,
@@ -58,35 +70,25 @@ export const createOrder = async (
       },
     };
 
-    const order = await prisma.order.create({
-      data: orderData,
-      include: { items: { include: { product: true } }, payment: true },
-    });
+    const order = await orderRepository.createOrderWithItems(orderData, orderWithItemsInclude);
 
     // Create notification for the user
-    await prisma.notification.create({
-      data: {
-        userId,
-        message: `Đơn hàng của bạn đã được tạo thành công`,
-        isRead: false,
-      },
-    });
+    await orderRepository.createNotification(
+      userId,
+      `Đơn hàng của bạn đã được tạo thành công`
+    );
 
     return order;
   } catch (error) {
     console.error('Error in createOrder:', error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      console.error('Prisma error code:', error.code);
-      console.error('Prisma error meta:', error.meta);
-    }
     throw error;
   }
 };
 
 export const updateOrderStatus = async (id: number, status: string) => {
-  const order = await prisma.order.findUnique({
-    where: { id },
-    include: { items: true, user: true }
+  const order = await orderRepository.findOrderByIdWithRelations(id, {
+    items: true,
+    user: true
   });
 
   if (!order) {
@@ -96,36 +98,31 @@ export const updateOrderStatus = async (id: number, status: string) => {
   // If order is being delivered, update stock
   if (status === OrderStatus.DELIVERED) {
     for (const item of order.items) {
-      await updateSoldCount(item.productId, item.quantity);
+      await productRepository.updateSoldCount(item.productId, item.quantity);
     }
   }
 
   // Create delivery log for status update
   if (order.shipperId) {
-    await prisma.deliveryLog.create({
-      data: {
-        orderId: id,
-        deliveryId: order.shipperId,
-        status: status as OrderStatus,
-        note: `Order status updated to ${status}`
-      }
-    });
+    await orderRepository.createDeliveryLog(
+      id,
+      order.shipperId,
+      status as OrderStatus,
+      `Order status updated to ${status}`
+    );
   }
 
   // Create notification for order status update
-  await prisma.notification.create({
-    data: {
-      userId: order.userId,
-      message: `Đơn hàng #${order.id} đã được cập nhật trạng thái: ${status}.`,
-      isRead: false,
-    },
-  });
+  await orderRepository.createNotification(
+    order.userId,
+    `Đơn hàng #${order.id} đã được cập nhật trạng thái: ${status}.`
+  );
 
-  const updatedOrder = await prisma.order.update({
-    where: { id },
-    data: { status: status as OrderStatus },
-    include: { items: { include: { product: true } }, payment: true },
-  });
+  const updatedOrder = await orderRepository.updateOrderWithRelations(
+    id,
+    { status: status as OrderStatus },
+    orderWithItemsInclude
+  );
 
   // Broadcast update to connected clients
   const update = {
@@ -150,10 +147,7 @@ export const updateOrderStatus = async (id: number, status: string) => {
 export const cancelOrder = async (orderId: number, userId: number) => {
   try {
     // Tìm đơn hàng
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: { payment: true }
-    });
+    const order = await orderRepository.findOrderWithPayment(orderId);
 
     if (!order) {
       return { success: false, status: 404, message: 'Đơn hàng không tồn tại' };
@@ -170,18 +164,11 @@ export const cancelOrder = async (orderId: number, userId: number) => {
     }
 
     // Cập nhật trạng thái đơn hàng và thanh toán trong một transaction
-    const [canceledOrder] = await prisma.$transaction([
-      // Cập nhật trạng thái đơn hàng
-      prisma.order.update({
-        where: { id: orderId },
-        data: { status: OrderStatus.CANCELLED }
-      }),
-      // Cập nhật trạng thái thanh toán
-      prisma.payment.update({
-        where: { orderId: orderId },
-        data: { status: PaymentStatus.FAILED }
-      })
-    ]);
+    const [canceledOrder] = await orderRepository.cancelOrderWithPayment(
+      orderId,
+      OrderStatus.CANCELLED,
+      PaymentStatus.FAILED
+    );
 
     return { success: true, order: canceledOrder };
   } catch (error) {

@@ -1,10 +1,10 @@
-import { PrismaClient, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
+import { UserRepository } from '../repositories';
 
 type UserRole = 'ADMIN' | 'CUSTOMER';
 
-const prisma = new PrismaClient();
+const userRepository = new UserRepository();
 
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
@@ -39,41 +39,29 @@ async function sendPasswordChangeNotification(userEmail: string, userName: strin
     });
   } catch (error) {
     console.error(`Không thể gửi email thông báo đổi mật khẩu tới ${userEmail}:`, error);
-    // Không ném lỗi ra ngoài để tránh làm hỏng flow chính, chỉ ghi log
   }
 }
 
+const userSelectFields = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  phone: true,
+  address: true,
+  createdAt: true,
+};
+
 export const getAllUsers = async () => {
-  return prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      phone: true,
-      address: true,
-      createdAt: true,
-    },
-  });
+  return userRepository.findUsersWithSelect(userSelectFields);
 };
 
 export const deleteUser = async (id: number) => {
-  await prisma.user.delete({ where: { id } });
+  await userRepository.delete(id);
 };
 
 export const getUserProfile = async (userId: number) => {
-  return prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      phone: true,
-      address: true,
-      createdAt: true,
-    },
-  });
+  return userRepository.findUserByIdWithSelect(userId, userSelectFields);
 };
 
 export const updateUserProfile = async (userId: number, data: {
@@ -82,45 +70,18 @@ export const updateUserProfile = async (userId: number, data: {
   phone?: string;
   address?: string;
 }) => {
-  return prisma.user.update({
-    where: { id: userId },
-    data,
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      phone: true,
-      address: true,
-      createdAt: true,
-    },
-  });
+  return userRepository.updateUserWithSelect(userId, data, userSelectFields);
 };
 
 export const changeUserPassword = async (userId: number, adminId: number, newPassword: string) => {
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   
-  const [updatedUser, log] = await prisma.$transaction([
-    prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phone: true,
-        address: true,
-        createdAt: true,
-      },
-    }),
-    prisma.passwordChangeLog.create({
-      data: {
-        userId,
-        adminId,
-      },
-    }),
-  ]);
+  const [updatedUser] = await userRepository.updateUserPasswordWithLog(
+    userId, 
+    adminId, 
+    hashedPassword, 
+    userSelectFields
+  );
 
   // Gửi email thông báo sau khi mật khẩu đã được thay đổi thành công
   if (updatedUser) {
@@ -131,7 +92,7 @@ export const changeUserPassword = async (userId: number, adminId: number, newPas
 };
 
 export const changeOwnPassword = async (userId: number, currentPassword: string, newPassword: string) => {
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await userRepository.findById(userId);
   if (!user) {
     throw new Error('User not found');
   }
@@ -142,19 +103,7 @@ export const changeOwnPassword = async (userId: number, currentPassword: string,
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
-  return prisma.user.update({
-    where: { id: userId },
-    data: { password: hashedPassword },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      phone: true,
-      address: true,
-      createdAt: true,
-    },
-  });
+  return userRepository.updateUserWithSelect(userId, { password: hashedPassword }, userSelectFields);
 };
 
 export const updateUser = async (id: number, data: {
@@ -164,23 +113,11 @@ export const updateUser = async (id: number, data: {
   phone?: string;
   address?: string;
 }) => {
-  return prisma.user.update({
-    where: { id },
-    data: {
-      name: data.name,
-      email: data.email,
-      role: data.role ? data.role : undefined,
-      phone: data.phone,
-      address: data.address,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      phone: true,
-      address: true,
-      createdAt: true,
-    },
-  });
+  return userRepository.updateUserWithSelect(id, {
+    name: data.name,
+    email: data.email,
+    role: data.role ? data.role : undefined,
+    phone: data.phone,
+    address: data.address,
+  }, userSelectFields);
 };

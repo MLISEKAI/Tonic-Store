@@ -1,61 +1,19 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { WishlistRepository } from '../repositories';
 
-// Lấy danh sách sản phẩm yêu thích của user
+const wishlistRepository = new WishlistRepository();
+
 export const getUserWishlist = async (userId: number) => {
-  return prisma.wishlist.findMany({
-    where: { userId },
-    include: {
-      product: {
-        include: {
-          category: true
-        }
-      }
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  });
+  return wishlistRepository.getUserWishlist(userId);
 };
 
-// Thêm sản phẩm vào wishlist
 export const addToWishlist = async (userId: number, productId: number) => {
-  return prisma.wishlist.create({
-    data: {
-      userId,
-      productId
-    },
-    include: {
-      product: {
-        include: {
-          category: true
-        }
-      }
-    }
-  });
+  return wishlistRepository.addToWishlist(userId, productId);
 };
 
-// Xóa sản phẩm khỏi wishlist
 export const removeFromWishlist = async (userId: number, productId: number) => {
-  return prisma.wishlist.delete({
-    where: {
-      userId_productId: {
-        userId,
-        productId
-      }
-    }
-  });
+  return wishlistRepository.removeFromWishlist(userId, productId);
 };
 
-// Kiểm tra xem sản phẩm có trong wishlist không
 export const isInWishlist = async (userId: number, productId: number) => {
-  const wishlistItem = await prisma.wishlist.findUnique({
-    where: {
-      userId_productId: {
-        userId,
-        productId
-      }
-    }
-  });
-  return !!wishlistItem;
+  return wishlistRepository.isInWishlist(userId, productId);
 }; 

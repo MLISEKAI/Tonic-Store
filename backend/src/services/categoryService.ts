@@ -1,64 +1,27 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { CategoryRepository } from '../repositories';
+
+const categoryRepository = new CategoryRepository();
 
 export const getAllCategories = async () => {
-  return prisma.category.findMany({
-    include: {
-      products: {
-        select: {
-          id: true,
-          name: true,
-          price: true,
-          imageUrl: true,
-          status: true
-        }
-      }
-    }
-  });
+  return categoryRepository.getAllCategories();
 };
 
 export const getCategoryById = async (id: number) => {
-  return prisma.category.findUnique({
-    where: { id },
-    include: {
-      products: {
-        select: {
-          id: true,
-          name: true,
-          price: true,
-          imageUrl: true,
-          status: true
-        }
-      }
-    }
-  });
+  return categoryRepository.getCategoryById(id);
 };
 
 export const createCategory = async (name: string) => {
-  return prisma.category.create({
-    data: { name }
-  });
+  return categoryRepository.createCategory(name);
 };
 
 export const updateCategory = async (id: number, name: string) => {
-  return prisma.category.update({
-    where: { id },
-    data: { name }
-  });
+  return categoryRepository.updateCategory(id, name);
 };
 
 export const deleteCategory = async (id: number) => {
-  // Kiểm tra xem category có sản phẩm nào không
-  const category = await prisma.category.findUnique({
-    where: { id },
-    include: { products: true }
-  });
-
-  if (category && category.products.length > 0) {
+  const hasProducts = await categoryRepository.hasProducts(id);
+  if (hasProducts) {
     throw new Error('Cannot delete category with products');
   }
-
-  return prisma.category.delete({
-    where: { id }
-  });
+  return categoryRepository.deleteCategory(id);
 }; 
