@@ -8,4 +8,5 @@ export interface IShipperRepository {
   findOrderById(orderId: number): Promise<any>;
   findDeliveryRating(orderId: number): Promise<any>;
   createDeliveryRating(orderId: number, userId: number, rating: number, comment?: string): Promise<any>;
+  getShipperById(id: number): Promise<any>;
 } 

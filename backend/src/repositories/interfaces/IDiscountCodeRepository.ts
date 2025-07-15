@@ -12,4 +12,5 @@ export interface IDiscountCodeRepository {
   checkUserUsage(userId: number, discountCodeId: number): Promise<boolean>;
   updateDiscountCodeUsage(userId: number, discountCodeId: number, orderId: number): Promise<DiscountCodeUsage>;
   resetUsage(id: number): Promise<DiscountCode>;
+  getClaimedCodes(userId: number): Promise<any[]>;
 } 

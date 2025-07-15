@@ -14,7 +14,7 @@ const ProfilePage: FC = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/');
       return;
     }
     fetchProfile();

@@ -71,4 +71,23 @@ export class DiscountCodeRepository implements IDiscountCodeRepository {
       return tx.discountCode.update({ where: { id }, data: { usedCount: 0, isActive: true } });
     });
   }
+  async getClaimedCodes(userId: number): Promise<any[]> {
+    return this.prisma.discountCodeClaim.findMany({
+      where: {
+        userId,
+        isUsed: false,
+        discountCode: {
+          isActive: true,
+          startDate: { lte: new Date() },
+          endDate: { gte: new Date() }
+        }
+      },
+      include: {
+        discountCode: true
+      },
+      orderBy: {
+        id: 'desc'
+      }
+    });
+  }
 } 

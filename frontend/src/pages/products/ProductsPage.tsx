@@ -1,5 +1,5 @@
-import { Button, Input, Select, notification, Spin } from 'antd';
-import { SearchOutlined, FilterOutlined, ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
+import { Input, Select, notification, Spin } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -77,7 +77,7 @@ const ProductsPage = () => {
         placement: 'topRight',
         duration: 2,
       });
-      navigate('/login');
+      navigate('/');
       return;
     }
 

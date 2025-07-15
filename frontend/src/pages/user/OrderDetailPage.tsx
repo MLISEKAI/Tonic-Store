@@ -95,7 +95,7 @@ const OrderDetailPage: React.FC = () => {
     const fetchOrder = async () => {
       try {
         if (!isAuthenticated) {
-          window.location.href = '/login';
+          window.location.href = '/';
           return;
         }
         if (!id || isNaN(parseInt(id))) {

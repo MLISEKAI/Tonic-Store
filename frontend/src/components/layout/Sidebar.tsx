@@ -18,7 +18,6 @@ import {
   ToolOutlined,
   PlusCircleOutlined,
   ClockCircleOutlined,
-  UnorderedListOutlined
 } from '@ant-design/icons';
 
 const Sidebar: React.FC = () => {

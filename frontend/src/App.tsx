@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import { useAuth } from "./contexts/AuthContext";
@@ -19,7 +19,6 @@ import ContactPage from './pages/ContactPage';
 import ShipperOrders from './pages/shipper/OrdersPage';
 import ShipperLayout from './layouts/ShipperLayout';
 import ShipperProfilePage from './pages/shipper/ProfilePage';
-import DefaultLayout from './layouts/DefaultLayout';
 import WishlistPage from './pages/WishlistPage';
 import FlashSalePage from './pages/FlashSalePage';
 import NewArrivalsPage from './pages/NewArrivalsPage';
@@ -28,11 +27,14 @@ import BrandsPage from './pages/BrandsPage';
 import BlogPage from "./pages/BlogPage";
 import FeaturedProductsPage from "./pages/FeaturedProductsPage";
 import NotificationsPage from './pages/NotificationsPage';
-import PromotionCode from "./components/discount-codes/DiscountCode";
+import PromotionCode from "./pages/DiscountCodePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ScrollToTop from './components/layout/ScrollToTop';
 import { WishlistProvider } from "./contexts/WishlistContext";
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
+import AuthLayout from "./layouts/AuthLayout";
 
 
 // Protected Route component
@@ -54,174 +56,137 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
   return <>{children}</>;
 };
 
-const App = () => {
+const AppContent = () => {
+  const location = useLocation();
+
   return (
-    <Router>
+    <>
       <ScrollToTop />
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
             <Routes>
-              {/* Public routes */}
-              <Route path="/" element={
-                <DefaultLayout>
-                  <Home />
-                </DefaultLayout>
-              } />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/products" element={
-                <DefaultLayout>
-                  <ProductsPage />
-                </DefaultLayout>
-              } />
-              <Route path="/products/:id" element={
-                <DefaultLayout>
-                  <ProductDetailPage />
-                </DefaultLayout>
-              } />
-              <Route path="/cart" element={
-                <DefaultLayout>
-                  <CartPage />
-                </DefaultLayout>
-              } />
-              <Route path="/checkout" element={
-                <ProtectedRoute>
-                  <DefaultLayout>
-                    <CheckoutPage />
-                  </DefaultLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/categories" element={
-                <DefaultLayout>
-                  <CategoriesPage />
-                </DefaultLayout>
-              } />
-              <Route path="/about" element={
-                <DefaultLayout>
-                  <AboutPage />
-                </DefaultLayout>
-              } />
-              <Route path="/search" element={
-                <DefaultLayout>
-                  <SearchPage />
-                </DefaultLayout>
-              } />
-              <Route path="/contact" element={
-                <DefaultLayout>
-                  <ContactPage />
-                </DefaultLayout>
-              } />
-              <Route path="/wishlist" element={
-                <ProtectedRoute>
-                  <DefaultLayout>
-                    <WishlistPage />
-                  </DefaultLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/flash-sale" element={
-                <DefaultLayout>
-                  <FlashSalePage />
-                </DefaultLayout>
-              } />
-              <Route path="/promotion-codes" element={
-                <DefaultLayout>
-                  <PromotionCode />
-                </DefaultLayout>
-              } />
-              <Route path="/new-arrivals" element={
-                <DefaultLayout>
-                  <NewArrivalsPage />
-                </DefaultLayout>
-              } />
-              <Route path="/best-sellers" element={
-                <DefaultLayout>
-                  <BestSellersPage />
-                </DefaultLayout>
-              } />
-              <Route path="/brands" element={
-                <DefaultLayout>
-                  <BrandsPage />
-                </DefaultLayout>
-              } />
-              <Route path="/featured-products" element={
-                <DefaultLayout>
-                  <FeaturedProductsPage />
-                </DefaultLayout>
-              } />
-              <Route path="/blog" element={
-                <DefaultLayout>
-                  <BlogPage />
-                </DefaultLayout>
-              } />
-              <Route path="/blog/:id" element={
-                <DefaultLayout>
-                  <BlogPage />
-                </DefaultLayout>
-              } />
+              {/* Auth routes - no layout */}
+              <Route
+                path="/login"
+                element={
+                  <AuthLayout>
+                    <LoginPage />
+                  </AuthLayout>
+                }
+              />
+              <Route
+                path="/register"
+                element={
+                  <AuthLayout>
+                    <RegisterPage />
+                  </AuthLayout>
+                }
+              />
 
-              {/* User routes */}
-              <Route path="/user/orders" element={
-                <ProtectedRoute>
-                  <DefaultLayout>
-                    <OrdersPage />
-                  </DefaultLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/user/orders/:id" element={
-                <ProtectedRoute>
-                  <DefaultLayout>
-                    <OrderDetailPage />
-                  </DefaultLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/user/profile" element={
-                <ProtectedRoute>
-                  <DefaultLayout>
-                    <ProfilePage />
-                  </DefaultLayout>
-                </ProtectedRoute>
-              } />
+              {/* Main layout routes */}
+              <Route
+                path="*"
+                element={
+                  <div className="flex flex-col min-h-screen">
+                    <Navbar />
+                    <main className="flex-grow bg-gray-100">
+                      <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/products" element={<ProductsPage />} />
+                        <Route path="/products/:id" element={<ProductDetailPage />} />
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route path="/checkout" element={
+                          <ProtectedRoute>
+                            <CheckoutPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/categories" element={<CategoriesPage />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/search" element={<SearchPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
+                        <Route path="/wishlist" element={
+                          <ProtectedRoute>
+                            <WishlistPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/flash-sale" element={<FlashSalePage />} />
+                        <Route path="/promotion-codes" element={<PromotionCode />} />
+                        <Route path="/new-arrivals" element={<NewArrivalsPage />} />
+                        <Route path="/best-sellers" element={<BestSellersPage />} />
+                        <Route path="/brands" element={<BrandsPage />} />
+                        <Route path="/featured-products" element={<FeaturedProductsPage />} />
+                        <Route path="/blog" element={<BlogPage />} />
+                        <Route path="/blog/:id" element={<BlogPage />} />
 
-              {/* Shipper routes */}
-              <Route path="/shipper" element={
-                <ProtectedRoute allowedRoles={['DELIVERY']}>
-                  <ShipperLayout>
-                    <Navigate to="/shipper/orders" replace />
-                  </ShipperLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/shipper/orders" element={
-                <ProtectedRoute allowedRoles={['DELIVERY']}>
-                  <ShipperLayout>
-                    <ShipperOrders />
-                  </ShipperLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/shipper/profile" element={
-                <ProtectedRoute allowedRoles={['DELIVERY']}>
-                  <ShipperLayout>
-                    <ShipperProfilePage />
-                  </ShipperLayout>
-                </ProtectedRoute>
-              } />
+                        {/* User routes */}
+                        <Route path="/user/orders" element={
+                          <ProtectedRoute>
+                            <OrdersPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/user/orders/:id" element={
+                          <ProtectedRoute>
+                            <OrderDetailPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/user/profile" element={
+                          <ProtectedRoute>
+                            <ProfilePage />
+                          </ProtectedRoute>
+                        } />
 
-              {/* Notifications route */}
-              <Route path="/notifications" element={
-                <ProtectedRoute>
-                  <DefaultLayout>
-                    <NotificationsPage />
-                  </DefaultLayout>
-                </ProtectedRoute>
-              } />
+                        {/* Shipper routes */}
+                        <Route path="/shipper" element={
+                          <ProtectedRoute allowedRoles={['DELIVERY']}>
+                            <ShipperLayout>
+                              <Navigate to="/shipper/orders" replace />
+                            </ShipperLayout>
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/shipper/orders" element={
+                          <ProtectedRoute allowedRoles={['DELIVERY']}>
+                            <ShipperLayout>
+                              <ShipperOrders />
+                            </ShipperLayout>
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/shipper/profile" element={
+                          <ProtectedRoute allowedRoles={['DELIVERY']}>
+                            <ShipperLayout>
+                              <ShipperProfilePage />
+                            </ShipperLayout>
+                          </ProtectedRoute>
+                        } />
 
-              {/* Reset and forgot Password route */}
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
+                        {/* Notifications */}
+                        <Route path="/notifications" element={
+                          <ProtectedRoute>
+                            <NotificationsPage />
+                          </ProtectedRoute>
+                        } />
+
+                        {/* Password */}
+                        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                        <Route path="/reset-password" element={<ResetPasswordPage />} />
+                      </Routes>
+                    </main>
+                    {location.pathname !== "/" && <Footer />}
+                  </div>
+                }
+              />
             </Routes>
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 };

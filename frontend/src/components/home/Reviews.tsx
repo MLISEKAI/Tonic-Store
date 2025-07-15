@@ -14,7 +14,7 @@ const Reviews = () => {
     try {
       setError(null);
       // Lấy danh sách sản phẩm
-      const products = await ProductService.getProducts();
+      const products = await ProductService.getProducts(undefined);
       
       // Lấy reviews của các sản phẩm
       const allReviewsPromises = products.map((product: Product) => 

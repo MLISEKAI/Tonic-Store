@@ -7,14 +7,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { Product } from '../types';
 
-const ratingOptions = [
-  { value: 5, label: <span><Rate disabled value={5} /></span> },
-  { value: 4, label: <span><Rate disabled value={4} /> trở lên</span> },
-  { value: 3, label: <span><Rate disabled value={3} /> trở lên</span> },
-  { value: 2, label: <span><Rate disabled value={2} /> trở lên</span> },
-  { value: 1, label: <span><Rate disabled value={1} /> trở lên</span> },
-];
-
 const SearchPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -90,7 +82,7 @@ const SearchPage = () => {
     try {
       if (!isAuthenticated) {
         notification.warning({ message: 'Thông báo', description: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng', duration: 2 });
-        navigate('/login');
+        navigate('/');
         return;
       }
       await addToCart(product, 1);
@@ -105,12 +97,12 @@ const SearchPage = () => {
     navigate(`/products/${productId}`);
   };
 
+  const ratingOptions = [5, 4, 3, 2, 1];
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <h1 className="text-2xl font-bold mb-2 sm:mb-0">
-          Kết quả tìm kiếm cho "{query}"
-        </h1>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+        <h1 className="text-2xl font-bold mb-2 sm:mb-0">Kết quả tìm kiếm cho "{query}"</h1>
         <div style={{ minWidth: 220 }}>
           <Select
             style={{ width: '100%' }}
@@ -200,29 +192,22 @@ const SearchPage = () => {
             </div>
 
             <div className="mb-4">
-              <div className="font-semibold mb-2">Đánh giá</div>
-              <Radio.Group
-                onChange={(e) => setRating(e.target.value)}
-                value={rating}
-                optionType="button"
-                buttonStyle="solid"
-              >
-                <Radio.Button value={5}>
-                  <Rate disabled value={5} />
-                </Radio.Button>
-                <Radio.Button value={4}>
-                  <Rate disabled value={4} /> trở lên
-                </Radio.Button>
-                <Radio.Button value={3}>
-                  <Rate disabled value={3} /> trở lên
-                </Radio.Button>
-                <Radio.Button value={2}>
-                  <Rate disabled value={2} /> trở lên
-                </Radio.Button>
-                <Radio.Button value={1}>
-                  <Rate disabled value={1} /> trở lên
-                </Radio.Button>
-              </Radio.Group>
+              <div className="font-semibold mb-3">Đánh giá</div>
+              <div className="flex flex-wrap gap-2">
+                {ratingOptions.map((value) => (
+                  <Button
+                    key={value}
+                    onClick={() => setRating(value)}
+                    className={`!px-4 !py-2 !rounded-lg flex items-center gap-2 
+                      border ${rating === value ? 'border-blue-500' : 'border-gray-300 hover:border-blue-400'} 
+                      bg-white text-gray-800`}
+                    type="default"
+                  >
+                    <Rate disabled value={value} />
+                    {value < 5 && <span className="text-sm text-gray-600">trở lên</span>}
+                  </Button>
+                ))}
+              </div>
             </div>
 
             <div className="mb-4">

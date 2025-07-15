@@ -90,3 +90,7 @@ export const createDeliveryRating = async (orderId: number, userId: number, rati
 
   return shipperRepository.createDeliveryRating(orderId, userId, rating, comment);
 }; 
+
+export const getShipperById = async (id: number) => {
+  return shipperRepository.getShipperById(id);
+}; 

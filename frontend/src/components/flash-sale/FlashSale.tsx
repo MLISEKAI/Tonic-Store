@@ -1,5 +1,5 @@
 import React from 'react';
-import { notification } from 'antd';
+import { notification, Spin } from 'antd';
 import { RightOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { Product } from '../../types';
@@ -55,8 +55,8 @@ const FlashSale: React.FC<FlashSaleProps> = ({ breadcrumb }) => {
 
   if (loading) {
     return (
-      <div className="text-center py-4">
-        Loading...
+      <div className="flex justify-center items-center h-64">
+        <Spin size="large" />
       </div>
     );
   }
