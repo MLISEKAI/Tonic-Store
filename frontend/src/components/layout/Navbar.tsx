@@ -74,6 +74,8 @@ const Navbar = () => {
     selectedKey = 'featured-products';
   } else if (location.pathname.startsWith('/best-sellers')) {
     selectedKey = 'best-sellers';
+  } else if (location.pathname.startsWith('/promotion-codes')) {
+    selectedKey = 'promotion-codes';
   } else if (location.pathname.startsWith('/new-arrivals')) {
     selectedKey = 'new-arrivals';
   } else if (location.pathname.startsWith('/categories')) {
@@ -92,7 +94,7 @@ const Navbar = () => {
         const data = await CategoryService.getCategories();
         setCategories(data);
       } catch (error) {
-        // Có thể xử lý lỗi ở đây nếu muốn
+        console.error("Failed to fetch categories", error);
       }
     };
     fetchCategories();
@@ -163,7 +165,7 @@ const Navbar = () => {
     {
       key: 'logout',
       label: (
-        <span className="flex items-center text-red-500" onClick={() => logout()}>
+        <span className="flex items-center text-red-500" onClick={() => { logout(); navigate('/'); }}>
           <LogoutOutlined className="mr-2" />
           Đăng xuất
         </span>
@@ -403,9 +405,10 @@ const Navbar = () => {
                      <UserOutlined className="text-xl" />
                   </Dropdown>
                 ) : (
-                  <Link to="/login">
-                    <UserOutlined className="text-xl" />
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link to="/login" className="px-3 py-1 rounded hover:bg-gray-100">Đăng nhập</Link>
+                    <Link to="/register" className="px-3 py-1 rounded hover:bg-gray-100">Đăng ký</Link>
+                  </div>
                 )}
             </div>
 
@@ -497,6 +500,7 @@ const Navbar = () => {
                         onClick={() => {
                           logout();
                           setIsMobileMenuOpen(false);
+                          navigate('/');
                         }}
                       >
                        <LogoutOutlined className="mr-2" /> Đăng xuất

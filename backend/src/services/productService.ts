@@ -1,7 +1,8 @@
-import { ProductStatus } from '@prisma/client';
+import { PrismaClient, ProductStatus } from '@prisma/client';
 import { ProductRepository } from '../repositories';
 
 const productRepository = new ProductRepository();
+const prisma = new PrismaClient();
 
 // Cooldown mechanism to prevent spamming flash sale notifications
 let lastFlashSaleNotificationSent = 0;
@@ -151,6 +152,10 @@ export const checkAndUpdateStock = async (productId: number, quantity: number) =
 
 export const updateSoldCount = async (productId: number, quantity: number) => {
   return productRepository.updateSoldCount(productId, quantity);
+};
+
+export const updateProductRating = async (productId: number) => {
+  return productRepository.updateProductRating(productId);
 };
 
 export const getFlashSaleProducts = async () => {

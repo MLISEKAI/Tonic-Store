@@ -20,4 +20,5 @@ export interface IProductRepository {
   getFeaturedProducts(): Promise<Product[]>;
   findProductsWithRelations(where: any, include: any): Promise<any[]>;
   findProductByIdWithRelations(id: number, include: any): Promise<any | null>;
+  updateProductRating(productId: number): Promise<Product>;
 } 

@@ -26,21 +26,20 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 
 export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && wishlist.length === 0) {
+      setLoading(true);
       loadWishlist();
-    } else {
+    } else if (!isAuthenticated) {
       setWishlist([]);
-      setLoading(false);
     }
   }, [isAuthenticated]);
 
   const loadWishlist = async () => {
     try {
-      setLoading(true);
       const data = await WishlistService.getWishlist();
       setWishlist(data);
     } catch (error) {

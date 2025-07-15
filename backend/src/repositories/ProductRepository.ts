@@ -54,9 +54,9 @@ export class ProductRepository implements IProductRepository {
     return this.prisma.product.findMany({
       where: {
         OR: [
-          { name: { contains: query, mode: 'insensitive' } },
-          { description: { contains: query, mode: 'insensitive' } },
-          { sku: { contains: query, mode: 'insensitive' } },
+          { name: { contains: query } },
+          { description: { contains: query } },
+          { sku: { contains: query } },
         ],
       },
     });
@@ -242,6 +242,19 @@ export class ProductRepository implements IProductRepository {
   async findCategoryByName(name: string): Promise<any | null> {
     return this.prisma.category.findFirst({
       where: { name }
+    });
+  }
+
+  async updateProductRating(productId: number): Promise<Product> {
+    const reviews = await this.prisma.review.findMany({ where: { productId } });
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
+    return this.prisma.product.update({
+      where: { id: productId },
+      data: {
+        rating: averageRating,
+        reviewCount: reviews.length
+      }
     });
   }
 } 

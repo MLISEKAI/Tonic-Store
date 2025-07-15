@@ -88,4 +88,24 @@ export class ShipperRepository implements IShipperRepository {
       }
     });
   }
+  async getShipperById(id: number): Promise<any> {
+    return this.prisma.user.findFirst({
+      where: { id, role: 'DELIVERY' },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        address: true,
+        createdAt: true,
+        updatedAt: true,
+        shipperOrders: {
+          include: {
+            items: { include: { product: true } },
+            user: true
+          }
+        }
+      }
+    });
+  }
 } 

@@ -29,7 +29,7 @@ export const CartPage: FC = () => {
 
   const handleCheckout = async () => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/');
       return;
     }
 

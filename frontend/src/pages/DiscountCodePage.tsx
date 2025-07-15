@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, message, List, Tag, Modal } from 'antd';
+import { Card, Button, message, List, Tag, Modal, Spin } from 'antd';
 import { GiftOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { PromotionService } from '../../services/discount-codes/discountCodeService';
-import type { PromotionCode } from '../../services/discount-codes/discountCodeService';
-import { formatDate } from '../../utils/dateUtils';
+import { PromotionService } from '../services/discount-codes/discountCodeService';
+import type { PromotionCode } from '../services/discount-codes/discountCodeService';
+import { formatDate } from '../utils/dateUtils';
 
 const PromotionCode: React.FC = () => {
   const [promotionCodes, setPromotionCodes] = useState<PromotionCode[]>([]);
@@ -95,7 +95,11 @@ const PromotionCode: React.FC = () => {
   );
 
   if (loading) {
-    return <div className="text-center py-4">Đang tải mã giảm giá...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spin size="large" />
+      </div>
+    );
   }
 
   if (error) {
@@ -108,8 +112,7 @@ const PromotionCode: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Mã Giảm Giá</h1>
-      
+      <h1 className="text-3xl font-bold mb-8">Mã Giảm Giá</h1>
       <List
         grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 3, xl: 3, xxl: 4 }}
         dataSource={promotionCodes}
@@ -181,6 +184,7 @@ const PromotionCode: React.FC = () => {
         {selectedCode && renderCodeDetails(selectedCode)}
       </Modal>
     </div>
+
   );
 };
 

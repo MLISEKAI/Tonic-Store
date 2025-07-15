@@ -1,6 +1,5 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Input, Button, message, Space, Typography, Card, List, Radio } from 'antd';
-import { GiftOutlined, DeleteOutlined } from '@ant-design/icons';
 import { PromotionService } from '../../services/discount-codes/discountCodeService';
 
 const { Text } = Typography;
