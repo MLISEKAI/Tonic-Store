@@ -49,7 +49,7 @@ const NewArrivalsPage = () => {
         placement: 'topRight',
         duration: 2,
       });
-      navigate('/login');
+      navigate('/');
       return;
     }
 

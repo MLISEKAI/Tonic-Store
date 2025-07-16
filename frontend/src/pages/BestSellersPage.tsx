@@ -49,7 +49,7 @@ const BestSellersPage = () => {
         placement: 'topRight',
         duration: 2,
       });
-      navigate('/login');
+      navigate('/');
       return;
     }
 

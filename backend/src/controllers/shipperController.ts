@@ -136,29 +136,15 @@ export const ShipperController = {
   // Lấy đánh giá shipper của một đơn hàng
   async getDeliveryRating(req: Request, res: Response) {
     try {
-      const { orderId } = req.params;
-      console.log('Getting delivery rating for order:', orderId);
-      
-      if (!orderId) {
-        console.error('Order ID is missing');
-        return res.status(400).json({ error: 'Order ID is required' });
+      const { id } = req.params;
+      const orderId = Number(id);
+      if (!orderId || isNaN(orderId)) {
+        return res.status(400).json({ error: 'Order ID không hợp lệ' });
       }
-
-      const orderIdNumber = Number(orderId);
-      
-      if (isNaN(orderIdNumber)) {
-        console.error('Invalid order ID:', orderId);
-        return res.status(400).json({ error: 'Invalid order ID' });
-      }
-
-      const rating = await shipperService.getDeliveryRating(orderIdNumber);
-      console.log('Rating result:', rating);
-      
-      // Nếu không có đánh giá, trả về null thay vì lỗi
+      const rating = await shipperService.getDeliveryRating(orderId);
       if (rating === null) {
         return res.json(null);
       }
-      
       res.json(rating);
     } catch (error: any) {
       console.error('Error getting delivery rating:', error);
@@ -181,21 +167,21 @@ export const ShipperController = {
       if (!req.user) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-
-      const { orderId } = req.params;
+      const { id } = req.params;
+      const orderId = Number(id);
       const { rating, comment } = req.body;
-
+      if (!orderId || isNaN(orderId)) {
+        return res.status(400).json({ error: 'Order ID không hợp lệ' });
+      }
       if (!rating || rating < 1 || rating > 5) {
         return res.status(400).json({ error: 'Invalid rating value' });
       }
-
       const newRating = await shipperService.createDeliveryRating(
-        Number(orderId),
+        orderId,
         req.user.id,
         rating,
         comment
       );
-
       res.status(201).json(newRating);
     } catch (error: any) {
       console.error('Error creating delivery rating:', error);

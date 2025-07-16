@@ -42,30 +42,6 @@ const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputP
     }
   };
 
-  const handleReceiveCode = async () => {
-    if (!code.trim()) {
-      message.warning('Vui lòng nhập mã giảm giá');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const result = await PromotionService.claimPromotionCode(code.trim());
-      if (result.isValid) {
-        message.success('Đã nhận mã giảm giá thành công!');
-        setCode('');
-        // Refresh danh sách mã đã nhận
-        await fetchClaimedCodes();
-      } else {
-        message.error(result.message || 'Không thể nhận mã giảm giá');
-      }
-    } catch (error) {
-      message.error(error instanceof Error ? error.message : 'Không thể nhận mã giảm giá');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSelectCode = async (codeToUse: string) => {
     setSelectedCode(codeToUse);
     if (!codeToUse) {

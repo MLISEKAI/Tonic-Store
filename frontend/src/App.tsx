@@ -7,18 +7,18 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProductsPage from "./pages/products/ProductsPage";
 import { CartPage } from "./pages/CartPage";
-import { OrdersPage } from "./pages/user/OrdersPage";
-import OrderDetailPage from "./pages/user/OrderDetailPage";
-import ProfilePage from "./pages/user/ProfilePage";
+import { OrdersPage } from "./pages/user/UserOrdersPage";
+import OrderDetailPage from "./pages/user/UserOrderDetailPage";
+import ProfilePage from "./pages/user/UserProfilePage";
 import CategoriesPage from "./pages/CategoriesPage";
 import AboutPage from "./pages/AboutPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import SearchPage from "./pages/SearchPage";
 import ProductDetailPage from "./pages/products/ProductDetailPage";
 import ContactPage from './pages/ContactPage';
-import ShipperOrders from './pages/shipper/OrdersPage';
+import ShipperOrders from './pages/shipper/ShipperOrdersPage';
 import ShipperLayout from './layouts/ShipperLayout';
-import ShipperProfilePage from './pages/shipper/ProfilePage';
+import ShipperProfilePage from './pages/shipper/ShipperProfilePage';
 import WishlistPage from './pages/WishlistPage';
 import FlashSalePage from './pages/FlashSalePage';
 import NewArrivalsPage from './pages/NewArrivalsPage';
@@ -46,7 +46,7 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/" />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user?.role || '')) {
@@ -83,6 +83,29 @@ const AppContent = () => {
                   </AuthLayout>
                 }
               />
+
+              {/* Shipper routes - tách riêng */}
+              <Route path="/shipper" element={
+                <ProtectedRoute allowedRoles={['DELIVERY']}>
+                  <ShipperLayout>
+                    <Navigate to="/shipper/orders" replace />
+                  </ShipperLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/shipper/orders" element={
+                <ProtectedRoute allowedRoles={['DELIVERY']}>
+                  <ShipperLayout>
+                    <ShipperOrders />
+                  </ShipperLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/shipper/profile" element={
+                <ProtectedRoute allowedRoles={['DELIVERY']}>
+                  <ShipperLayout>
+                    <ShipperProfilePage />
+                  </ShipperLayout>
+                </ProtectedRoute>
+              } />
 
               {/* Main layout routes */}
               <Route
@@ -133,29 +156,6 @@ const AppContent = () => {
                         <Route path="/user/profile" element={
                           <ProtectedRoute>
                             <ProfilePage />
-                          </ProtectedRoute>
-                        } />
-
-                        {/* Shipper routes */}
-                        <Route path="/shipper" element={
-                          <ProtectedRoute allowedRoles={['DELIVERY']}>
-                            <ShipperLayout>
-                              <Navigate to="/shipper/orders" replace />
-                            </ShipperLayout>
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/shipper/orders" element={
-                          <ProtectedRoute allowedRoles={['DELIVERY']}>
-                            <ShipperLayout>
-                              <ShipperOrders />
-                            </ShipperLayout>
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/shipper/profile" element={
-                          <ProtectedRoute allowedRoles={['DELIVERY']}>
-                            <ShipperLayout>
-                              <ShipperProfilePage />
-                            </ShipperLayout>
                           </ProtectedRoute>
                         } />
 

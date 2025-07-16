@@ -30,12 +30,12 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated && wishlist.length === 0) {
-      setLoading(true);
-      loadWishlist();
-    } else if (!isAuthenticated) {
+    if (!isAuthenticated) {
       setWishlist([]);
+      return;
     }
+    setLoading(true);
+    loadWishlist();
   }, [isAuthenticated]);
 
   const loadWishlist = async () => {

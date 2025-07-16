@@ -7,7 +7,13 @@ export class DiscountCodeRepository implements IDiscountCodeRepository {
     this.prisma = new PrismaClient();
   }
   async findAll(): Promise<DiscountCode[]> {
-    return this.prisma.discountCode.findMany({ orderBy: { createdAt: 'desc' } });
+    const codes = await this.prisma.discountCode.findMany({ orderBy: { createdAt: 'desc' } });
+    const now = new Date();
+    // Nếu mã đã hết hạn thì set isActive = false
+    return codes.map(code => ({
+      ...code,
+      isActive: code.isActive && code.startDate <= now && code.endDate >= now
+    }));
   }
   async findById(id: number): Promise<DiscountCode | null> {
     return this.prisma.discountCode.findUnique({ where: { id } });

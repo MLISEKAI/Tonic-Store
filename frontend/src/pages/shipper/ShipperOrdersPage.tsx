@@ -136,8 +136,8 @@ const ShipperOrders: React.FC = () => {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-red-500 text-center">
-          <h2 className="text-xl font-bold mb-2">Access Denied</h2>
-          <p>Please login as a delivery staff to view orders</p>
+          <h2 className="text-xl font-bold mb-2">Không có quyền truy cập</h2>
+          <p>Vui lòng đăng nhập với vai trò là nhân viên giao hàng để xem đơn hàng</p>
         </div>
       </div>
     );
@@ -155,13 +155,13 @@ const ShipperOrders: React.FC = () => {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-red-500 text-center">
-          <h2 className="text-xl font-bold mb-2">Error</h2>
+          <h2 className="text-xl font-bold mb-2">Lỗi</h2>
           <p>{error}</p>
           <button 
             onClick={loadOrders}
             className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
           >
-            Try Again
+            Thử lại
           </button>
         </div>
       </div>
@@ -173,7 +173,7 @@ const ShipperOrders: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4">
       <h1 className="text-2xl font-bold mb-6">Quản lý đơn hàng</h1>
 
       {/* Filter by status */}

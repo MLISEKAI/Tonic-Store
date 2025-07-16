@@ -152,15 +152,6 @@ const Navbar = () => {
         </Link>
       )
     },
-    ...(user?.role === 'DELIVERY' ? [{
-      key: 'shipper-orders',
-      label: (
-        <Link to="/shipper/orders" className="flex items-center">
-          <ShoppingCartOutlined className="mr-2" />
-          Quản lý giao hàng
-        </Link>
-      )
-    }] : []),
     { type: 'divider' },
     {
       key: 'logout',
@@ -364,12 +355,13 @@ const Navbar = () => {
           {/* Right buttons & Mobile Menu Trigger */}
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
             {/* Icons visible on desktop */}
-            <div className="hidden md:flex items-center gap-4 lg:gap-6">
+            <div className="hidden md:flex items-center gap-2 lg:gap-4">
 
               <Link to="/user/orders" className="flex items-center text-gray-600 hover:text-blue-500">
                 <CarOutlined className="text-xl" />
                 <span className="hidden md:inline ml-2">Theo dõi đơn hàng</span>
               </Link>
+
               <Popover content={notificationContent} trigger="hover" placement="bottomRight">
                 <Link to="/notifications" className="flex items-center text-gray-600 hover:text-blue-500">
                   <Badge dot={unreadNotificationCount > 0}>
@@ -386,30 +378,25 @@ const Navbar = () => {
                 </Badge>
                 <span className="hidden md:inline ml-2">Yêu thích</span>
               </Link>
-            </div>
-            
-            {/* Cart Icon - always visible */}
-            <Popover content={cartContent} trigger="hover" placement="bottomRight">
-              <Link to="/cart" className="flex items-center text-gray-600 hover:text-blue-500">
-                <Badge count={totalItems}>
-                  <ShoppingCartOutlined className="text-2xl" />
-                </Badge>
-                  <span className="hidden md:inline ml-2">Giỏ hàng</span>
-              </Link>
-            </Popover>
 
-            {/* User Dropdown or Login/Register links */}
-            <div className="hidden md:block">
-                {isAuthenticated ? (
+              {/* Cart Icon - always visible */}
+              <Popover content={cartContent} trigger="hover" placement="bottomRight">
+                <Link to="/cart" className="flex items-center text-gray-600 hover:text-blue-500">
+                  <Badge count={totalItems}>
+                    <ShoppingCartOutlined className="text-xl" />
+                  </Badge>
+                    <span className="hidden md:inline ml-2">Giỏ hàng</span>
+                </Link>
+              </Popover>
+
+              {/* User Dropdown */}
+              <div className="hidden md:block">
+                {isAuthenticated && (
                   <Dropdown menu={{ items: userMenuItems, className: 'w-48' }} placement="bottomRight">
-                     <UserOutlined className="text-xl" />
+                    <UserOutlined className="text-xl" />
                   </Dropdown>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Link to="/login" className="px-3 py-1 rounded hover:bg-gray-100">Đăng nhập</Link>
-                    <Link to="/register" className="px-3 py-1 rounded hover:bg-gray-100">Đăng ký</Link>
-                  </div>
                 )}
+              </div>
             </div>
 
             {/* Mobile Menu Trigger */}
@@ -437,20 +424,18 @@ const Navbar = () => {
       </div>
 
       {/* Main navigation - Desktop */}
-      <div className="border-b hidden md:block">
-        <div className="container mx-auto px-4">
-          <Menu 
-            mode="horizontal" 
-            selectedKeys={[selectedKey]}
-            className="border-none"
-          >
-            {menuItems.map((item) => (
-              <Menu.Item key={item.key}>
-                <Link to={item.path}>{item.label}</Link>
-              </Menu.Item>
-            ))}
-          </Menu>
-        </div>
+      <div className="container mx-auto px-4 border-b hidden md:block">
+        <Menu 
+          mode="horizontal" 
+          selectedKeys={[selectedKey]}
+          className="border-none"
+        >
+          {menuItems.map((item) => (
+            <Menu.Item key={item.key}>
+              <Link to={item.path}>{item.label}</Link>
+            </Menu.Item>
+          ))}
+        </Menu>
       </div>
 
       {/* Mobile Menu - Drawer */}

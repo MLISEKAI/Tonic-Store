@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, notification, Carousel } from 'antd';
+import { Button, notification, Carousel, message } from 'antd';
 import { ArrowRightOutlined, RightOutlined } from '@ant-design/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useProducts } from '../hooks';
@@ -16,7 +16,7 @@ const HomePage = () => {
   const navigate = useNavigate();
   const { products, filteredProducts } = useProducts();
   const { addToCart } = useCart();
-  const [visibleSuggestions, setVisibleSuggestions] = useState(8);
+  const [visibleSuggestions, setVisibleSuggestions] = useState(10);
 
   // Breadcrumb context cho từng mục
   const flashSaleBreadcrumb = { path: '/flash-sale', label: 'Khuyến mãi' };
@@ -26,19 +26,9 @@ const HomePage = () => {
   const handleAddToCart = async (product: Product) => {
     try {
       await addToCart(product, 1);
-      notification.success({
-        message: 'Thành công',
-        description: 'Đã thêm sản phẩm vào giỏ hàng',
-        placement: 'topRight',
-        duration: 2,
-      });
+      message.success('Đã thêm sản phẩm vào giỏ hàng');
     } catch (error) {
-      notification.error({
-        message: 'Lỗi',
-        description: 'Thêm sản phẩm vào giỏ hàng thất bại',
-        placement: 'topRight',
-        duration: 2,
-      });
+      message.error('Thêm sản phẩm vào giỏ hàng thất bại');
     }
   };
 
@@ -50,11 +40,11 @@ const HomePage = () => {
 
   const featuredProducts = filteredProducts.featured.length > 0 
     ? filteredProducts.featured
-    : getRandomProducts(4);
+    : getRandomProducts(5);
 
   const bestSellers = filteredProducts.bestSellers.length > 0
     ? filteredProducts.bestSellers
-    : getRandomProducts(4);
+    : getRandomProducts(5);
 
   // Lây sản phẩm ngẫu nhiên cho các đề xuất ngày hôm nay
   const todaySuggestions = getRandomProducts(products.length);
@@ -222,7 +212,7 @@ const HomePage = () => {
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold">Gợi ý hôm nay</h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {todaySuggestions.slice(0, visibleSuggestions).map((product) => (
                   <ProductCard
                     key={product.id}
