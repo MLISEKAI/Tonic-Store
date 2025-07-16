@@ -29,7 +29,7 @@ const ResetPasswordPage = () => {
         placement: 'topRight',
         duration: 2,
       });
-      navigate('/login');
+      navigate('/');
     } catch (error: any) {
       notification.error({
         message: 'Lỗi',

@@ -74,11 +74,24 @@ export const getDeliveryRating = async (orderId: number) => {
 
 // Tạo đánh giá shipper
 export const createDeliveryRating = async (orderId: number, userId: number, rating: number, comment?: string) => {
+  if (!orderId || isNaN(orderId)) {
+    throw new Error('Order ID không hợp lệ');
+  }
   // Kiểm tra xem đơn hàng đã được giao thành công chưa
   const order = await shipperRepository.findOrderById(orderId);
 
   if (!order || order.status !== 'DELIVERED') {
     throw new Error('Order is not delivered yet');
+  }
+
+  // Chỉ cho phép userId là chủ đơn hàng đánh giá shipper
+  if (order.userId !== userId) {
+    throw new Error('Chỉ khách hàng mới được đánh giá shipper');
+  }
+
+  // Không cho phép shipper tự đánh giá chính mình
+  if (order.shipperId && order.shipperId === userId) {
+    throw new Error('Shipper không được tự đánh giá chính mình');
   }
 
   // Kiểm tra xem người dùng đã đánh giá chưa

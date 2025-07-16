@@ -5,7 +5,22 @@ import { discountCodeService } from '../services/discountCodeService';
 export const getAllDiscountCodes = async (req: Request, res: Response) => {
   try {
     const discountCodes = await discountCodeService.getAll();
-    res.json(discountCodes);
+    // Map lại trường cho đúng format frontend mong đợi
+    const formattedCodes = discountCodes.map((code: any) => ({
+      id: code.id,
+      code: code.code,
+      description: code.description,
+      type: code.discountType,
+      discount: code.discountValue,
+      minOrderValue: code.minOrderValue,
+      maxDiscount: code.maxDiscount,
+      startDate: code.startDate instanceof Date ? code.startDate.toISOString() : code.startDate,
+      endDate: code.endDate instanceof Date ? code.endDate.toISOString() : code.endDate,
+      usageLimit: code.usageLimit,
+      usedCount: code.usedCount,
+      isActive: code.isActive
+    }));
+    res.json(formattedCodes);
   } catch (error) {
     res.status(500).json({ message: 'Failed to get discount codes' });
   }

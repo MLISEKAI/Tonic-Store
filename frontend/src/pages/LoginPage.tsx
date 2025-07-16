@@ -8,29 +8,35 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated, loading } = useAuth();
 
-  useEffect(() => {
-    if (!loading && isAuthenticated) {
+  const redirectByRole = (role: string) => {
+    if (role === 'ADMIN') {
+      const adminUrl = import.meta.env.VITE_ADMIN_URL;
+      window.open(`${adminUrl}/admin?token=${encodeURIComponent(localStorage.getItem('token') || '')}&role=${encodeURIComponent(role)}`, '_blank');
+    } else if (role === 'SHIPPER' || role === 'DELIVERY') {
+      window.open('/shipper');
+    } else {
       navigate('/');
     }
+  };
+  
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      try {
+        const userStr = localStorage.getItem('user');
+        const role = userStr ? JSON.parse(userStr).role : '';
+        redirectByRole(role);
+      } catch {}
+    }
   }, [loading, isAuthenticated, navigate]);
-
+  
   const onFinish = async (values: { email: string; password: string }) => {
     try {
       const loginData = {
         email: values.email.toLowerCase().trim(),
-        password: values.password
+        password: values.password,
       };
-  
-      // Đăng nhập và nhận về user + token
       const data = await login(loginData);
-  
-      // Chuyển hướng dựa vào role
-      if (data.user.role === 'ADMIN') {
-        const adminUrl = import.meta.env.VITE_ADMIN_URL;
-        window.open(`${adminUrl}/admin?token=${encodeURIComponent(data.token)}&role=${encodeURIComponent(data.user.role)}`, '_blank');
-      } else {
-        navigate('/');
-      }
+      redirectByRole(data.user.role);
     } catch (error) {
       notification.error({
         message: 'Lỗi',

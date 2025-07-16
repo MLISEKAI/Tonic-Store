@@ -71,10 +71,13 @@ const PromotionCode: React.FC = () => {
   };
 
   const formatDiscount = (code: PromotionCode) => {
+    // Nếu không có code hoặc code không có trường discount, sẽ trả về '0'.
     if (!code || typeof code.discount === 'undefined') return '0';
+    // Nếu code là loại phần trăm (PERCENTAGE), sẽ trả về số phần trăm.
     if (code.type === 'PERCENTAGE') {
       return `${code.discount}%`;
     }
+    //Nếu là loại số tiền (FIXED_AMOUNT), sẽ trả về số tiền đã được format.
     return `${code.discount.toLocaleString('vi-VN')}đ`;
   };
 

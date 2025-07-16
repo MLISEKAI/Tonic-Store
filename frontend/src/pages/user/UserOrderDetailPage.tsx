@@ -199,8 +199,15 @@ const OrderDetailPage: React.FC = () => {
       setShipperRating(rating as ShipperRating);
       setIsRatingModalVisible(false);
       notification.success({ message: 'Đánh giá thành công' });
-    } catch {
-      notification.error({ message: 'Lỗi gửi đánh giá' });
+    } catch (error: any) {
+      if (error?.response?.data?.error === 'Shipper cannot rate their own delivery') {
+        notification.error({
+          message: 'Không thể đánh giá',
+          description: 'Shipper không thể tự đánh giá chính mình.',
+        });
+      } else {
+        notification.error({ message: 'Lỗi gửi đánh giá' });
+      }
     }
   };
 

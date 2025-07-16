@@ -135,7 +135,6 @@ export const handleResponse = async (response: Response) => {
     if (response.status === 401) {
       // Token hết hạn hoặc không hợp lệ
       localStorage.removeItem('token');
-      window.location.href = '/login';
       throw new Error('Unauthorized');
     }
     const error = await response.json();

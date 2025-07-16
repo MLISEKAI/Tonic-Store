@@ -65,6 +65,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setCart({ items: [] });
+      return;
+    }
     fetchCart();
   }, [isAuthenticated]);
 

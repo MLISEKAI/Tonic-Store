@@ -83,12 +83,12 @@ export const useProducts = () => {
   // Memoize filtered products
   const filteredProducts = useMemo(() => {
     return {
-      featured: products.filter(p => p.isFeatured).slice(0, 4),
-      new: products.filter(p => p.isNew).slice(0, 4),
-      bestSellers: products.filter(p => p.isBestSeller).slice(0, 4),
+      featured: products.filter(p => p.isFeatured),
+      new: products.filter(p => p.isNew),
+      bestSellers: products.filter(p => p.isBestSeller),
       mostViewed: [...products]
         .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
-        .slice(0, 4)
+        .slice(0, 5)
     };
   }, [products]);
 

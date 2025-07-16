@@ -59,7 +59,7 @@ const CheckoutPage: React.FC = () => {
     } catch (error) {
       console.error('Error fetching addresses:', error);
       if (error instanceof Error && error.message.includes('401')) {
-        navigate('/login');
+        navigate('/');
       }
     }
   };
@@ -84,7 +84,7 @@ const CheckoutPage: React.FC = () => {
     try {
       if (!isAuthenticated || !user) {
         setError('Vui lòng đăng nhập để thanh toán');
-        navigate('/login');
+        navigate('/');
         return;
       }
   
