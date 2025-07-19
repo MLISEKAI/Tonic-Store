@@ -1,16 +1,18 @@
-import { PrismaClient, Payment, PaymentMethod, PaymentStatus, Prisma } from '@prisma/client';
-import { IPaymentRepository } from './interfaces/IPaymentRepository';
+import { prisma } from '../prisma';
+import { BaseRepository } from './BaseRepository';
+import { PaymentMethod, PaymentStatus, Prisma } from '@prisma/client';
 
-export class PaymentRepository implements IPaymentRepository {
-  private prisma: PrismaClient;
+export class PaymentRepository extends BaseRepository<any> {
   constructor() {
-    this.prisma = new PrismaClient();
+    super(prisma.payment);
   }
-  async getAllPayments(): Promise<Payment[]> {
-    return this.prisma.payment.findMany({ include: { order: true } });
+
+  async getAllPayments() {
+    return this.model.findMany({ include: { order: true } });
   }
-  async createPayment(orderId: number, method: PaymentMethod, amount: number): Promise<Payment> {
-    return this.prisma.payment.create({
+
+  async createPayment(orderId: number, method: PaymentMethod, amount: number) {
+    return this.model.create({
       data: {
         order: { connect: { id: orderId } },
         method,
@@ -21,22 +23,21 @@ export class PaymentRepository implements IPaymentRepository {
       include: { order: true }
     });
   }
-  async updatePaymentStatus(orderId: number, status: PaymentStatus, transactionId?: string): Promise<Payment> {
+
+  async updatePaymentStatus(orderId: number, status: PaymentStatus, transactionId?: string) {
     const data: Prisma.PaymentUpdateInput = {
       status,
       transactionId,
       ...(status === PaymentStatus.COMPLETED && { paymentDate: new Date() })
     };
-    return this.prisma.payment.update({
+    return this.model.update({
       where: { orderId },
       data,
       include: { order: true }
     });
   }
-  async getPaymentByOrderId(orderId: number): Promise<Payment | null> {
-    return this.prisma.payment.findUnique({
-      where: { orderId },
-      include: { order: true }
-    });
+
+  async getPaymentByOrderId(orderId: number) {
+    return this.model.findUnique({ where: { orderId }, include: { order: true } });
   }
 } 

@@ -11,12 +11,34 @@ import ProductCard from '../components/product/ProductCard';
 import FlashSale from '../components/flash-sale/FlashSale';
 import Sidebar from '../components/layout/Sidebar';
 import Footer from '../components/layout/Footer';
+import { useAuth } from '../contexts/AuthContext';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated, loading, logout } = useAuth();
   const { products, filteredProducts } = useProducts();
   const { addToCart } = useCart();
   const [visibleSuggestions, setVisibleSuggestions] = useState(10);
+
+  React.useEffect(() => {
+    if (!isAuthenticated || !user) return;
+  
+    switch (user.role) {
+      case 'ADMIN':
+        logout();
+        navigate('/login', { replace: true });
+        break;
+  
+      case 'DELIVERY':
+        navigate('/shipper/dashboard', { replace: true });
+        break;
+  
+      default:
+        break;
+    }
+  }, [isAuthenticated, user, logout, navigate]);
+
+  if (loading) return <div>Đang kiểm tra đăng nhập...</div>;
 
   // Breadcrumb context cho từng mục
   const flashSaleBreadcrumb = { path: '/flash-sale', label: 'Khuyến mãi' };

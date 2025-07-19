@@ -1,0 +1,30 @@
+export class ProductDto {
+  id!: number;
+  name!: string;
+  description!: string;
+  price!: number;
+  promotionalPrice?: number;
+  stock!: number;
+  imageUrl?: string;
+  categoryId!: number;
+  createdAt!: Date;
+  updatedAt!: Date;
+  sku?: string;
+  barcode?: string;
+  weight?: number;
+  dimensions?: string;
+  material?: string;
+  origin?: string;
+  warranty?: string;
+  status!: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoUrl?: string;
+  isFeatured?: boolean;
+  isNew?: boolean;
+  isBestSeller?: boolean;
+  rating?: number;
+  reviewCount?: number;
+  viewCount?: number;
+  soldCount?: number;
+} 

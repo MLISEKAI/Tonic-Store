@@ -35,6 +35,8 @@ import { WishlistProvider } from "./contexts/WishlistContext";
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import AuthLayout from "./layouts/AuthLayout";
+import ShipperDashboardPage from './pages/shipper/ShipperDashboardPage';
+import ShipperOrderHistoryPage from './pages/shipper/ShipperOrderHistoryPage';
 
 
 // Protected Route component
@@ -51,6 +53,27 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 
   if (allowedRoles && !allowedRoles.includes(user?.role || '')) {
     return <Navigate to="/" />;
+  }
+
+  return <>{children}</>;
+};
+
+// Shipper Protected Route: chỉ cho phép shipper vào /shipper/*, nếu không sẽ chuyển về /shipper/orders
+const ShipperProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <div>Đang kiểm tra đăng nhập...</div>;
+  }
+
+  if (!isAuthenticated || user?.role !== 'DELIVERY') {
+    return <Navigate to="/" />;
+  }
+
+  // Nếu không phải route /shipper/* thì chuyển về /shipper/orders
+  if (!location.pathname.startsWith('/shipper')) {
+    return <Navigate to="/shipper/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -86,25 +109,39 @@ const AppContent = () => {
 
               {/* Shipper routes - tách riêng */}
               <Route path="/shipper" element={
-                <ProtectedRoute allowedRoles={['DELIVERY']}>
+                <ShipperProtectedRoute>
                   <ShipperLayout>
-                    <Navigate to="/shipper/orders" replace />
+                    <Navigate to="/shipper/dashboard" replace />
                   </ShipperLayout>
-                </ProtectedRoute>
+                </ShipperProtectedRoute>
               } />
               <Route path="/shipper/orders" element={
-                <ProtectedRoute allowedRoles={['DELIVERY']}>
+                <ShipperProtectedRoute>
                   <ShipperLayout>
                     <ShipperOrders />
                   </ShipperLayout>
-                </ProtectedRoute>
+                </ShipperProtectedRoute>
               } />
               <Route path="/shipper/profile" element={
-                <ProtectedRoute allowedRoles={['DELIVERY']}>
+                <ShipperProtectedRoute>
                   <ShipperLayout>
                     <ShipperProfilePage />
                   </ShipperLayout>
-                </ProtectedRoute>
+                </ShipperProtectedRoute>
+              } />
+              <Route path="/shipper/dashboard" element={
+                <ShipperProtectedRoute>
+                  <ShipperLayout>
+                    <ShipperDashboardPage />
+                  </ShipperLayout>
+                </ShipperProtectedRoute>
+              } />
+              <Route path="/shipper/history" element={
+                <ShipperProtectedRoute>
+                  <ShipperLayout>
+                    <ShipperOrderHistoryPage />
+                  </ShipperLayout>
+                </ShipperProtectedRoute>
               } />
 
               {/* Main layout routes */}
@@ -144,17 +181,17 @@ const AppContent = () => {
 
                         {/* User routes */}
                         <Route path="/user/orders" element={
-                          <ProtectedRoute>
+                          <ProtectedRoute allowedRoles={['CUSTOMER', 'ADMIN']}>
                             <OrdersPage />
                           </ProtectedRoute>
                         } />
                         <Route path="/user/orders/:id" element={
-                          <ProtectedRoute>
+                          <ProtectedRoute allowedRoles={['CUSTOMER', 'ADMIN']}>
                             <OrderDetailPage />
                           </ProtectedRoute>
                         } />
                         <Route path="/user/profile" element={
-                          <ProtectedRoute>
+                          <ProtectedRoute allowedRoles={['CUSTOMER', 'ADMIN']}>
                             <ProfilePage />
                           </ProtectedRoute>
                         } />

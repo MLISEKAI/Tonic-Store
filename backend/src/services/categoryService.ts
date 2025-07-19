@@ -11,11 +11,11 @@ export const getCategoryById = async (id: number) => {
 };
 
 export const createCategory = async (name: string) => {
-  return categoryRepository.createCategory(name);
+  return categoryRepository.create({ name });
 };
 
 export const updateCategory = async (id: number, name: string) => {
-  return categoryRepository.updateCategory(id, name);
+  return categoryRepository.update(id, { name });
 };
 
 export const deleteCategory = async (id: number) => {
@@ -23,5 +23,5 @@ export const deleteCategory = async (id: number) => {
   if (hasProducts) {
     throw new Error('Cannot delete category with products');
   }
-  return categoryRepository.deleteCategory(id);
+  return categoryRepository.delete(id);
 }; 

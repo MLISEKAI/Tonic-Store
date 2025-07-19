@@ -1,57 +1,21 @@
-import { PrismaClient, Product, ProductStatus } from '@prisma/client';
-import { IProductRepository } from './interfaces/IProductRepository';
+import { prisma } from '../prisma';
+import { BaseRepository } from './BaseRepository';
 
-export class ProductRepository implements IProductRepository {
-  private prisma: PrismaClient;
-
+export class ProductRepository extends BaseRepository<any> {
   constructor() {
-    this.prisma = new PrismaClient();
+    super(prisma.product);
   }
 
-  async findAll(): Promise<Product[]> {
-    return this.prisma.product.findMany();
+  async findBySeoUrl(seoUrl: string) {
+    return this.model.findUnique({ where: { seoUrl } });
   }
 
-  async findById(id: number): Promise<Product | null> {
-    return this.prisma.product.findUnique({
-      where: { id }
-    });
+  async updateStatus(id: number, status: string) {
+    return this.model.update({ where: { id }, data: { status } });
   }
 
-  async findBySeoUrl(seoUrl: string): Promise<Product | null> {
-    return this.prisma.product.findUnique({
-      where: { seoUrl }
-    });
-  }
-
-  async create(data: Partial<Product>): Promise<Product> {
-    return this.prisma.product.create({
-      data: data as any
-    });
-  }
-
-  async update(id: number, data: Partial<Product>): Promise<Product> {
-    return this.prisma.product.update({
-      where: { id },
-      data
-    });
-  }
-
-  async delete(id: number): Promise<Product> {
-    return this.prisma.product.delete({
-      where: { id }
-    });
-  }
-
-  async updateStatus(id: number, status: ProductStatus): Promise<Product> {
-    return this.prisma.product.update({
-      where: { id },
-      data: { status }
-    });
-  }
-
-  async search(query: string): Promise<Product[]> {
-    return this.prisma.product.findMany({
+  async search(query: string) {
+    return this.model.findMany({
       where: {
         OR: [
           { name: { contains: query } },
@@ -62,67 +26,46 @@ export class ProductRepository implements IProductRepository {
     });
   }
 
-  async findByCategory(categoryName: string): Promise<Product[]> {
-    const category = await this.prisma.category.findFirst({
-      where: { name: categoryName }
-    });
-    
+  async findByCategory(categoryName: string) {
+    const category = await prisma.category.findFirst({ where: { name: categoryName } });
     if (!category) return [];
-
-    return this.prisma.product.findMany({
-      where: { categoryId: category.id }
-    });
+    return this.model.findMany({ where: { categoryId: category.id } });
   }
 
-  async findByFilters(filters: any): Promise<Product[]> {
+  async findByFilters(filters: any) {
     const where: any = {};
-
     if (filters.status) where.status = filters.status;
     if (filters.isFeatured !== undefined) where.isFeatured = filters.isFeatured;
     if (filters.isNew !== undefined) where.isNew = filters.isNew;
     if (filters.isBestSeller !== undefined) where.isBestSeller = filters.isBestSeller;
     if (filters.minPrice !== undefined) where.price = { gte: filters.minPrice };
     if (filters.maxPrice !== undefined) where.price = { ...where.price, lte: filters.maxPrice };
-
-    return this.prisma.product.findMany({ where });
+    return this.model.findMany({ where });
   }
 
-  async incrementViewCount(id: number): Promise<Product> {
-    return this.prisma.product.update({
+  async incrementViewCount(id: number) {
+    return this.model.update({
       where: { id },
-      data: {
-        viewCount: {
-          increment: 1
-        }
-      }
+      data: { viewCount: { increment: 1 } }
     });
   }
 
-  async updateStock(id: number, quantity: number): Promise<Product> {
-    return this.prisma.product.update({
+  async updateStock(id: number, quantity: number) {
+    return this.model.update({
       where: { id },
-      data: {
-        stock: {
-          decrement: quantity
-        }
-      }
+      data: { stock: { decrement: quantity } }
     });
   }
 
-  async updateSoldCount(id: number, quantity: number): Promise<Product> {
-    return this.prisma.product.update({
+  async updateSoldCount(id: number, quantity: number) {
+    return this.model.update({
       where: { id },
-      data: {
-        soldCount: {
-          increment: quantity
-        }
-      }
+      data: { soldCount: { increment: quantity } }
     });
   }
 
-  async getFlashSaleProducts(): Promise<Product[]> {
-    const now = new Date();
-    return this.prisma.product.findMany({
+  async getFlashSaleProducts() {
+    return this.model.findMany({
       where: {
         AND: [
           { promotionalPrice: { not: null } },
@@ -131,80 +74,51 @@ export class ProductRepository implements IProductRepository {
           { stock: { gt: 0 } }
         ]
       },
-      orderBy: {
-        promotionalPrice: 'asc'
-      },
+      orderBy: { promotionalPrice: 'asc' },
       take: 10
     });
   }
 
-  async getNewestProducts(limit: number): Promise<Product[]> {
-    return this.prisma.product.findMany({
-      where: {
-        status: 'ACTIVE',
-        stock: { gt: 0 }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
+  async getNewestProducts(limit: number) {
+    return this.model.findMany({
+      where: { status: 'ACTIVE', stock: { gt: 0 } },
+      orderBy: { createdAt: 'desc' },
       take: limit
     });
   }
 
-  async getBestSellingProducts(limit: number): Promise<Product[]> {
-    return this.prisma.product.findMany({
-      where: {
-        status: 'ACTIVE',
-        stock: { gt: 0 }
-      },
-      orderBy: {
-        soldCount: 'desc'
-      },
+  async getBestSellingProducts(limit: number) {
+    return this.model.findMany({
+      where: { status: 'ACTIVE', stock: { gt: 0 } },
+      orderBy: { soldCount: 'desc' },
       take: limit
     });
   }
 
-  async getFeaturedProducts(): Promise<Product[]> {
-    return this.prisma.product.findMany({
-      where: {
-        isFeatured: true,
-        status: 'ACTIVE',
-        stock: { gt: 0 }
-      }
+  async getFeaturedProducts() {
+    return this.model.findMany({
+      where: { isFeatured: true, status: 'ACTIVE', stock: { gt: 0 } }
     });
   }
 
-  async findProductsWithRelations(where: any, include: any): Promise<any[]> {
-    return this.prisma.product.findMany({
-      where,
-      include
-    });
+  async findProductsWithRelations(where: any, include: any) {
+    return this.model.findMany({ where, include });
   }
 
-  async findProductByIdWithRelations(id: number, include: any): Promise<any | null> {
-    return this.prisma.product.findUnique({
-      where: { id },
-      include
-    });
+  async findProductByIdWithRelations(id: number, include: any) {
+    return this.model.findUnique({ where: { id }, include });
   }
 
-  async createProductWithRelations(data: any, include: any): Promise<any> {
-    return this.prisma.product.create({
-      data,
-      include
-    });
+  async createProductWithRelations(data: any, include: any) {
+    return this.model.create({ data, include });
   }
 
-  async updateProductWithRelations(id: number, data: any, include: any): Promise<any> {
-    return this.prisma.product.update({
-      where: { id },
-      data,
-      include
-    });
+  async updateProductWithRelations(id: number, data: any, include: any) {
+    return this.model.update({ where: { id }, data, include });
   }
 
-  async deleteProductWithRelations(id: number): Promise<any> {
-    const product = await this.prisma.product.findUnique({
+  async deleteProductWithRelations(id: number) {
+    const product = await this.model.findUnique({
       where: { id },
       include: {
         reviews: true,
@@ -213,48 +127,28 @@ export class ProductRepository implements IProductRepository {
         cartItems: true
       }
     });
-
-    if (!product) {
-      throw new Error('Product not found');
-    }
-
-    await this.prisma.$transaction([
-      this.prisma.cartItem.deleteMany({
-        where: { productId: id }
-      }),
-      this.prisma.review.deleteMany({
-        where: { productId: id }
-      }),
-      this.prisma.orderItem.deleteMany({
-        where: { productId: id }
-      }),
-      this.prisma.wishlist.deleteMany({
-        where: { productId: id }
-      }),
-      this.prisma.product.delete({
-        where: { id }
-      })
+    if (!product) throw new Error('Product not found');
+    await prisma.$transaction([
+      prisma.cartItem.deleteMany({ where: { productId: id } }),
+      prisma.review.deleteMany({ where: { productId: id } }),
+      prisma.orderItem.deleteMany({ where: { productId: id } }),
+      prisma.wishlist.deleteMany({ where: { productId: id } }),
+      this.model.delete({ where: { id } })
     ]);
-
     return product;
   }
 
-  async findCategoryByName(name: string): Promise<any | null> {
-    return this.prisma.category.findFirst({
-      where: { name }
-    });
+  async findCategoryByName(name: string) {
+    return prisma.category.findFirst({ where: { name } });
   }
 
-  async updateProductRating(productId: number): Promise<Product> {
-    const reviews = await this.prisma.review.findMany({ where: { productId } });
+  async updateProductRating(productId: number) {
+    const reviews = await prisma.review.findMany({ where: { productId } });
     const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
     const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
-    return this.prisma.product.update({
+    return this.model.update({
       where: { id: productId },
-      data: {
-        rating: averageRating,
-        reviewCount: reviews.length
-      }
+      data: { rating: averageRating, reviewCount: reviews.length }
     });
   }
 } 

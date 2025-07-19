@@ -2,6 +2,8 @@ import React from 'react';
 import { Layout, Menu } from 'antd';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
+  DashboardOutlined,
+  HistoryOutlined,
   ShoppingOutlined,
   UserOutlined,
   LogoutOutlined,
@@ -21,9 +23,19 @@ const ShipperLayout: React.FC<ShipperLayoutProps> = ({ children }) => {
 
   const menuItems = [
     {
+      key: 'dashboard',
+      icon: <DashboardOutlined />,
+      label: <Link to="/shipper/dashboard">Dashboard</Link>,
+    },
+    {
       key: 'orders',
       icon: <ShoppingOutlined />,
       label: <Link to="/shipper/orders">Quản lý đơn hàng</Link>,
+    },
+    {
+      key: 'history',
+      icon: <HistoryOutlined />,
+      label: <Link to="/shipper/history">Lịch sử đơn hàng</Link>,
     },
     {
       key: 'profile',

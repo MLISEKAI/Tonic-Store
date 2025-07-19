@@ -1,122 +1,56 @@
-import { PrismaClient, Order, OrderStatus, PaymentStatus } from '@prisma/client';
-import { IOrderRepository } from './interfaces/IOrderRepository';
+import { prisma } from '../prisma';
+import { BaseRepository } from './BaseRepository';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
 
-export class OrderRepository implements IOrderRepository {
-  private prisma: PrismaClient;
-
+export class OrderRepository extends BaseRepository<any> {
   constructor() {
-    this.prisma = new PrismaClient();
+    super(prisma.order);
   }
 
-  async findAll(): Promise<Order[]> {
-    return this.prisma.order.findMany();
+  async updateStatus(id: number, status: OrderStatus) {
+    return this.model.update({ where: { id }, data: { status } });
   }
 
-  async findById(id: number): Promise<Order | null> {
-    return this.prisma.order.findUnique({
-      where: { id }
+  async findOrdersWithRelations(include: any) {
+    return this.model.findMany({ include });
+  }
+
+  async findOrderByIdWithRelations(id: number, include: any) {
+    return this.model.findUnique({ where: { id }, include });
+  }
+
+  async createOrderWithItems(orderData: any, include: any) {
+    return this.model.create({ data: orderData, include });
+  }
+
+  async updateOrderWithRelations(id: number, data: any, include: any) {
+    return this.model.update({ where: { id }, data, include });
+  }
+
+  async createNotification(userId: number, message: string) {
+    return prisma.notification.create({
+      data: { userId, message, isRead: false },
     });
   }
 
-  async create(data: any): Promise<Order> {
-    return this.prisma.order.create({
-      data
+  async createDeliveryLog(orderId: number, deliveryId: number, status: OrderStatus, note: string) {
+    return prisma.deliveryLog.create({
+      data: { orderId, deliveryId, status, note }
     });
   }
 
-  async update(id: number, data: Partial<Order>): Promise<Order> {
-    return this.prisma.order.update({
-      where: { id },
-      data
-    });
+  async updatePaymentStatus(orderId: number, status: PaymentStatus) {
+    return prisma.payment.update({ where: { orderId }, data: { status } });
   }
 
-  async delete(id: number): Promise<Order> {
-    return this.prisma.order.delete({
-      where: { id }
-    });
+  async findOrderWithPayment(orderId: number) {
+    return this.model.findUnique({ where: { id: orderId }, include: { payment: true } });
   }
 
-  async updateStatus(id: number, status: OrderStatus): Promise<Order> {
-    return this.prisma.order.update({
-      where: { id },
-      data: { status }
-    });
-  }
-
-  async findOrdersWithRelations(include: any): Promise<any[]> {
-    return this.prisma.order.findMany({
-      include
-    });
-  }
-
-  async findOrderByIdWithRelations(id: number, include: any): Promise<any | null> {
-    return this.prisma.order.findUnique({
-      where: { id },
-      include
-    });
-  }
-
-  async createOrderWithItems(orderData: any, include: any): Promise<any> {
-    return this.prisma.order.create({
-      data: orderData,
-      include
-    });
-  }
-
-  async updateOrderWithRelations(id: number, data: any, include: any): Promise<any> {
-    return this.prisma.order.update({
-      where: { id },
-      data,
-      include
-    });
-  }
-
-  async createNotification(userId: number, message: string): Promise<any> {
-    return this.prisma.notification.create({
-      data: {
-        userId,
-        message,
-        isRead: false,
-      },
-    });
-  }
-
-  async createDeliveryLog(orderId: number, deliveryId: number, status: OrderStatus, note: string): Promise<any> {
-    return this.prisma.deliveryLog.create({
-      data: {
-        orderId,
-        deliveryId,
-        status,
-        note
-      }
-    });
-  }
-
-  async updatePaymentStatus(orderId: number, status: PaymentStatus): Promise<any> {
-    return this.prisma.payment.update({
-      where: { orderId },
-      data: { status }
-    });
-  }
-
-  async findOrderWithPayment(orderId: number): Promise<any | null> {
-    return this.prisma.order.findUnique({
-      where: { id: orderId },
-      include: { payment: true }
-    });
-  }
-
-  async cancelOrderWithPayment(orderId: number, orderStatus: OrderStatus, paymentStatus: PaymentStatus): Promise<any> {
-    return this.prisma.$transaction([
-      this.prisma.order.update({
-        where: { id: orderId },
-        data: { status: orderStatus }
-      }),
-      this.prisma.payment.update({
-        where: { orderId },
-        data: { status: paymentStatus }
-      })
+  async cancelOrderWithPayment(orderId: number, orderStatus: OrderStatus, paymentStatus: PaymentStatus) {
+    return prisma.$transaction([
+      this.model.update({ where: { id: orderId }, data: { status: orderStatus } }),
+      prisma.payment.update({ where: { orderId }, data: { status: paymentStatus } })
     ]);
   }
 } 

@@ -127,6 +127,10 @@ export const ENDPOINTS = {
     MARK_READ: (id: string) => `${API_URL}/contact/${id}/read`,
     DELETE: (id: string) => `${API_URL}/contact/${id}`,
   },
+  // Shipper
+  SHIPPER: {
+    UPDATE_STATUS: (orderId: number) => `${API_URL}/shippers/orders/${orderId}/status`,
+  },
 };
 
 // Helper function to handle API responses

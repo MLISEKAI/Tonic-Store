@@ -45,6 +45,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [checkAuth]);
 
+  // Lưu user vào localStorage mỗi khi user thay đổi
+  React.useEffect(() => {
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('user');
+    }
+  }, [user]);
+
   const login = async (credentials: { email: string; password: string }) => {
     try {
       const response = await UserService.login(credentials);

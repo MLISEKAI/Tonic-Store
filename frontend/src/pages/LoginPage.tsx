@@ -6,14 +6,14 @@ import { useEffect } from 'react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, loading } = useAuth();
+  const { login, isAuthenticated, loading, user, logout } = useAuth();
 
   const redirectByRole = (role: string) => {
     if (role === 'ADMIN') {
       const adminUrl = import.meta.env.VITE_ADMIN_URL;
       window.open(`${adminUrl}/admin?token=${encodeURIComponent(localStorage.getItem('token') || '')}&role=${encodeURIComponent(role)}`, '_blank');
-    } else if (role === 'SHIPPER' || role === 'DELIVERY') {
-      window.open('/shipper');
+    } else if (role === 'DELIVERY') {
+      navigate('/shipper/dashboard');
     } else {
       navigate('/');
     }
