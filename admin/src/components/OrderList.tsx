@@ -318,30 +318,44 @@ const OrderList: React.FC = () => {
       title: 'Trạng thái thanh toán',
       dataIndex: ['payment', 'status'],
       key: 'paymentStatus',
-      render: (status: PaymentStatus, record: OrderDetail) => (
-        <div className="flex items-center gap-2">
-          <span className={status === 'PENDING' ? 'text-yellow-600' : 
-                          status === 'COMPLETED' ? 'text-green-600' : 
-                          status === 'FAILED' ? 'text-red-600' : 'text-gray-600'}>
-            {status}
-          </span>
-          {status === 'PENDING' && 
-          record.status !== 'CANCELLED' &&
-          record.payment?.method === 'BANK_TRANSFER' && (
-            <Button 
-              type="primary"
-              size="small"
-              className="space-x-2"
-              onClick={() => {
-                setSelectedOrder(record);
-                setConfirmModalVisible(true);
-              }}
-            >
-              Xác nhận chuyển khoản
-            </Button>
-          )}
-        </div>
-      ),
+      render: (status: PaymentStatus, record: OrderDetail) => {
+        const getColor = () => {
+          switch (status?.toUpperCase()) {
+            case 'PENDING':
+              return '#D97706'; // vàng đậm
+            case 'COMPLETED':
+              return '#16A34A'; // xanh lá
+            case 'FAILED':
+              return '#DC2626'; // đỏ
+            case 'REFUNDED':
+              return '#2563EB'; // xanh dương
+            default:
+              return '#6B7280'; // xám
+          }
+        };
+    
+        return (
+          <Space size="small">
+            <span style={{ color: getColor(), fontWeight: 500 }}>
+              {status}
+            </span>
+            {status === 'PENDING' &&
+              record.status !== 'CANCELLED' &&
+              record.payment?.method === 'BANK_TRANSFER' && (
+                <Button
+                  type="primary"
+                  size="small"
+                  onClick={() => {
+                    setSelectedOrder(record);
+                    setConfirmModalVisible(true);
+                  }}
+                >
+                  Xác nhận chuyển khoản
+                </Button>
+              )}
+          </Space>
+        );
+      },
     },
     {
       title: 'Trạng thái đơn hàng',
@@ -362,6 +376,7 @@ const OrderList: React.FC = () => {
     {
       title: 'Hành động',
       key: 'actions',
+      width: 250,
       render: (_: unknown, record: OrderDetail) => (
         <Space>
           <Button
@@ -491,7 +506,7 @@ const OrderList: React.FC = () => {
         title={`Order Details #${selectedOrderDetail?.id}`}
         open={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
-        width={800}
+        width={1000}
         footer={null}
       >
         {selectedOrderDetail && (
@@ -521,7 +536,7 @@ const OrderList: React.FC = () => {
                 {selectedOrderDetail.payment?.method}
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái thanh toán">
-                <Tag color={selectedOrderDetail.payment?.status === 'COMPLETED' ? 'Thành công' : 'Cảnh báo'}>
+                <Tag color={selectedOrderDetail.payment?.status === 'COMPLETED' ? 'success' : selectedOrderDetail.payment?.status === 'PENDING' ? 'warning' : selectedOrderDetail.payment?.status === 'FAILED' ? 'error' : 'default'}>
                   {selectedOrderDetail.payment?.status}
                 </Tag>
               </Descriptions.Item>

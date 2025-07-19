@@ -201,11 +201,38 @@ router.get('/delivery', authenticate, async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, status, name, dateFrom, dateTo, paymentMethod } = req.query;
+    const where: any = {
+      shipperId: req.user.id
+    };
+    if (status) where.status = status;
+    if (name) where.shippingName = { contains: name };
+    if (dateFrom || dateTo) {
+      // Chỉ thêm điều kiện nếu dateFrom/dateTo hợp lệ
+      const createdAt: any = {};
+      if (dateFrom && dateFrom !== 'undefined') createdAt.gte = new Date(dateFrom as string);
+      if (dateTo && dateTo !== 'undefined') createdAt.lte = new Date(dateTo as string);
+      if (Object.keys(createdAt).length > 0) where.createdAt = createdAt;
+    }
+    if (paymentMethod) {
+      // Chuyển paymentMethod về đúng enum nếu là string thường
+      let method = paymentMethod;
+      if (typeof paymentMethod === 'string') {
+        // Map các giá trị thường sang enum
+        const map: Record<string, string> = {
+          cod: 'COD',
+          bank: 'BANK_TRANSFER',
+          vnpay: 'VN_PAY',
+          paypal: 'PAYPAL',
+          credit: 'CREDIT_CARD',
+        };
+        method = map[paymentMethod.toLowerCase()] || paymentMethod;
+      }
+      where.payment = { method };
+    }
+
     const orders = await prisma.order.findMany({
-      where: {
-        shipperId: req.user.id
-      },
+      where,
       include: {
         items: {
           include: {
@@ -227,11 +254,7 @@ router.get('/delivery', authenticate, async (req: Request, res: Response) => {
       take: Number(limit)
     });
 
-    const total = await prisma.order.count({
-      where: {
-        shipperId: req.user.id
-      }
-    });
+    const total = await prisma.order.count({ where });
 
     res.json({
       orders,

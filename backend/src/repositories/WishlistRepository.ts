@@ -1,35 +1,32 @@
-import { PrismaClient } from '@prisma/client';
-import { IWishlistRepository } from './interfaces/IWishlistRepository';
+import { prisma } from '../prisma';
+import { BaseRepository } from './BaseRepository';
 
-export class WishlistRepository implements IWishlistRepository {
-  private prisma: PrismaClient;
+export class WishlistRepository extends BaseRepository<any> {
   constructor() {
-    this.prisma = new PrismaClient();
+    super(prisma.wishlist);
   }
-  async getUserWishlist(userId: number): Promise<any[]> {
-    return this.prisma.wishlist.findMany({
+
+  async getUserWishlist(userId: number) {
+    return this.model.findMany({
       where: { userId },
-      include: {
-        product: { include: { category: true } }
-      },
+      include: { product: { include: { category: true } } },
       orderBy: { createdAt: 'desc' }
     });
   }
-  async addToWishlist(userId: number, productId: number): Promise<any> {
-    return this.prisma.wishlist.create({
+
+  async addToWishlist(userId: number, productId: number) {
+    return this.model.create({
       data: { userId, productId },
       include: { product: { include: { category: true } } }
     });
   }
-  async removeFromWishlist(userId: number, productId: number): Promise<any> {
-    return this.prisma.wishlist.delete({
-      where: { userId_productId: { userId, productId } }
-    });
+
+  async removeFromWishlist(userId: number, productId: number) {
+    return this.model.delete({ where: { userId_productId: { userId, productId } } });
   }
-  async isInWishlist(userId: number, productId: number): Promise<boolean> {
-    const wishlistItem = await this.prisma.wishlist.findUnique({
-      where: { userId_productId: { userId, productId } }
-    });
+
+  async isInWishlist(userId: number, productId: number) {
+    const wishlistItem = await this.model.findUnique({ where: { userId_productId: { userId, productId } } });
     return !!wishlistItem;
   }
 } 

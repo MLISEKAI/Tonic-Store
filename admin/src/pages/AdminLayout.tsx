@@ -28,6 +28,7 @@ const AdminLayout: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
   };
 

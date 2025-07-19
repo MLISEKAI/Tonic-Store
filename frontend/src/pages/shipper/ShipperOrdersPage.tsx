@@ -2,8 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { ShipperService } from '../../services/shipper/shipperService';
 import { OrderStatus } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
-import { formatPrice } from '../../utils/format';
 import { PaymentService } from '../../services/order/paymentService';
+import OrderFilter from '../../components/shipper/OrderFilter';
+import OrderCard from '../../components/shipper/OrderCard';
+import PaymentProofModal from '../../components/shipper/PaymentProofModal';
+import FailedDeliveryModal from '../../components/shipper/FailedDeliveryModal';
+import DeliveryChecklistModal from '../../components/shipper/DeliveryChecklistModal';
 
 interface Order {
   id: number;
@@ -32,79 +36,51 @@ const ShipperOrders: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [searchName, setSearchName] = useState('');
+  const [dateRange, setDateRange] = useState<[string, string] | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [showProofModal, setShowProofModal] = useState(false);
+  const [showFailedModal, setShowFailedModal] = useState(false);
+  const [showChecklistModal, setShowChecklistModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    let mounted = true;
+    // Reset page về 1 khi filter thay đổi
+    setCurrentPage(1);
+    // eslint-disable-next-line
+  }, [selectedStatus, searchName, dateRange, paymentMethod]);
 
-    const fetchOrders = async () => {
+  useEffect(() => {
       if (isAuthenticated && user?.role === 'DELIVERY') {
-        try {
-          await loadOrders();
-        } catch (err) {
-          console.error('Error in useEffect:', err);
-        }
+      loadOrders();
       } else {
         setError('Please login as a delivery staff to view orders');
         setLoading(false);
       }
-    };
-
-    fetchOrders();
-
-    return () => {
-      mounted = false;
-    };
-  }, [selectedStatus, isAuthenticated, user]);
+    // eslint-disable-next-line
+  }, [selectedStatus, searchName, dateRange, paymentMethod, currentPage, pageSize, isAuthenticated, user]);
 
   const loadOrders = async () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Starting to load orders...');
-      
-      if (!user?.id) {
-        throw new Error('User ID not found. Please login again.');
-      }
-      
-      console.log('User info:', { id: user.id, role: user.role });
-      
-      const response = await ShipperService.getDeliveryOrders(1, 10);
-      console.log('Received orders data:', response);
-      
-      if (!response.orders || !Array.isArray(response.orders)) {
-        console.error('Invalid data format received:', response);
-        throw new Error('Invalid data format received from server');
-      }
-      
-      const normalized = response.orders.map((order: any) => {
-        if (!order.id || !order.status) {
-          console.error('Invalid order data:', order);
-          throw new Error('Invalid order data received from server');
-        }
-        return {
-          ...order,
-          payment: order.payment || { method: '', status: '' }
-        };
+      if (!user?.id) throw new Error('User ID not found. Please login again.');
+      const response = await ShipperService.getDeliveryOrders(currentPage, pageSize, {
+        status: selectedStatus,
+        name: searchName,
+        dateFrom: dateRange ? dateRange[0] : undefined,
+        dateTo: dateRange ? dateRange[1] : undefined,
+        paymentMethod,
       });
-      
-      console.log('Normalized orders:', normalized);
-      setOrders(normalized);
+      setOrders(response.orders || []);
+      setTotalOrders(response.total || 0);
     } catch (err: any) {
-      console.error('Error loading orders:', err);
       setError(err.message || 'Failed to load orders');
       setOrders([]);
-      
-      // Show error notification
-      if (err.message.includes('Server error')) {
-        alert('Có lỗi xảy ra từ server. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.');
-      } else if (err.message.includes('Network error')) {
-        alert('Lỗi kết nối mạng. Vui lòng kiểm tra lại kết nối internet.');
-      } else if (err.message.includes('Session expired')) {
-        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      } else if (err.message.includes('permission')) {
-        alert('Bạn không có quyền truy cập vào trang này.');
-      }
     } finally {
       setLoading(false);
     }
@@ -142,7 +118,6 @@ const ShipperOrders: React.FC = () => {
       </div>
     );
   }
-
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -150,123 +125,66 @@ const ShipperOrders: React.FC = () => {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-red-500 text-center">
           <h2 className="text-xl font-bold mb-2">Lỗi</h2>
           <p>{error}</p>
-          <button 
-            onClick={loadOrders}
-            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-          >
-            Thử lại
-          </button>
+          <button onClick={loadOrders} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Thử lại</button>
         </div>
       </div>
     );
   }
-
-  if (orders.some(order => !order.payment || !order.payment.method)) {
-    return <div className="text-red-500">Dữ liệu đơn hàng thiếu thông tin thanh toán. Hãy kiểm tra lại backend!</div>;
-  }
-
   return (
-    <div className="container mx-auto px-4">
+    <div className="container">
       <h1 className="text-2xl font-bold mb-6">Quản lý đơn hàng</h1>
-
-      {/* Filter by status */}
-      <div className="mb-6">
-        <select
-          value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value)}
-          className="border rounded px-3 py-2"
-        >
-          <option value="">Tất cả trạng thái</option>
-          <option value="PROCESSING">Đang xử lý</option>
-          <option value="SHIPPED">Đang giao hàng</option>
-          <option value="DELIVERED">Đã giao hàng</option>
-        </select>
-      </div>
-
-      {/* Orders list */}
-      <div className="space-y-4">
+      <OrderFilter
+        selectedStatus={selectedStatus}
+        setSelectedStatus={setSelectedStatus}
+        searchName={searchName}
+        setSearchName={setSearchName}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        paymentMethod={paymentMethod}
+        setPaymentMethod={setPaymentMethod}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        totalOrders={totalOrders}
+      />
+      <div className="space-y-4 mt-4">
         {orders.map((order) => (
-          <div key={order.id} className="bg-white shadow-md rounded-lg p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h2 className="text-lg font-semibold">Đơn hàng #{order.id}</h2>
-                <p className="text-gray-600">
-                  Ngày đặt: {new Date(order.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold">Tổng tiền: {order.totalPrice.toLocaleString()}đ</p>
-                <p className="text-gray-600">Trạng thái: {order.status}</p>
-              </div>
-            </div>
-
-            {/* Order items */}
-            <div className="mb-4">
-              <h3 className="font-semibold mb-2">Sản phẩm:</h3>
-              <div className="space-y-2">
-                {order.items.map((item, index) => (
-                  <div key={index} className="flex items-center">
-                    <img
-                      src={item.product.imageUrl}
-                      alt={item.product.name}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                    <div className="ml-4">
-                      <p className="font-medium">{item.product.name}</p>
-                      <p className="text-gray-600">
-                        {item.quantity} x {formatPrice(item.product.price)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Shipping info */}
-            <div className="mb-4">
-              <h3 className="font-semibold mb-2">Thông tin giao hàng:</h3>
-              <p>Người nhận: {order.shippingName}</p>
-              <p>Số điện thoại: {order.shippingPhone}</p>
-              <p>Địa chỉ: {order.shippingAddress}</p>
-            </div>
-
-            {/* Status update */}
-            <div className="flex space-x-2">
-              {order.status === OrderStatus.PROCESSING && (
-                <button
-                  onClick={() => handleStatusChange(order.id, OrderStatus.SHIPPED)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                  Bắt đầu giao hàng
-                </button>
-              )}
-              {order.status === OrderStatus.SHIPPED && (
-                <button
-                  onClick={() => handleStatusChange(order.id, OrderStatus.DELIVERED)}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                  Xác nhận đã giao
-                </button>
-              )}
-              {order.status === OrderStatus.DELIVERED && order.payment?.method === 'COD' && order.payment?.status === 'PENDING' && (
-                <button
-                  onClick={() => handleConfirmReceivedPayment(order.id)}
-                  className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
-                >
-                  Xác nhận đã nhận tiền
-                </button>
-              )}
-            </div>
-          </div>
+          <OrderCard
+            key={order.id}
+            order={order}
+            onStatusChange={handleStatusChange}
+            onConfirmPayment={handleConfirmReceivedPayment}
+            onShowProofModal={() => { setSelectedOrder(order); setShowProofModal(true); }}
+            onShowFailedModal={() => { setSelectedOrder(order); setShowFailedModal(true); }}
+            onShowChecklistModal={() => { setSelectedOrder(order); setShowChecklistModal(true); }}
+          />
         ))}
       </div>
+      <PaymentProofModal
+        visible={showProofModal}
+        order={selectedOrder}
+        onClose={() => setShowProofModal(false)}
+        onSuccess={loadOrders}
+      />
+      <FailedDeliveryModal
+        visible={showFailedModal}
+        order={selectedOrder}
+        onClose={() => setShowFailedModal(false)}
+        onSuccess={loadOrders}
+      />
+      <DeliveryChecklistModal
+        visible={showChecklistModal}
+        order={selectedOrder}
+        onClose={() => setShowChecklistModal(false)}
+        onSuccess={loadOrders}
+      />
     </div>
   );
 };

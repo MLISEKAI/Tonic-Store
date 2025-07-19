@@ -1,13 +1,13 @@
-import { PrismaClient, Category } from '@prisma/client';
-import { ICategoryRepository } from './interfaces/ICategoryRepository';
+import { prisma } from '../prisma';
+import { BaseRepository } from './BaseRepository';
 
-export class CategoryRepository implements ICategoryRepository {
-  private prisma: PrismaClient;
+export class CategoryRepository extends BaseRepository<any> {
   constructor() {
-    this.prisma = new PrismaClient();
+    super(prisma.category);
   }
-  async getAllCategories(): Promise<any[]> {
-    return this.prisma.category.findMany({
+
+  async getAllCategories() {
+    return this.model.findMany({
       include: {
         products: {
           select: {
@@ -21,8 +21,9 @@ export class CategoryRepository implements ICategoryRepository {
       }
     });
   }
-  async getCategoryById(id: number): Promise<any> {
-    return this.prisma.category.findUnique({
+
+  async getCategoryById(id: number) {
+    return this.model.findUnique({
       where: { id },
       include: {
         products: {
@@ -37,17 +38,21 @@ export class CategoryRepository implements ICategoryRepository {
       }
     });
   }
-  async createCategory(name: string): Promise<Category> {
-    return this.prisma.category.create({ data: { name } });
-  }
-  async updateCategory(id: number, name: string): Promise<Category> {
-    return this.prisma.category.update({ where: { id }, data: { name } });
-  }
-  async deleteCategory(id: number): Promise<Category> {
-    return this.prisma.category.delete({ where: { id } });
-  }
-  async hasProducts(id: number): Promise<boolean> {
-    const category = await this.prisma.category.findUnique({ where: { id }, include: { products: true } });
+
+  async hasProducts(id: number) {
+    const category = await this.model.findUnique({ where: { id }, include: { products: true } });
     return !!category && category.products.length > 0;
+  }
+
+  async createCategory(name: string) {
+    return this.model.create({ data: { name } });
+  }
+
+  async updateCategory(id: number, name: string) {
+    return this.model.update({ where: { id }, data: { name } });
+  }
+
+  async deleteCategory(id: number) {
+    return this.model.delete({ where: { id } });
   }
 } 
