@@ -8,7 +8,6 @@ import {
   Dropdown,
   notification,
   Popover,
-  Space
 } from 'antd';
 import {
   SearchOutlined,
@@ -17,16 +16,10 @@ import {
   HeartOutlined,
   LogoutOutlined,
   DeleteOutlined,
-  MobileOutlined,
-  DownOutlined,
-  QrcodeOutlined,
-  BellOutlined,
   CarOutlined,
-  FacebookFilled,
-  InstagramFilled,
+  BellOutlined,
   MenuOutlined,
   CloseOutlined,
-  MailOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useAuth } from '../../contexts/AuthContext';
@@ -267,56 +260,6 @@ const Navbar = () => {
 
   return (
     <div className="bg-white sticky top-0 z-50 shadow-md">
-      {/* Top bar */}
-      <div className="bg-gray-100 py-1 border-b hidden md:block">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center space-x-4">
-              <Link to="/" className="flex items-center">
-                <MobileOutlined className="mr-1" />
-                Tải ứng dụng
-              </Link>
-              {isAuthenticated ? (
-                <Dropdown menu={{ items: userMenuItems, className: 'w-48' }}>
-                  <span className="cursor-pointer">
-                    Xin chào, {user?.name} <DownOutlined />
-                  </span>
-                </Dropdown>
-              ) : (
-                <Space>
-                  <Link to="/login">Đăng nhập</Link>
-                  <Link to="/register">Đăng ký</Link>
-                </Space>
-              )}
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Link to="/help">Trung tâm hỗ trợ</Link>
-               {/* Liên kết mạng xã hội */}
-              <div className="flex items-center space-x-2">
-                <span>Kết nối</span>
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
-                  <FacebookFilled className="text-blue-600 text-lg hover:text-blue-800" />
-                </a>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
-                  <InstagramFilled className="text-pink-500 text-lg hover:text-pink-600" />
-                </a>
-              </div>
-
-              <div className="relative group">
-                <span className="flex items-center cursor-pointer">
-                  <QrcodeOutlined className="mr-1" />
-                  Quét mã QR
-                </span>
-                <div className="hidden group-hover:block absolute right-0 p-2 bg-white shadow-lg rounded">
-                  <div className="w-32 h-32 bg-gray-200"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main header */}
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
@@ -352,7 +295,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Right buttons & Mobile Menu Trigger */}
+          {/* Right buttons */}
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
             {/* Icons visible on desktop */}
             <div className="hidden md:flex items-center gap-2 lg:gap-4">
@@ -379,7 +322,6 @@ const Navbar = () => {
                 <span className="hidden md:inline ml-2">Yêu thích</span>
               </Link>
 
-              {/* Cart Icon - always visible */}
               <Popover content={cartContent} trigger="hover" placement="bottomRight">
                 <Link to="/cart" className="flex items-center text-gray-600 hover:text-blue-500">
                   <Badge count={totalItems}>
@@ -389,14 +331,17 @@ const Navbar = () => {
                 </Link>
               </Popover>
 
-              {/* User Dropdown */}
-              <div className="hidden md:block">
-                {isAuthenticated && (
-                  <Dropdown menu={{ items: userMenuItems, className: 'w-48' }} placement="bottomRight">
-                    <UserOutlined className="text-xl" />
-                  </Dropdown>
-                )}
-              </div>
+              {/* Auth */}
+              {isAuthenticated ? (
+                <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+                  <UserOutlined className="text-xl cursor-pointer" />
+                </Dropdown>
+              ) : (
+                <div className="flex gap-2">
+                  <Link to="/login" className="text-gray-600 hover:text-blue-500">Đăng nhập</Link>
+                  <Link to="/register" className="text-gray-600 hover:text-blue-500">Đăng ký</Link>
+                </div>
+              )}
             </div>
 
             {/* Mobile Menu Trigger */}
@@ -409,17 +354,17 @@ const Navbar = () => {
           </div>
         </div>
         
-        {/* Search block for mobile - visible on small screens */}
+        {/* Mobile search */}
         <div className="md:hidden mt-3">
-            <Input
-              placeholder="Tìm kiếm..."
-              prefix={<SearchOutlined className={`text-gray-400 ${isSearching ? 'animate-spin' : ''}`} />}
-              className="w-full px-4 py-1.5 rounded-full border border-gray-300"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={handleSearch}
-              disabled={isSearching}
-            />
+          <Input
+            placeholder="Tìm kiếm..."
+            prefix={<SearchOutlined className={`text-gray-400 ${isSearching ? 'animate-spin' : ''}`} />}
+            className="w-full px-4 py-1.5 rounded-full border border-gray-300"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleSearch}
+            disabled={isSearching}
+          />
         </div>
       </div>
 
@@ -438,7 +383,7 @@ const Navbar = () => {
         </Menu>
       </div>
 
-      {/* Mobile Menu - Drawer */}
+      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 bg-white z-50">
            <div className="p-4 flex justify-between items-center border-b">
@@ -460,50 +405,26 @@ const Navbar = () => {
               <div className="border-t mt-4 pt-4">
                 {isAuthenticated ? (
                   <>
-                     <div className="mb-2">
-                        <Link to="/user/profile" className="flex items-center p-2 hover:bg-gray-100 rounded" onClick={() => setIsMobileMenuOpen(false)}>
-                          <UserOutlined className="mr-2" /> Hồ sơ
-                        </Link>
-                     </div>
-                     <div className="mb-2">
-                        <Link to="/user/orders" className="flex items-center p-2 hover:bg-gray-100 rounded" onClick={() => setIsMobileMenuOpen(false)}>
-                          <ShoppingCartOutlined className="mr-2" /> Đơn hàng
-                        </Link>
-                     </div>
-                     <div className="mb-2">
-                        <Link to="/notifications" className="flex items-center p-2 hover:bg-gray-100 rounded" onClick={() => setIsMobileMenuOpen(false)}>
-                          <BellOutlined className="mr-2" /> Thông báo
-                        </Link>
-                     </div>
-                      <div className="mb-2">
-                        <Link to="/wishlist" className="flex items-center p-2 hover:bg-gray-100 rounded" onClick={() => setIsMobileMenuOpen(false)}>
-                          <HeartOutlined className="mr-2" /> Yêu thích
-                        </Link>
-                     </div>
-                     <div
-                        className="flex items-center p-2 text-red-500 hover:bg-gray-100 rounded cursor-pointer"
-                        onClick={() => {
-                          logout();
-                          setIsMobileMenuOpen(false);
-                          navigate('/');
-                        }}
-                      >
-                       <LogoutOutlined className="mr-2" /> Đăng xuất
-                     </div>
+                    <Link to="/user/profile" className="block p-2 hover:bg-gray-100 rounded">Hồ sơ</Link>
+                    <Link to="/user/orders" className="block p-2 hover:bg-gray-100 rounded">Đơn hàng</Link>
+                    <Link to="/notifications" className="block p-2 hover:bg-gray-100 rounded">Thông báo</Link>
+                    <Link to="/wishlist" className="block p-2 hover:bg-gray-100 rounded">Yêu thích</Link>
+                    <div
+                      className="block p-2 text-red-500 hover:bg-gray-100 rounded cursor-pointer"
+                      onClick={() => {
+                        logout();
+                        setIsMobileMenuOpen(false);
+                        navigate('/');
+                      }}
+                    >
+                      Đăng xuất
+                    </div>
                   </>
                 ) : (
-                   <>
-                      <div className="mb-2">
-                        <Link to="/login" className="flex items-center p-2 hover:bg-gray-100 rounded" onClick={() => setIsMobileMenuOpen(false)}>
-                          <UserOutlined className="mr-2" /> Đăng nhập
-                        </Link>
-                     </div>
-                     <div className="mb-2">
-                        <Link to="/register" className="flex items-center p-2 hover:bg-gray-100 rounded" onClick={() => setIsMobileMenuOpen(false)}>
-                           Đăng ký
-                        </Link>
-                     </div>
-                   </>
+                  <>
+                    <Link to="/login" className="block p-2 hover:bg-gray-100 rounded">Đăng nhập</Link>
+                    <Link to="/register" className="block p-2 hover:bg-gray-100 rounded">Đăng ký</Link>
+                  </>
                 )}
               </div>
            </div>

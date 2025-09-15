@@ -20,13 +20,18 @@ const DeliveryChecklistModal: React.FC<DeliveryChecklistModalProps> = ({ visible
 
   const handleOk = async () => {
     setLoading(true);
-    // Gọi API xác nhận checklist giao hàng
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // Gọi API xác nhận checklist giao hàng và cập nhật trạng thái
+      const { ShipperService } = await import('../../services/shipper/shipperService');
+      await ShipperService.updateDeliveryStatus(order.id, 'SHIPPED');
       message.success('Đã xác nhận checklist giao hàng!');
       onSuccess();
       onClose();
-    }, 1000);
+    } catch (error: any) {
+      message.error(error.message || 'Có lỗi xảy ra khi xác nhận checklist');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

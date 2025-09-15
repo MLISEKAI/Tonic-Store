@@ -11,11 +11,11 @@ import { OrdersPage } from "./pages/user/UserOrdersPage";
 import OrderDetailPage from "./pages/user/UserOrderDetailPage";
 import ProfilePage from "./pages/user/UserProfilePage";
 import CategoriesPage from "./pages/CategoriesPage";
-import AboutPage from "./pages/AboutPage";
+import AboutPage from "./pages/about/AboutPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import SearchPage from "./pages/SearchPage";
 import ProductDetailPage from "./pages/products/ProductDetailPage";
-import ContactPage from './pages/ContactPage';
+import ContactPage from './pages/contact/ContactPage';
 import ShipperOrders from './pages/shipper/ShipperOrdersPage';
 import ShipperLayout from './layouts/ShipperLayout';
 import ShipperProfilePage from './pages/shipper/ShipperProfilePage';
@@ -24,12 +24,27 @@ import FlashSalePage from './pages/FlashSalePage';
 import NewArrivalsPage from './pages/NewArrivalsPage';
 import BestSellersPage from './pages/BestSellersPage';
 import BrandsPage from './pages/BrandsPage';
-import BlogPage from "./pages/BlogPage";
+import BlogPage from "./pages/blog/BlogPage";
 import FeaturedProductsPage from "./pages/FeaturedProductsPage";
 import NotificationsPage from './pages/NotificationsPage';
 import PromotionCode from "./pages/DiscountCodePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+// New pages
+import HelpCenterPage from "./pages/help-center/HelpCenterPage";
+import MallPage from "./pages/mall/MallPage";
+import HowToBuyPage from "./pages/how-to-buy/HowToBuyPage";
+import TermsPage from "./pages/terms/TermsPage";
+import PrivacyPage from "./pages/privacy/PrivacyPage";
+import CareersPage from "./pages/careers/CareersPage";
+import ReturnRefundPage from "./pages/return-refund/ReturnRefundPage";
+import HowToSellPage from "./pages/how-to-sell/HowToSellPage";
+import WalletPage from "./pages/wallet/WalletPage";
+import XuPage from "./pages/xu/XuPage";
+import WarrantyPage from "./pages/warranty/WarrantyPage";
+import SellerPage from "./pages/seller/SellerPage";
+import AffiliatePage from "./pages/affiliate/AffiliatePage";
+import MediaContactPage from "./pages/media-contact/MediaContactPage";
 import ScrollToTop from './components/layout/ScrollToTop';
 import { WishlistProvider } from "./contexts/WishlistContext";
 import Navbar from './components/layout/Navbar';
@@ -178,6 +193,30 @@ const AppContent = () => {
                         <Route path="/featured-products" element={<FeaturedProductsPage />} />
                         <Route path="/blog" element={<BlogPage />} />
                         <Route path="/blog/:id" element={<BlogPage />} />
+
+                        {/* New pages */}
+                        <Route path="/help-center" element={<HelpCenterPage />} />
+                        <Route path="/mall" element={<MallPage />} />
+                        <Route path="/how-to-buy" element={<HowToBuyPage />} />
+                        <Route path="/terms" element={<TermsPage />} />
+                        <Route path="/privacy" element={<PrivacyPage />} />
+                        <Route path="/careers" element={<CareersPage />} />
+                        <Route path="/return-refund" element={<ReturnRefundPage />} />
+                        <Route path="/how-to-sell" element={<HowToSellPage />} />
+                        <Route path="/wallet" element={
+                          <ProtectedRoute>
+                            <WalletPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/xu" element={
+                          <ProtectedRoute>
+                            <XuPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/warranty" element={<WarrantyPage />} />
+                        <Route path="/seller" element={<SellerPage />} />
+                        <Route path="/affiliate" element={<AffiliatePage />} />
+                        <Route path="/media-contact" element={<MediaContactPage />} />
 
                         {/* User routes */}
                         <Route path="/user/orders" element={
