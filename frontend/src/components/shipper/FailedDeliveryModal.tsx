@@ -14,13 +14,18 @@ const FailedDeliveryModal: React.FC<FailedDeliveryModalProps> = ({ visible, orde
 
   const handleSubmit = async () => {
     setLoading(true);
-    // Gọi API cập nhật lý do giao không thành công
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // Gọi API cập nhật lý do giao không thành công và cập nhật trạng thái
+      const { ShipperService } = await import('../../services/shipper/shipperService');
+      await ShipperService.updateDeliveryStatus(order.id, 'CANCELLED', reason);
       message.success('Đã gửi lý do giao không thành công!');
       onSuccess();
       onClose();
-    }, 1000);
+    } catch (error: any) {
+      message.error(error.message || 'Có lỗi xảy ra khi gửi lý do');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

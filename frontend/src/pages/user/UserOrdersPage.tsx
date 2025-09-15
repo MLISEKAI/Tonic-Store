@@ -66,7 +66,7 @@ export const OrdersPage: FC = () => {
     // Chỉ mở EventSource khi đã xác thực và có user
     if (isAuthenticated && user?.id) {
       const token = localStorage.getItem('token');
-      const eventSource = new EventSource(`${import.meta.env.VITE_API_URL}/orders/updates?token=${token}`);
+      const eventSource = new EventSource(`${import.meta.env.VITE_API_URL}/api/orders/updates?token=${token}`);
 
       eventSource.onmessage = (event) => {
         const update = JSON.parse(event.data);

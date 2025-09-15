@@ -14,12 +14,27 @@ const Promotions: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
   const [form] = Form.useForm();
+  const discountType = Form.useWatch('discountType', form); 
 
   const fetchPromotions = async () => {
     try {
       setLoading(true);
       const data = await promotionService.getAll();
-      setPromotions(data);
+      const normalized: Promotion[] = (data || []).map((item: any) => ({
+        id: String(item.id),
+        code: item.code,
+        description: item.description,
+        discountType: item.discountType ?? item.type,
+        discountValue: item.discountValue ?? item.discount,
+        minOrderValue: item.minOrderValue ?? 0,
+        maxDiscount: item.maxDiscount ?? 0,
+        startDate: typeof item.startDate === 'string' ? item.startDate : new Date(item.startDate).toISOString(),
+        endDate: typeof item.endDate === 'string' ? item.endDate : new Date(item.endDate).toISOString(),
+        usageLimit: item.usageLimit ?? 0,
+        usedCount: item.usedCount ?? 0,
+        isActive: Boolean(item.isActive),
+      }));
+      setPromotions(normalized);
     } catch (error) {
       message.error('Failed to load promotions');
     } finally {
@@ -70,11 +85,17 @@ const Promotions: React.FC = () => {
     try {
       const [startDate, endDate] = values.dateRange;
       const promotionData = {
-        ...values,
+        code: values.code,
+        description: values.description,
+        discountType: values.discountType,
+        discountValue: Number(values.discountValue),
+        minOrderValue: Number(values.minOrderValue),
+        maxDiscount: Number(values.maxDiscount),
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
+        usageLimit: Number(values.usageLimit),
+        isActive: values.isActive,
       };
-      delete promotionData.dateRange;
 
       if (editingPromotion) {
         await promotionService.update(editingPromotion.id, promotionData);
@@ -104,9 +125,13 @@ const Promotions: React.FC = () => {
     {
       title: 'Loại giảm giá',
       key: 'discount',
-      render: (record: Promotion) => (
-        `${record.discountType === 'PERCENTAGE' ? record.discountValue + '%' : '$' + record.discountValue}`
-      ),
+      render: (record: Promotion) => {
+        const value = record.discountValue;
+        if (record.discountType === 'PERCENTAGE') {
+          return `${value}%`;
+        }
+        return `${value?.toLocaleString('vi-VN')}₫`;
+      },
     },
     {
       title: 'Thời hạn',
@@ -226,7 +251,7 @@ const Promotions: React.FC = () => {
             label="Mã giảm giá"
             rules={[{ required: true, message: 'Vui lòng nhập mã giảm giá' }]}
           >
-            <Input />
+            <Input placeholder="Ví dụ: SALE50"/>
           </Form.Item>
 
           <Form.Item
@@ -234,7 +259,7 @@ const Promotions: React.FC = () => {
             label="Mô tả"
             rules={[{ required: true, message: 'Vui lòng nhập mô tả' }]}
           >
-            <Input.TextArea />
+            <Input.TextArea placeholder="Ví dụ: Giảm 50% cho đơn hàng" />
           </Form.Item>
 
           <Form.Item
@@ -242,7 +267,7 @@ const Promotions: React.FC = () => {
             label="Loại giảm giá"
             rules={[{ required: true, message: 'Vui lòng chọn loại giảm giá' }]}
           >
-            <Select>
+            <Select placeholder="Chọn loại giảm giá">
               <Select.Option value="PERCENTAGE">Phần trăm</Select.Option>
               <Select.Option value="FIXED_AMOUNT">Số tiền</Select.Option>
             </Select>
@@ -253,7 +278,16 @@ const Promotions: React.FC = () => {
             label="Giá trị giảm"
             rules={[{ required: true, message: 'Vui lòng nhập giá trị giảm' }]}
           >
-            <InputNumber min={0} style={{ width: '100%' }} />
+            <InputNumber
+              min={0}
+              style={{ width: '100%' }}
+              placeholder={
+                discountType === 'PERCENTAGE'
+                  ? 'Ví dụ: 10 (nghĩa là 10%)'
+                  : 'Ví dụ: 50000 (nghĩa là 50.000₫)'
+              }
+              addonAfter={discountType === 'PERCENTAGE' ? '%' : '₫'}
+            />
           </Form.Item>
 
           <Form.Item
@@ -261,7 +295,7 @@ const Promotions: React.FC = () => {
             label="Giá trị đơn hàng tối thiểu"
             rules={[{ required: true, message: 'Vui lòng nhập giá trị đơn hàng tối thiểu' }]}
           >
-            <InputNumber min={0} style={{ width: '100%' }} />
+            <InputNumber min={0} style={{ width: '100%' }} placeholder="Ví dụ: 500000" />
           </Form.Item>
 
           <Form.Item
@@ -269,7 +303,7 @@ const Promotions: React.FC = () => {
             label="Giá trị giảm tối đa"
             rules={[{ required: true, message: 'Vui lòng nhập giá trị giảm tối đa' }]}
           >
-            <InputNumber min={0} style={{ width: '100%' }} />
+            <InputNumber min={0} style={{ width: '100%' }} placeholder="Ví dụ: 200000" />
           </Form.Item>
 
           <Form.Item
@@ -277,7 +311,7 @@ const Promotions: React.FC = () => {
             label="Thời hạn"
             rules={[{ required: true, message: 'Vui lòng chọn thời hạn' }]}
           >
-            <RangePicker style={{ width: '100%' }} />
+            <RangePicker style={{ width: '100%' }} placeholder={['Ngày bắt đầu', 'Ngày kết thúc']}/>
           </Form.Item>
 
           <Form.Item
@@ -285,7 +319,7 @@ const Promotions: React.FC = () => {
             label="Số lần sử dụng"
             rules={[{ required: true, message: 'Vui lòng nhập số lần sử dụng' }]}
           >
-            <InputNumber min={1} style={{ width: '100%' }} />
+            <InputNumber min={1} style={{ width: '100%' }} placeholder="Ví dụ: 100" />
           </Form.Item>
 
           <Form.Item

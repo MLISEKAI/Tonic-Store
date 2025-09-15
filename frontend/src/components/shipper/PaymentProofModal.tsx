@@ -14,13 +14,18 @@ const PaymentProofModal: React.FC<PaymentProofModalProps> = ({ visible, order, o
 
   const handleUpload = async () => {
     setUploading(true);
-    // Gọi API upload ảnh xác nhận giao hàng
-    setTimeout(() => {
-      setUploading(false);
-      message.success('Đã upload ảnh xác nhận!');
+    try {
+      // Gọi API upload ảnh xác nhận giao hàng và cập nhật trạng thái
+      const { ShipperService } = await import('../../services/shipper/shipperService');
+      await ShipperService.updateDeliveryStatus(order.id, 'DELIVERED');
+      message.success('Đã xác nhận giao hàng thành công!');
       onSuccess();
       onClose();
-    }, 1000);
+    } catch (error: any) {
+      message.error(error.message || 'Có lỗi xảy ra khi xác nhận giao hàng');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (

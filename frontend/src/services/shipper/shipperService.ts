@@ -44,7 +44,7 @@ export const ShipperService = {
   },
 
   // Cập nhật trạng thái giao hàng
-  async updateDeliveryStatus(orderId: number, status: string) {
+  async updateDeliveryStatus(orderId: number, status: string, note?: string) {
     const token = localStorage.getItem('token');
     const response = await fetch(`${ENDPOINTS.SHIPPER.UPDATE_STATUS(orderId)}`,
     {
@@ -53,7 +53,7 @@ export const ShipperService = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ status })
+      body: JSON.stringify({ status, note })
     });
     // Kiểm tra response là JSON trước khi parse
     const contentType = response.headers.get('content-type');
