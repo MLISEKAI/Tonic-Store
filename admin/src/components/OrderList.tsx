@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Select, notification, Spin, Modal, Input, Card, Typography, Tag, Descriptions, Divider, Space, message, Popconfirm } from 'antd';
+import { Table, Button, Select, notification, Modal, Input, Card, Typography, Descriptions, Divider, Space, Tag } from 'antd';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import OrderService from '../services/orderService';
 import { ShipperService } from '../services/shipperService';
-import { Order, OrderDetail, OrderStatus, PaymentMethod, PaymentStatus } from '../types/order';
-import { DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { OrderDetail, OrderStatus, PaymentStatus } from '../types/order';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const orderStatusOptions = [
   { value: 'PENDING', label: 'Pending' },
@@ -18,17 +17,10 @@ const orderStatusOptions = [
   { value: 'CANCELLED', label: 'Cancelled' },
 ];
 
-const paymentStatusOptions = [
-  { value: 'PENDING', label: 'Pending' },
-  { value: 'COMPLETED', label: 'Completed' },
-  { value: 'FAILED', label: 'Failed' },
-  { value: 'REFUNDED', label: 'Refunded' },
-];
 
 const OrderList: React.FC = () => {
   const [orders, setOrders] = useState<OrderDetail[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [status, setStatus] = useState<OrderStatus | ''>('');
@@ -89,7 +81,7 @@ const OrderList: React.FC = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await OrderService.getAllOrders(page, status);
+      const response = await OrderService.getAllOrders({ page, limit: 10 }, status);
 
       // Kiểm tra nếu response là mảng
       const ordersArray = Array.isArray(response) ? response : response.orders;
@@ -109,7 +101,6 @@ const OrderList: React.FC = () => {
       setTotalPages(Math.ceil(filteredOrders.length / 10));
     } catch (err) {
       console.error('Error fetching orders:', err);
-      setError('Failed to fetch orders');
       notification.error({
         message: 'Lỗi',
         description: 'Failed to fetch orders',
@@ -229,13 +220,10 @@ const OrderList: React.FC = () => {
 
     try {
       setAssigningShipper(true);
-      const updatedOrder = await ShipperService.assignShipperToOrder(
+      await ShipperService.assignShipperToOrder(
         parseInt(selectedOrderForShipper.id),
         selectedShipperId
       );
-
-      console.log('Updated order after assigning shipper:', updatedOrder);
-      console.log('Shipper info in updated order:', updatedOrder.shipper);
 
       notification.success({
         message: 'Thành công',
@@ -251,8 +239,6 @@ const OrderList: React.FC = () => {
       if (selectedOrderDetail?.id === selectedOrderForShipper.id) {
         // Lấy thông tin chi tiết mới nhất của đơn hàng
         const orderDetail = await OrderService.getOrder(selectedOrderForShipper.id);
-        console.log('Updating order detail with:', orderDetail);
-        console.log('Shipper info in new order detail:', orderDetail.shipper);
         setSelectedOrderDetail(orderDetail);
       }
 

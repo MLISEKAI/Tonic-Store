@@ -88,7 +88,6 @@ const ShipperOrders: React.FC = () => {
 
   const handleStatusChange = async (orderId: number, newStatus: OrderStatus) => {
     try {
-      console.log('Updating order status:', { orderId, newStatus });
       await ShipperService.updateDeliveryStatus(orderId, newStatus);
       await loadOrders();
     } catch (err: any) {
@@ -99,7 +98,6 @@ const ShipperOrders: React.FC = () => {
 
   const handleConfirmReceivedPayment = async (orderId: number) => {
     try {
-      console.log('Confirming COD payment for order:', orderId);
       await PaymentService.confirmCODPayment(orderId);
       await loadOrders();
     } catch (err: any) {

@@ -3,7 +3,6 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { formatPrice, formatDate } from '../../utils/format';
 import { useAuth } from '../../contexts/AuthContext';
 import {
-  message,
   Button,
   Modal,
   notification,
@@ -115,7 +114,7 @@ const OrderDetailPage: React.FC = () => {
             const rating = await ShipperService.getShipperRating(data.id);
             setShipperRating(rating as ShipperRating);
           } catch (error) {
-            console.log('Chưa có đánh giá cho đơn hàng này');
+            // Chưa có đánh giá cho đơn hàng này
             setShipperRating(null);
           }
         }

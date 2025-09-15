@@ -5,18 +5,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { OrderService } from '../services/order/orderService';
 import { ShippingAddressService } from '../services/shipping/shippingAddressService';
 import { PaymentService } from '../services/order/paymentService';
+import { PaymentMethod } from '../types';
 import { formatPrice } from '../utils/format';
 import VNPayPayment from '../components/payment/VNPayPayment';
 import PromotionCodeInput, { PromotionCodeInputRef } from '../components/checkout/PromotionCodeInput';
-import { Order, PaymentMethod, PaymentStatus } from '../types';
-import { message, Form, Input, Select, Button, Radio, Spin, Checkbox, Modal } from 'antd';
+import { message, Form, Input, Button, Radio, Checkbox, Modal } from 'antd';
 
-interface CartItem {
-  product: {
-    id: number;
-    price: number;
-  };
-  quantity: number;
+interface ShippingAddress {
+  id: number;
+  name: string;
+  phone: string;
+  address: string;
+  isDefault: boolean;
 }
 
 const CheckoutPage: React.FC = () => {
@@ -27,10 +27,10 @@ const CheckoutPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [form] = Form.useForm();
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
-  const [shippingAddresses, setShippingAddresses] = useState<any[]>([]);
+  const [shippingAddresses, setShippingAddresses] = useState<ShippingAddress[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<any | null>(null);
+  const [editingAddress, setEditingAddress] = useState<ShippingAddress | null>(null);
   const [isAddressListVisible, setIsAddressListVisible] = useState(false);
   const [editIsDefault, setEditIsDefault] = useState(false);
   const [editName, setEditName] = useState('');
@@ -147,12 +147,9 @@ const CheckoutPage: React.FC = () => {
         shippingAddressId: shippingInfo.id || selectedAddress,
         promotionCode: appliedPromotionCode
       };
-  
-      console.log('Creating order with data:', orderData);
-  
+
       // Tạo đơn hàng
       const data = await OrderService.createOrder(orderData);
-      console.log('Order created:', data);
   
       // Kiểm tra phản hồi từ backend
       if (!data || !data.order) {

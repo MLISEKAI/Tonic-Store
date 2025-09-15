@@ -13,7 +13,7 @@ export const ShipperService = {
   async getAllShippers() {
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_URL}/shippers`, {
+      const response = await fetch(`${API_URL}/api/shippers`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -34,7 +34,7 @@ export const ShipperService = {
   async getShipperById(id: number) {
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_URL}/shippers/${id}`, {
+      const response = await fetch(`${API_URL}/api/shippers/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -55,7 +55,7 @@ export const ShipperService = {
   async assignShipperToOrder(orderId: number, shipperId: number) {
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_URL}/shippers/orders/${orderId}/assign`, {
+      const response = await fetch(`${API_URL}/api/shippers/orders/${orderId}/assign`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -78,7 +78,7 @@ export const ShipperService = {
   async getOrderDeliveryLogs(orderId: number) {
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_URL}/shippers/orders/${orderId}/logs`, {
+      const response = await fetch(`${API_URL}/api/shippers/orders/${orderId}/logs`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

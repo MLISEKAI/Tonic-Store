@@ -1,4 +1,4 @@
-const API_URL = `${import.meta.env.VITE_API_URL}/products`;
+const API_URL = `${import.meta.env.VITE_API_URL}/api/products`;
 import { Product, CreateProductData, UpdateProductData } from '../types/product';
 
 const handleResponse = async (res: Response) => {

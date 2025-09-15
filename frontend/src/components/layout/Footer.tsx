@@ -1,116 +1,559 @@
-import { Link } from 'react-router-dom';
-import { Button, Input } from 'antd';
-import { MailOutlined, FacebookOutlined, TwitterOutlined, InstagramOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { Link } from "react-router-dom";
+import {
+  FacebookOutlined,
+  InstagramOutlined,
+  LinkedinOutlined,
+  CreditCardOutlined,
+  BankOutlined,
+  AlipayOutlined,
+  PayCircleOutlined,
+  AppleOutlined,
+  AndroidOutlined,
+  WindowsOutlined,
+  CarOutlined,
+  TruckOutlined,
+  RocketOutlined,
+  ShopOutlined,
+} from "@ant-design/icons";
+import type { FC } from "react";
 
-const Footer = () => {
-  const footerLinks = [
+type FooterCategory = {
+  name: string;
+  children: string[];
+};
+
+type FooterProps = {
+  variant?: "default" | "home";
+  categoryColumns?: FooterCategory[][];
+};
+
+const Footer: FC<FooterProps> = ({
+  variant = "default",
+  categoryColumns = [] as FooterCategory[][],
+}) => {
+  // Danh mục sản phẩm mặc định
+  const defaultCategories: FooterCategory[][] = [
+    [
+      {
+        name: "Thời Trang Nam",
+        children: [
+          "Áo Khoác",
+          "Áo Vest và Blazer", 
+          "Áo Hoodie, Áo Len & Áo Nỉ",
+          "Quần Jeans",
+          "Quần Dài/Quần Âu",
+          "Quần Short",
+          "Áo",
+          "Áo Ba Lỗ",
+          "Đồ Lót",
+          "Đồ Ngủ",
+          "Đồ Bộ",
+          "Vớ/Tất",
+          "Trang Phục Truyền Thống",
+          "Đồ Hóa Trang",
+          "Trang Phục Ngành Nghề",
+          "Khác"
+        ]
+      },
+      {
+        name: "Nhà Cửa & Đời Sống",
+        children: [
+          "Chăn, Ga, Gối & Nệm",
+          "Đồ nội thất",
+          "Trang trí nhà cửa",
+          "Dụng cụ & Thiết bị tiện ích",
+          "Đồ dùng nhà bếp và hộp đựng thực phẩm",
+          "Đèn",
+          "Ngoài trời & Sân vườn",
+          "Đồ dùng phòng tắm",
+          "Vật phẩm thờ cúng",
+          "Đồ trang trí tiệc",
+          "Chăm sóc nhà cửa và giặt ủi",
+          "Sắp xếp nhà cửa",
+          "Dụng cụ pha chế",
+          "Tinh dầu thơm phòng",
+          "Đồ dùng phòng ăn"
+        ]
+      },
+      {
+        name: "Đồng Hồ",
+        children: [
+          "Đồng Hồ Nam",
+          "Đồng Hồ Nữ",
+          "Bộ Đồng Hồ & Đồng Hồ Cặp",
+          "Đồng Hồ Trẻ Em",
+          "Phụ Kiện Đồng Hồ",
+          "Khác"
+        ]
+      }
+    ],
+    [
+      {
+        name: "Phụ Kiện & Trang Sức Nữ",
+        children: [
+          "Nhẫn",
+          "Bông tai",
+          "Khăn choàng",
+          "Găng tay",
+          "Phụ kiện tóc",
+          "Vòng tay & Lắc tay",
+          "Lắc chân",
+          "Mũ",
+          "Dây chuyền",
+          "Kính mắt",
+          "Kim loại quý",
+          "Thắt lưng",
+          "Cà vạt & Nơ cổ",
+          "Phụ kiện thêm",
+          "Bộ phụ kiện",
+          "Khác",
+          "Vớ/ Tất",
+          "Ô/Dù"
+        ]
+      },
+      {
+        name: "Balo & Túi Ví Nam",
+        children: [
+          "Ba Lô Nam",
+          "Ba Lô Laptop Nam",
+          "Túi & Cặp Đựng Laptop",
+          "Túi Chống Sốc Laptop Nam",
+          "Túi Tote Nam",
+          "Cặp Xách Công Sở Nam",
+          "Ví Cầm Tay Nam",
+          "Túi Đeo Hông & Túi Đeo Ngực Nam",
+          "Túi Đeo Chéo Nam",
+          "Bóp/Ví Nam",
+          "Khác"
+        ]
+      },
+      {
+        name: "Voucher & Dịch Vụ",
+        children: [
+          "Nhà hàng & Ăn uống",
+          "Sự kiện & Giải trí",
+          "Nạp tiền tài khoản",
+          "Sức khỏe & Làm đẹp",
+          "Gọi xe",
+          "Khóa học",
+          "Du lịch & Khách sạn",
+          "Mua sắm",
+          "Mã quà tặng Shopee",
+          "Thanh toán hóa đơn",
+          "Dịch vụ khác"
+        ]
+      }
+    ],
+    [
+      {
+        name: "Thời Trang Nữ",
+        children: [
+          "Quần",
+          "Quần đùi",
+          "Chân váy",
+          "Quần jeans",
+          "Đầm/Váy",
+          "Váy cưới",
+          "Đồ liền thân",
+          "Áo khoác, Áo choàng & Vest",
+          "Áo len & Cardigan",
+          "Hoodie và Áo nỉ",
+          "Bộ",
+          "Đồ lót",
+          "Đồ ngủ",
+          "Áo",
+          "Đồ tập",
+          "Đồ Bầu",
+          "Đồ truyền thống",
+          "Đồ hóa trang",
+          "Vải",
+          "Vớ/ Tất",
+          "Khác"
+        ]
+      },
+      {
+        name: "Máy Tính & Laptop",
+        children: [
+          "Máy Tính Bàn",
+          "Màn Hình",
+          "Linh Kiện Máy Tính",
+          "Thiết Bị Lưu Trữ",
+          "Thiết Bị Mạng",
+          "Máy In, Máy Scan & Máy Chiếu",
+          "Phụ Kiện Máy Tính",
+          "Laptop",
+          "Khác",
+          "Gaming"
+        ]
+      },
+      {
+        name: "Giày Dép Nữ",
+        children: [
+          "Bốt",
+          "Giày Thể Thao/ Sneaker",
+          "Giày Đế Bằng",
+          "Giày Cao Gót",
+          "Giày Đế Xuồng",
+          "Xăng-đan Và Dép",
+          "Phụ Kiện Giày",
+          "Giày Khác"
+        ]
+      }
+    ],
+    [
+      {
+        name: "Thể Thao & Du Lịch",
+        children: [
+          "Vali",
+          "Túi du lịch",
+          "Phụ kiện du lịch",
+          "Dụng Cụ Thể Thao & Dã Ngoại",
+          "Giày Thể Thao",
+          "Thời Trang Thể Thao & Dã Ngoại",
+          "Phụ Kiện Thể Thao & Dã Ngoại",
+          "Khác"
+        ]
+      },
+      {
+        name: "Thời Trang Trẻ Em",
+        children: [
+          "Trang phục bé trai",
+          "Trang phục bé gái",
+          "Giày dép bé trai",
+          "Giày dép bé gái",
+          "Khác",
+          "Quần áo em bé",
+          "Giày tập đi & Tất sơ sinh",
+          "Phụ kiện trẻ em"
+        ]
+      },
+      {
+        name: "Điện Thoại & Phụ Kiện",
+        children: [
+          "Điện thoại",
+          "Máy tính bảng",
+          "Pin Dự Phòng",
+          "Pin Gắn Trong, Cáp và Bộ Sạc",
+          "Ốp lưng, bao da, Miếng dán điện thoại",
+          "Bảo vệ màn hình",
+          "Đế giữ điện thoại",
+          "Thẻ nhớ",
+          "Sim",
+          "Phụ kiện khác",
+          "Thiết bị khác"
+        ]
+      }
+    ],
+    [
+      {
+        name: "Sắc Đẹp",
+        children: [
+          "Chăm sóc da mặt",
+          "Tắm & chăm sóc cơ thể",
+          "Trang điểm",
+          "Chăm sóc tóc",
+          "Dụng cụ & Phụ kiện Làm đẹp",
+          "Vệ sinh răng miệng",
+          "Nước hoa",
+          "Chăm sóc nam giới",
+          "Khác",
+          "Chăm sóc phụ nữ",
+          "Bộ sản phẩm làm đẹp"
+        ]
+      },
+      {
+        name: "Giày Dép Nam",
+        children: [
+          "Bốt",
+          "Giày Thể Thao/ Sneakers",
+          "Giày Sục",
+          "Giày Tây Lười",
+          "Giày Oxfords & Giày Buộc Dây",
+          "Xăng-đan và Dép",
+          "Phụ kiện giày dép",
+          "Khác"
+        ]
+      },
+      {
+        name: "Bách Hóa Online",
+        children: [
+          "Đồ ăn vặt",
+          "Đồ chế biến sẵn",
+          "Nhu yếu phẩm",
+          "Nguyên liệu nấu ăn",
+          "Đồ làm bánh",
+          "Sữa - trứng",
+          "Đồ uống",
+          "Ngũ cốc & mứt",
+          "Các loại bánh",
+          "Đồ uống có cồn",
+          "Bộ quà tặng",
+          "Thực phẩm tươi sống và thực phẩm đông lạnh",
+          "Khác"
+        ]
+      }
+    ]
+  ];
+
+  // Sử dụng danh mục mặc định nếu không có categoryColumns được truyền vào
+  const categoriesToShow = categoryColumns.length > 0 ? categoryColumns : defaultCategories;
+  // Dịch vụ khách hàng
+  const customerServiceLinks = [
+    { label: "Trung Tâm Trợ Giúp", path: "/help-center" },
+    { label: "Blog Tonic", path: "/blog" },
+    { label: "Tonic Mall", path: "/mall" },
+    { label: "Hướng Dẫn Mua Hàng", path: "/how-to-buy" },
+    { label: "Hướng Dẫn Bán Hàng", path: "/how-to-sell" },
+    { label: "Ví TonicPay", path: "/wallet" },
+    { label: "Tonic Xu", path: "/xu" },
+    { label: "Đơn Hàng", path: "/user/orders" },
+    { label: "Trả Hàng/Hoàn Tiền", path: "/return-refund" },
+    { label: "Liên Hệ", path: "/contact" },
+    { label: "Chính Sách Bảo Hành", path: "/warranty" },
+  ];
+
+  // Tonic Store Việt Nam
+  const aboutLinks = [
+    { label: "Về Tonic Store", path: "/about" },
+    { label: "Tuyển Dụng", path: "/careers" },
+    { label: "Điều Khoản", path: "/terms" },
+    { label: "Chính Sách Bảo Mật", path: "/privacy" },
+    { label: "Tonic Mall", path: "/mall" },
+    { label: "Kênh Người Bán", path: "/seller" },
+    { label: "Flash Sale", path: "/flash-sale" },
+    { label: "Tiếp Thị Liên Kết", path: "/affiliate" },
+    { label: "Liên Hệ Truyền Thông", path: "/media-contact" },
+  ];
+
+  // Icon thanh toán
+  const paymentIcons = [
+    <CreditCardOutlined key="credit" className="text-2xl text-gray-500" />,
+    <BankOutlined key="bank" className="text-2xl text-gray-500" />,
+    <AlipayOutlined key="alipay" className="text-2xl text-gray-500" />,
+    <PayCircleOutlined key="pay" className="text-2xl text-gray-500" />,
+    <AppleOutlined key="applepay" className="text-2xl text-gray-500" />,
+    <AndroidOutlined key="googlepay" className="text-2xl text-gray-500" />,
+    <WindowsOutlined key="windowspay" className="text-2xl text-gray-500" />,
+  ];
+
+  // Icon vận chuyển
+  const shippingIcons = [
+    <CarOutlined key="car" className="text-2xl text-gray-500" />,
+    <TruckOutlined key="truck" className="text-2xl text-gray-500" />,
+    <RocketOutlined key="rocket" className="text-2xl text-gray-500" />,
+    <ShopOutlined key="shop" className="text-2xl text-gray-500" />,
+    <BankOutlined key="bank2" className="text-2xl text-gray-500" />,
+    <CreditCardOutlined key="credit2" className="text-2xl text-gray-500" />,
+    <AlipayOutlined key="alipay2" className="text-2xl text-gray-500" />,
+    <PayCircleOutlined key="pay2" className="text-2xl text-gray-500" />,
+  ];
+
+  // Icon mạng xã hội
+  const socialIcons = [
     {
-      title: 'Cửa hàng',
-      links: [
-        { label: 'Tất cả sản phẩm', path: '/products' },
-        { label: 'Nổi bật', path: '/featured-products' },
-        { label: 'Hàng mới', path: '/new-arrivals' },
-        { label: 'Khuyến mãi', path: '/flash-sale' },
-      ],
+      icon: <FacebookOutlined className="text-xl" />,
+      label: "Facebook",
+      href: "#",
     },
     {
-      title: 'Về chúng tôi',
-      links: [
-        { label: 'Câu chuyện', path: '/about' },
-        { label: 'Tuyển dụng', path: '/careers' },
-        { label: 'Điều khoản', path: '/terms' },
-        { label: 'Chính sách bảo mật', path: '/privacy' },
-      ],
+      icon: <InstagramOutlined className="text-xl" />,
+      label: "Instagram",
+      href: "#",
     },
     {
-      title: 'Hỗ trợ khách hàng',
-      links: [
-        { label: 'Liên hệ', path: '/contact' },
-        { label: 'Câu hỏi thường gặp', path: '/faq' },
-        { label: 'Vận chuyển & Đổi trả', path: '/shipping' },
-        { label: 'Theo dõi đơn hàng', path: '/user/orders' },
-      ],
+      icon: <LinkedinOutlined className="text-xl" />,
+      label: "LinkedIn",
+      href: "#",
     },
   ];
 
   return (
-    <footer className="bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Newsletter */}
-          <div className="md:col-span-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Cập nhật tin tức</h3>
-            <p className="text-gray-600 mb-4">
-              Đăng ký nhận bản tin để cập nhật thông tin và ưu đãi mới nhất.
-            </p>
-            <div className="flex">
-              <Input
-                placeholder="Email của bạn"
-                className="flex-grow rounded-l-full"
-                prefix={<MailOutlined className="text-gray-400" />}
-              />
-              <Button
-                type="primary"
-                className="rounded-r-full"
-                icon={<ArrowRightOutlined />}
-              />
+    <footer
+      className={
+        variant === "home"
+          ? "bg-white p-6 rounded-lg shadow-sm relative"
+          : "bg-gray-50"
+      }
+    >
+      {/* Nếu là home thì hiển thị Danh Mục Sản Phẩm */}
+      {variant === "home" && (
+        <>
+          <section>
+            <h3 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">
+              Danh Mục Sản Phẩm
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 text-xs text-gray-600">
+              {categoriesToShow.map((col: FooterCategory[], colIdx: number) => (
+                <div key={colIdx} className="space-y-4">
+                  {col.map((cat: FooterCategory) => (
+                    <div key={cat.name}>
+                      <p className="font-semibold text-gray-800 mb-1">
+                        {cat.name}
+                      </p>
+                      <div className="flex flex-wrap gap-y-1">
+                        {cat.children.map((child: string, idx: number) => (
+                          <span
+                            key={child}
+                            className="flex items-center break-keep max-w-full"
+                          >
+                            <Link
+                              to={`/products?category=${encodeURIComponent(
+                                cat.name
+                              )}&sub=${encodeURIComponent(child)}`}
+                              className="hover:text-blue-600 transition-colors"
+                            >
+                              {child}
+                            </Link>
+                            {idx !== cat.children.length - 1 && (
+                              <span className="mx-1 text-gray-400">|</span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </section>
+          <div className="w-full h-px bg-gray-300 my-8" />
+        </>
+      )}
+
+      {/* Footer chính */}
+      <div
+        className={
+          variant === "home"
+            ? "max-w-full mx-auto"
+            : "max-w-7xl mx-auto p-8"
+        }
+      >
+        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 text-sm text-gray-600">
+          {/* Dịch Vụ Khách Hàng */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase">
+              Dịch Vụ Khách Hàng
+            </h3>
+            <ul className="space-y-2">
+              {customerServiceLinks.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className="hover:text-blue-600 transition-colors duration-200"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Giới Thiệu */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase">
+              Tonic Store Việt Nam
+            </h3>
+            <ul className="space-y-2">
+              {aboutLinks.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className="hover:text-blue-600 transition-colors duration-200"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Thanh Toán & Vận Chuyển */}
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase">
+                Thanh Toán
+              </h3>
+              <div className="flex flex-wrap gap-2 items-center">
+                {paymentIcons.map((icon, idx) => (
+                  <span key={idx}>{icon}</span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase">
+                Đơn Vị Vận Chuyển
+              </h3>
+              <div className="flex flex-wrap gap-2 items-center">
+                {shippingIcons.map((icon, idx) => (
+                  <span key={idx}>{icon}</span>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Footer Links */}
-          {footerLinks.map((section) => (
-            <div key={section.title}>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">{section.title}</h3>
-              <ul className="space-y-2">
-                {section.links.map((link) => (
-                  <li key={link.path}>
-                    <Link
-                      to={link.path}
-                      className="text-gray-600 hover:text-blue-600 transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+          {/* Theo Dõi */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase">
+              Theo Dõi Chúng Tôi
+            </h3>
+            <div className="flex flex-col space-y-2">
+              {socialIcons.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="flex items-center space-x-2 text-gray-400 hover:text-blue-600 transition-colors duration-200"
+                  aria-label={item.label}
+                >
+                  <span>{item.icon}</span>
+                  <span className="text-sm">{item.label}</span>
+                </a>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* Social Media & Copyright */}
-        <div className="border-t border-gray-200 mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex space-x-6 mb-4 md:mb-0">
-              <a
-                href="#"
-                className="text-gray-400 hover:text-blue-600 transition-colors"
-                aria-label="Facebook"
-              >
-                <FacebookOutlined className="text-xl" />
-              </a>
-              <a
-                href="#"
-                className="text-gray-400 hover:text-blue-600 transition-colors"
-                aria-label="Twitter"
-              >
-                <TwitterOutlined className="text-xl" />
-              </a>
-              <a
-                href="#"
-                className="text-gray-400 hover:text-blue-600 transition-colors"
-                aria-label="Instagram"
-              >
-                <InstagramOutlined className="text-xl" />
-              </a>
+          {/* Tải Ứng Dụng */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase">
+              Tải Ứng Dụng Trên Điện Thoại
+            </h3>
+            <img
+              src="/assets/qr-code.png"
+              alt="QR App"
+              className="w-20 h-20 object-cover border mb-4"
+            />
+            <div className="flex flex-col space-y-2">
+              <img
+                src="/assets/stores/appstore.png"
+                alt="App Store"
+                className="w-24 h-auto"
+              />
+              <img
+                src="/assets/stores/googleplay.png"
+                alt="Google Play"
+                className="w-24 h-auto"
+              />
+              <img
+                src="/assets/stores/appgallery.png"
+                alt="App Gallery"
+                className="w-24 h-auto"
+              />
             </div>
-            <p className="text-gray-500 text-sm">
+          </div>
+        </section>
+
+        <div className="w-full h-px bg-gray-300 my-8" />
+
+        {/* Bản Quyền */}
+        <section>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-gray-500 text-sm text-center md:text-left">
               © {new Date().getFullYear()} Tonic Store. Bảo lưu mọi quyền.
             </p>
           </div>
-        </div>
+        </section>
       </div>
     </footer>
   );
 };
 
-export default Footer; 
+export default Footer;

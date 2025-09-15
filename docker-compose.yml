@@ -109,7 +109,7 @@ services:
     ports:
       - "3306:3306"
     env_file:
-      - ./.env
+      - ./backend/.env
     environment:
       TZ: Asia/Vietnam
       MYSQL_INITDB_SKIP_TZINFO: 1
@@ -135,7 +135,7 @@ services:
     ports:
       - "9000:80"
     env_file:
-      - ./.env
+      - ./backend/.env
     environment:
       PMA_HOST: db
       UPLOAD_LIMIT: 300M
