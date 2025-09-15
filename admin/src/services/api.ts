@@ -18,7 +18,7 @@ const getHeaders = () => ({
 
 // Auth API
 export const login = async (email: string, password: string) => {
-  const response = await fetch(`${API_URL}/auth/login`, {
+  const response = await fetch(`${API_URL}/api/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ export const getShippingAddresses = async () => {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${API_URL}/shipping-addresses`, {
+    const response = await fetch(`${API_URL}/api/shipping-addresses`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -58,7 +58,7 @@ export const createShippingAddress = async (data: {
   userId: number;
   isDefault?: boolean;
 }) => {
-  const response = await fetch(`${API_URL}/shipping-addresses`, {
+  const response = await fetch(`${API_URL}/api/shipping-addresses`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -76,7 +76,7 @@ export const updateShippingAddress = async (id: number, data: {
   userId?: number;
   isDefault?: boolean;
 }) => {
-  const response = await fetch(`${API_URL}/shipping-addresses/${id}`, {
+  const response = await fetch(`${API_URL}/api/shipping-addresses/${id}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -88,7 +88,7 @@ export const updateShippingAddress = async (id: number, data: {
 };
 
 export const deleteShippingAddress = async (id: number) => {
-  const response = await fetch(`${API_URL}/shipping-addresses/${id}`, {
+  const response = await fetch(`${API_URL}/api/shipping-addresses/${id}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -99,7 +99,7 @@ export const deleteShippingAddress = async (id: number) => {
 };
 
 export const setDefaultShippingAddress = async (id: number) => {
-  const response = await fetch(`${API_URL}/shipping-addresses/${id}/default`, {
+  const response = await fetch(`${API_URL}/api/shipping-addresses/${id}/default`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -112,7 +112,7 @@ export const setDefaultShippingAddress = async (id: number) => {
 // Categories API
 export const categoryService = {
   getAll: async () => {
-    const response = await fetch(`${API_URL}/categories`, {
+    const response = await fetch(`${API_URL}/api/categories`, {
       headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Failed to fetch categories');
@@ -120,7 +120,7 @@ export const categoryService = {
   },
 
   create: async (data: any) => {
-    const response = await fetch(`${API_URL}/categories`, {
+    const response = await fetch(`${API_URL}/api/categories`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -130,7 +130,7 @@ export const categoryService = {
   },
 
   update: async (id: number, data: any) => {
-    const response = await fetch(`${API_URL}/categories/${id}`, {
+    const response = await fetch(`${API_URL}/api/categories/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -140,7 +140,7 @@ export const categoryService = {
   },
 
   delete: async (id: number) => {
-    const response = await fetch(`${API_URL}/categories/${id}`, {
+    const response = await fetch(`${API_URL}/api/categories/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
@@ -152,7 +152,7 @@ export const categoryService = {
 // Promotions API
 export const promotionService = {
   getAll: async () => {
-    const response = await fetch(`${API_URL}/discount-codes`, {
+    const response = await fetch(`${API_URL}/api/discount-codes`, {
       headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Failed to fetch promotions');
@@ -160,7 +160,7 @@ export const promotionService = {
   },
 
   create: async (data: any) => {
-    const response = await fetch(`${API_URL}/discount-codes`, {
+    const response = await fetch(`${API_URL}/api/discount-codes`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -170,7 +170,7 @@ export const promotionService = {
   },
 
   update: async (id: string, data: any) => {
-    const response = await fetch(`${API_URL}/discount-codes/${id}`, {
+    const response = await fetch(`${API_URL}/api/discount-codes/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -180,7 +180,7 @@ export const promotionService = {
   },
 
   delete: async (id: string) => {
-    const response = await fetch(`${API_URL}/discount-codes/${id}`, {
+    const response = await fetch(`${API_URL}/api/discount-codes/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
@@ -189,7 +189,7 @@ export const promotionService = {
   },
 
   resetUsage: async (id: string) => {
-    const response = await fetch(`${API_URL}/discount-codes/${id}/reset`, {
+    const response = await fetch(`${API_URL}/api/discount-codes/${id}/reset`, {
       method: 'POST',
       headers: getHeaders(),
     });
@@ -201,7 +201,7 @@ export const promotionService = {
 // Shipper API
 export const shipperService = {
   getAll: async () => {
-    const response = await fetch(`${API_URL}/users`, {
+    const response = await fetch(`${API_URL}/api/users`, {
       headers: getHeaders(),
     });
     const data = await handleResponse(response);
@@ -210,7 +210,7 @@ export const shipperService = {
   },
 
   updateStatus: async (id: number, isActive: boolean) => {
-    const response = await fetch(`${API_URL}/users/${id}/status`, {
+    const response = await fetch(`${API_URL}/api/users/${id}/status`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify({ isActive }),
@@ -219,7 +219,7 @@ export const shipperService = {
   },
 
   delete: async (id: number) => {
-    const response = await fetch(`${API_URL}/users/${id}`, {
+    const response = await fetch(`${API_URL}/api/users/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
@@ -230,7 +230,7 @@ export const shipperService = {
 // Reviews API
 export const reviewService = {
   getAll: async () => {
-    const response = await fetch(`${API_URL}/reviews`, {
+    const response = await fetch(`${API_URL}/api/reviews`, {
       headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Failed to fetch reviews');
@@ -238,7 +238,7 @@ export const reviewService = {
   },
 
   updateStatus: async (id: string, status: string) => {
-    const response = await fetch(`${API_URL}/reviews/${id}/status`, {
+    const response = await fetch(`${API_URL}/api/reviews/${id}/status`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify({ status }),
@@ -248,7 +248,7 @@ export const reviewService = {
   },
 
   delete: async (id: string) => {
-    const response = await fetch(`${API_URL}/reviews/${id}`, {
+    const response = await fetch(`${API_URL}/api/reviews/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Table, Modal, Form, Input, InputNumber, Select, Checkbox, Space, Card, Typography, notification } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { productService } from '../services/productService';
 import { Product } from '../types/product';
 
@@ -9,7 +9,6 @@ const { TextArea } = Input;
 
 const ProductManagement: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [form] = Form.useForm();
@@ -21,11 +20,8 @@ const ProductManagement: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      setLoading(true);
       const data = await productService.getAllProducts();
-      console.log('Raw data from API:', data);
       const formattedProducts = Array.isArray(data) ? data.map(product => {
-        console.log('Processing product:', product);
         return {
           id: product.id,
           name: product.name || '',
@@ -55,13 +51,10 @@ const ProductManagement: React.FC = () => {
           isBestSeller: product.isBestSeller || false,
         };
       }) : [];
-      console.log('Formatted products:', formattedProducts);
       setProducts(formattedProducts);
     } catch (error) {
       console.error('Error fetching products:', error);
       setProducts([]);
-    } finally {
-      setLoading(false);
     }
   };
 

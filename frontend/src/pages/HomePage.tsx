@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Button, notification, Carousel, message } from 'antd';
-import { ArrowRightOutlined, RightOutlined } from '@ant-design/icons';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Button, Carousel, message } from 'antd';
+import { ArrowRightOutlined } from '@ant-design/icons';
+import { Link, useNavigate } from 'react-router-dom';
 import { useProducts } from '../hooks';
 import { Product } from '../types';
 import { useCart } from '../contexts/CartContext';
@@ -100,12 +100,12 @@ const HomePage = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-2 sm:mt-4 lg:mt-6">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar */}
-          <aside className="hidden lg:block lg:w-1/5">
+          <aside className="hidden lg:block lg:w-[18%]">
             <Sidebar />
           </aside>
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col gap-8 max-w-[1200px]">
+          <div className="flex-1 flex flex-col gap-8 w-[82%]">
             {/* Banner */}
             <div className='bg-white p-6 rounded-lg'>
               <div className="flex flex-col lg:flex-row gap-6">
@@ -258,7 +258,7 @@ const HomePage = () => {
             </div>
 
             {/* Footer */}
-            <Footer />
+            <Footer variant="home" />
           </div>
         </div>
       </div>

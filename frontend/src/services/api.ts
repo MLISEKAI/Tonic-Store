@@ -8,128 +8,128 @@ if (!API_URL) {
 export const ENDPOINTS = {
   // Auth
   AUTH: {
-    REGISTER: `${API_URL}/auth/register`,
-    LOGIN: `${API_URL}/auth/login`,
-    LOGOUT: `${API_URL}/auth/logout`,
-    FORGOT_PASSWORD: `${API_URL}/auth/forgot-password`,
-    RESET_PASSWORD: `${API_URL}/auth/reset-password`,
+    REGISTER: `${API_URL}/api/auth/register`,
+    LOGIN: `${API_URL}/api/auth/login`,
+    LOGOUT: `${API_URL}/api/auth/logout`,
+    FORGOT_PASSWORD: `${API_URL}/api/auth/forgot-password`,
+    RESET_PASSWORD: `${API_URL}/api/auth/reset-password`,
   },
   // User
   USER: {
-    PROFILE: `${API_URL}/users/profile`,
-    CHANGE_PASSWORD: `${API_URL}/users/change-password`,
-    VERIFY_EMAIL: `${API_URL}/users/verify-email`,
-    SEND_VERIFICATION: `${API_URL}/users/send-verification`,
+    PROFILE: `${API_URL}/api/users/profile`,
+    CHANGE_PASSWORD: `${API_URL}/api/users/change-password`,
+    VERIFY_EMAIL: `${API_URL}/api/users/verify-email`,
+    SEND_VERIFICATION: `${API_URL}/api/users/send-verification`,
   },
   // Products
   PRODUCT: {
-    LIST: `${API_URL}/products`,
-    DETAIL: (id: number) => `${API_URL}/products/${id}`,
-    CATEGORIES: `${API_URL}/categories`,
-    SEARCH: `${API_URL}/products/search`,
-    VIEW: (id: number) => `${API_URL}/products/${id}/view`,
-    FEATURED: (limit: number) => `${API_URL}/products/featured?limit=${limit}`,
-    BEST_SELLING: (limit: number) => `${API_URL}/products/best-selling?limit=${limit}`,
-    NEWEST: (limit: number) => `${API_URL}/products/newest?limit=${limit}`,
-    FLASH_SALE: `${API_URL}/products/flash-sale`
+    LIST: `${API_URL}/api/products`,
+    DETAIL: (id: number) => `${API_URL}/api/products/${id}`,
+    CATEGORIES: `${API_URL}/api/categories`,
+    SEARCH: `${API_URL}/api/products/search`,
+    VIEW: (id: number) => `${API_URL}/api/products/${id}/view`,
+    FEATURED: (limit: number) => `${API_URL}/api/products/featured?limit=${limit}`,
+    BEST_SELLING: (limit: number) => `${API_URL}/api/products/best-selling?limit=${limit}`,
+    NEWEST: (limit: number) => `${API_URL}/api/products/newest?limit=${limit}`,
+    FLASH_SALE: `${API_URL}/api/products/flash-sale`
   },
   // Orders
   ORDER: {
-    LIST: `${API_URL}/orders`,
-    CREATE: `${API_URL}/orders`,
-    DETAIL: (id: number) => `${API_URL}/orders/${id}`,
-    DELIVERY_LIST: `${API_URL}/orders/delivery`,
-    DELIVERY_STATUS: (id: number) => `${API_URL}/orders/${id}/delivery/status`,
-    DELIVERY_HISTORY: `${API_URL}/orders/delivery/history`,
-    DELIVERY_LOGS: (id: number) => `${API_URL}/orders/${id}/delivery/logs`,
-    DELIVERY_RATING: (id: number) => `${API_URL}/orders/${id}/delivery/rating`,
+    LIST: `${API_URL}/api/orders`,
+    CREATE: `${API_URL}/api/orders`,
+    DETAIL: (id: number) => `${API_URL}/api/orders/${id}`,
+    DELIVERY_LIST: `${API_URL}/api/orders/delivery`,
+    DELIVERY_STATUS: (id: number) => `${API_URL}/api/orders/${id}/delivery/status`,
+    DELIVERY_HISTORY: `${API_URL}/api/orders/delivery/history`,
+    DELIVERY_LOGS: (id: number) => `${API_URL}/api/orders/${id}/delivery/logs`,
+    DELIVERY_RATING: (id: number) => `${API_URL}/api/orders/${id}/delivery/rating`,
   },
   // Cart
   CART: {
-    GET: `${API_URL}/cart`,
-    ADD: `${API_URL}/cart/add`,
-    UPDATE: (id: number) => `${API_URL}/cart/update/${id}`,
-    REMOVE: (id: number) => `${API_URL}/cart/remove/${id}`,
-    CLEAR: `${API_URL}/cart/clear`,
+    GET: `${API_URL}/api/cart`,
+    ADD: `${API_URL}/api/cart/add`,
+    UPDATE: (id: number) => `${API_URL}/api/cart/update/${id}`,
+    REMOVE: (id: number) => `${API_URL}/api/cart/remove/${id}`,
+    CLEAR: `${API_URL}/api/cart/clear`,
   },
   // Shipping
   SHIPPING: {
-    ADDRESSES: `${API_URL}/shipping-addresses`,
-    ADD_ADDRESS: `${API_URL}/shipping-addresses`,
-    UPDATE_ADDRESS: (id: number) => `${API_URL}/shipping-addresses/${id}`,
-    DELETE_ADDRESS: (id: number) => `${API_URL}/shipping-addresses/${id}`,
-    SET_DEFAULT: (id: number) => `${API_URL}/shipping-addresses/${id}/default`,
+    ADDRESSES: `${API_URL}/api/shipping-addresses`,
+    ADD_ADDRESS: `${API_URL}/api/shipping-addresses`,
+    UPDATE_ADDRESS: (id: number) => `${API_URL}/api/shipping-addresses/${id}`,
+    DELETE_ADDRESS: (id: number) => `${API_URL}/api/shipping-addresses/${id}`,
+    SET_DEFAULT: (id: number) => `${API_URL}/api/shipping-addresses/${id}/default`,
   },
   // Wishlist
   WISHLIST: {
-    LIST: `${API_URL}/wishlist`,
-    ADD: `${API_URL}/wishlist`,
-    REMOVE: (id: number) => `${API_URL}/wishlist/${id}`,
-    CHECK: (id: number) => `${API_URL}/wishlist/check/${id}`,
+    LIST: `${API_URL}/api/wishlist`,
+    ADD: `${API_URL}/api/wishlist`,
+    REMOVE: (id: number) => `${API_URL}/api/wishlist/${id}`,
+    CHECK: (id: number) => `${API_URL}/api/wishlist/check/${id}`,
   },
   // Stats
   STATS: {
-    OVERVIEW: `${API_URL}/stats`,
-    SALES: `${API_URL}/stats/sales`,
-    TOP_CUSTOMERS: (limit: number) => `${API_URL}/stats/top-customers?limit=${limit}`,
+    OVERVIEW: `${API_URL}/api/stats`,
+    SALES: `${API_URL}/api/stats/sales`,
+    TOP_CUSTOMERS: (limit: number) => `${API_URL}/api/stats/top-customers?limit=${limit}`,
   },
   // Search
   SEARCH: {
-    PRODUCTS: `${API_URL}/search/products`,
-    ORDERS: `${API_URL}/search/orders`,
-    SUGGESTIONS: `${API_URL}/search/suggestions`,
-    HISTORY: `${API_URL}/search/history`,
+    PRODUCTS: `${API_URL}/api/search/products`,
+    ORDERS: `${API_URL}/api/search/orders`,
+    SUGGESTIONS: `${API_URL}/api/search/suggestions`,
+    HISTORY: `${API_URL}/api/search/history`,
   },
   // Reviews
   REVIEW: {
-    LIST: (productId: number) => `${API_URL}/reviews/product/${productId}`,
-    CREATE: `${API_URL}/reviews`,
-    UPDATE: (id: number) => `${API_URL}/reviews/${id}`,
-    DELETE: (id: number) => `${API_URL}/reviews/${id}`,
+    LIST: (productId: number) => `${API_URL}/api/reviews/product/${productId}`,
+    CREATE: `${API_URL}/api/reviews`,
+    UPDATE: (id: number) => `${API_URL}/api/reviews/${id}`,
+    DELETE: (id: number) => `${API_URL}/api/reviews/${id}`,
   },
   // Favorites
   FAVORITE: {
-    LIST: `${API_URL}/favorites`,
-    ADD: `${API_URL}/favorites`,
-    REMOVE: (id: string) => `${API_URL}/favorites/${id}`,
+    LIST: `${API_URL}/api/favorites`,
+    ADD: `${API_URL}/api/favorites`,
+    REMOVE: (id: string) => `${API_URL}/api/favorites/${id}`,
   },
   // Categories
   CATEGORY: {
-    LIST: `${API_URL}/categories`,
-    DETAIL: (id: string) => `${API_URL}/categories/${id}`,
-    PRODUCTS: (id: string) => `${API_URL}/categories/${id}/products`,
+    LIST: `${API_URL}/api/categories`,
+    DETAIL: (id: string) => `${API_URL}/api/categories/${id}`,
+    PRODUCTS: (id: string) => `${API_URL}/api/categories/${id}/products`,
   },
   // Payment
   PAYMENT: {
-    CREATE: `${API_URL}/payment`,
-    VERIFY: `${API_URL}/payment/verify`,
-    UPDATE_STATUS: (orderId: string) => `${API_URL}/orders/${orderId}/payment`,
-    CONFIRM_COD: (orderId: number) => `${API_URL}/orders/${orderId}/confirm-cod`,
+    CREATE: `${API_URL}/api/payment`,
+    VERIFY: `${API_URL}/api/payment/verify`,
+    UPDATE_STATUS: (orderId: string) => `${API_URL}/api/orders/${orderId}/payment`,
+    CONFIRM_COD: (orderId: number) => `${API_URL}/api/orders/${orderId}/confirm-cod`,
   },
   // Delivery
   DELIVERY: {
-    INFO: (orderId: string) => `${API_URL}/orders/${orderId}/delivery`,
-    UPDATE_STATUS: (orderId: string) => `${API_URL}/orders/${orderId}/delivery/status`,
-    HISTORY: (orderId: string) => `${API_URL}/orders/${orderId}/delivery/history`,
+    INFO: (orderId: string) => `${API_URL}/api/orders/${orderId}/delivery`,
+    UPDATE_STATUS: (orderId: string) => `${API_URL}/api/orders/${orderId}/delivery/status`,
+    HISTORY: (orderId: string) => `${API_URL}/api/orders/${orderId}/delivery/history`,
   },
   // Notifications
   NOTIFICATION: {
-    LIST: `${API_URL}/notifications`,
-    MARK_READ: (id: string) => `${API_URL}/notifications/${id}/read`,
-    MARK_ALL_READ: `${API_URL}/notifications/read-all`,
-    DELETE: (id: string) => `${API_URL}/notifications/${id}`,
-    DELETE_ALL: `${API_URL}/notifications`,
+    LIST: `${API_URL}/api/notifications`,
+    MARK_READ: (id: string) => `${API_URL}/api/notifications/${id}/read`,
+    MARK_ALL_READ: `${API_URL}/api/notifications/read-all`,
+    DELETE: (id: string) => `${API_URL}/api/notifications/${id}`,
+    DELETE_ALL: `${API_URL}/api/notifications`,
   },
   // Contact
   CONTACT: {
-    SEND: `${API_URL}/contact`,
-    LIST: `${API_URL}/contact/messages`,
-    MARK_READ: (id: string) => `${API_URL}/contact/${id}/read`,
-    DELETE: (id: string) => `${API_URL}/contact/${id}`,
+    SEND: `${API_URL}/api/contact`,
+    LIST: `${API_URL}/api/contact/messages`,
+    MARK_READ: (id: string) => `${API_URL}/api/contact/${id}/read`,
+    DELETE: (id: string) => `${API_URL}/api/contact/${id}`,
   },
   // Shipper
   SHIPPER: {
-    UPDATE_STATUS: (orderId: number) => `${API_URL}/shippers/orders/${orderId}/status`,
+    UPDATE_STATUS: (orderId: number) => `${API_URL}/api/shippers/orders/${orderId}/status`,
   },
 };
 

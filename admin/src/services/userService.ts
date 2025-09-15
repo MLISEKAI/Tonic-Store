@@ -1,7 +1,7 @@
 import { User, CreateUserData, UpdateUserData } from '../types/user';
 
-const API_URL = `${import.meta.env.VITE_API_URL}/users`;
-const AUTH_URL = `${import.meta.env.VITE_API_URL}/auth`;
+const API_URL = `${import.meta.env.VITE_API_URL}/api/users`;
+const AUTH_URL = `${import.meta.env.VITE_API_URL}/api/auth`;
 
 const handleResponse = async (res: Response) => {
   if (!res.ok) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, message, Popconfirm, Rate, Tag, Modal, Typography, Card } from 'antd';
-import { DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { Table, Button, Space, message, Popconfirm, Rate, Modal, Typography, Card } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import { reviewService } from '../services/api';
 import { Review } from '../types/review';
 
@@ -18,7 +18,6 @@ const { Title } = Typography;
     try {
       setLoading(true);
       const data = await reviewService.getAll();
-      console.log('Fetched reviews:', data);
       setReviews(data);
     } catch (error) {
       console.error('Error fetching reviews:', error);
@@ -54,17 +53,6 @@ const { Title } = Typography;
       fetchReviews();
     } catch (error) {
       message.error('Failed to update review status');
-    }
-  };
-
-  const getStatusColor = (status: Review['status']) => {
-    switch (status) {
-      case 'APPROVED':
-        return 'success';
-      case 'REJECTED':
-        return 'error';
-      default:
-        return 'warning';
     }
   };
 
