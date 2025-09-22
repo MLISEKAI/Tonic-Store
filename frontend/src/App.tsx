@@ -30,7 +30,6 @@ import NotificationsPage from './pages/NotificationsPage';
 import PromotionCode from "./pages/DiscountCodePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-// New pages
 import HelpCenterPage from "./pages/help-center/HelpCenterPage";
 import MallPage from "./pages/mall/MallPage";
 import HowToBuyPage from "./pages/how-to-buy/HowToBuyPage";
@@ -39,8 +38,10 @@ import PrivacyPage from "./pages/privacy/PrivacyPage";
 import CareersPage from "./pages/careers/CareersPage";
 import ReturnRefundPage from "./pages/return-refund/ReturnRefundPage";
 import HowToSellPage from "./pages/how-to-sell/HowToSellPage";
-import WalletPage from "./pages/wallet/WalletPage";
+import WalletPage from "./pages/user/WalletPage";
+import WalletHelpPage from "./pages/wallet/WalletHelpPage";
 import XuPage from "./pages/xu/XuPage";
+import XuHelpPage from "./pages/xu/XuHelpPage";
 import WarrantyPage from "./pages/warranty/WarrantyPage";
 import SellerPage from "./pages/seller/SellerPage";
 import AffiliatePage from "./pages/affiliate/AffiliatePage";
@@ -194,7 +195,6 @@ const AppContent = () => {
                         <Route path="/blog" element={<BlogPage />} />
                         <Route path="/blog/:id" element={<BlogPage />} />
 
-                        {/* New pages */}
                         <Route path="/help-center" element={<HelpCenterPage />} />
                         <Route path="/mall" element={<MallPage />} />
                         <Route path="/how-to-buy" element={<HowToBuyPage />} />
@@ -203,12 +203,14 @@ const AppContent = () => {
                         <Route path="/careers" element={<CareersPage />} />
                         <Route path="/return-refund" element={<ReturnRefundPage />} />
                         <Route path="/how-to-sell" element={<HowToSellPage />} />
-                        <Route path="/wallet" element={
+                        <Route path="/wallet" element={<WalletHelpPage />} />
+                        <Route path="/user/wallet" element={
                           <ProtectedRoute>
                             <WalletPage />
                           </ProtectedRoute>
                         } />
-                        <Route path="/xu" element={
+                        <Route path="/xu" element={<XuHelpPage />} />
+                        <Route path="/user/xu" element={
                           <ProtectedRoute>
                             <XuPage />
                           </ProtectedRoute>

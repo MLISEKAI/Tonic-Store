@@ -1,12 +1,118 @@
-import React, { useState } from 'react';
-import { Card, Collapse, Input, Button, Typography, Space, Tag } from 'antd';
-import { SearchOutlined, QuestionCircleOutlined, PhoneOutlined, MailOutlined } from '@ant-design/icons';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Card, Collapse, Input, Button, Typography, Space, Tag, AutoComplete, Spin } from 'antd';
+import { SearchOutlined, PhoneOutlined, MailOutlined } from '@ant-design/icons';
+import { HelpCenterService, FAQSuggestion, FAQSearchResult } from '../../services/helpCenter/helpCenterService';
+import { useSearchParams } from 'react-router-dom';
 
 const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
 
+// Debounce function - moved outside component
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: ReturnType<typeof setTimeout>;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
+
 const HelpCenterPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
+  const [suggestions, setSuggestions] = useState<FAQSuggestion[]>([]);
+  const [searchResults, setSearchResults] = useState<FAQSearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [totalResults, setTotalResults] = useState(0);
+
+  // Load search term from URL on component mount
+  useEffect(() => {
+    const keyword = searchParams.get('keyword');
+    if (keyword && keyword !== searchTerm) {
+      setSearchTerm(keyword);
+      handleSearch(keyword);
+    }
+  }, [searchParams]);
+
+  // Debounced search for suggestions
+  const debouncedSearch = useCallback(
+    debounce(async (query: string) => {
+      if (query.length >= 2) {
+        setSuggestionsLoading(true);
+        try {
+          const response = await HelpCenterService.getSuggestions(query);
+          if (response.success) {
+            setSuggestions(response.data || []);
+            setShowSuggestions(true);
+          } else {
+            setSuggestions([]);
+            setShowSuggestions(false);
+          }
+        } catch (error) {
+          console.error('Error fetching suggestions:', error);
+          setSuggestions([]);
+          setShowSuggestions(false);
+        } finally {
+          setSuggestionsLoading(false);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        setSuggestionsLoading(false);
+      }
+    }, 300),
+    []
+  );
+
+  // Handle search input change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    debouncedSearch(value);
+  };
+
+  // Handle search submission
+  const handleSearch = async (value: string) => {
+    if (!value.trim()) {
+      setSearchResults([]);
+      setTotalResults(0);
+      setSearchParams({});
+      return;
+    }
+    
+    setLoading(true);
+    setShowSuggestions(false);
+    
+    // Update URL with search parameter
+    setSearchParams({ keyword: value });
+    
+    try {
+      const response = await HelpCenterService.searchFAQs(value, 20);
+      if (response.success) {
+        setSearchResults(response.data || []);
+        setTotalResults(response.total || 0);
+      } else {
+        setSearchResults([]);
+        setTotalResults(0);
+      }
+    } catch (error) {
+      console.error('Error searching FAQs:', error);
+      setSearchResults([]);
+      setTotalResults(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle suggestion select
+  const handleSuggestionSelect = (value: string) => {
+    setSearchTerm(value);
+    setShowSuggestions(false);
+    handleSearch(value);
+  };
 
   const faqData = [
     {
@@ -97,36 +203,19 @@ const HelpCenterPage: React.FC = () => {
     },
   ];
 
-  const contactMethods = [
-    {
-      icon: <PhoneOutlined />,
-      title: 'Hotline',
-      content: '1900 1234',
-      description: 'Hỗ trợ 24/7',
-      color: 'blue',
-    },
-    {
-      icon: <MailOutlined />,
-      title: 'Email',
-      content: 'support@tonicstore.com',
-      description: 'Phản hồi trong 24h',
-      color: 'green',
-    },
-    {
-      icon: <QuestionCircleOutlined />,
-      title: 'Live Chat',
-      content: 'Trò chuyện trực tiếp',
-      description: 'Có sẵn 8:00 - 22:00',
-      color: 'orange',
-    },
-  ];
-
-  const filteredFAQs = faqData.filter(faq =>
-    faq.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    faq.children?.props.children[1]?.props.children.some((item: any) =>
-      typeof item === 'string' && item.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  // Filter FAQs based on search results or search term
+  const filteredFAQs = searchResults.length > 0 
+    ? searchResults.map(result => ({
+        key: result.id.toString(),
+        label: result.question,
+        children: (
+          <div>
+            <Paragraph>{result.answer}</Paragraph>
+            <Tag color="blue">{result.category}</Tag>
+          </div>
+        ),
+      }))
+    : faqData;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -134,66 +223,71 @@ const HelpCenterPage: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <Title level={1} className="text-4xl font-bold text-gray-800 mb-4">
-            Trung Tâm Trợ Giúp
+            Trung Tâm Trợ Giúp Tonic Store 
           </Title>
           <Text className="text-lg text-gray-600">
-            Tìm câu trả lời cho các câu hỏi thường gặp hoặc liên hệ với chúng tôi
+            Xin chào, Tonic Store có thể giúp gì cho bạn?
           </Text>
         </div>
 
-        {/* Search */}
+        {/* Search with Autocomplete */}
         <div className="mb-8">
-          <Search
-            placeholder="Tìm kiếm câu hỏi..."
-            allowClear
-            size="large"
+          <AutoComplete
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            prefix={<SearchOutlined />}
-            className="max-w-2xl mx-auto"
-          />
-        </div>
-
-        {/* Contact Methods */}
-        <div className="mb-12">
-          <Title level={2} className="text-center mb-6">
-            Liên Hệ Với Chúng Tôi
-          </Title>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {contactMethods.map((method, index) => (
-              <Card
-                key={index}
-                className="text-center hover:shadow-lg transition-shadow"
-                bodyStyle={{ padding: '24px' }}
-              >
-                <div className="text-4xl mb-4 text-blue-500">
-                  {method.icon}
+            onChange={handleSearchChange}
+            onSelect={handleSuggestionSelect}
+            options={suggestions.map(suggestion => ({
+              value: suggestion.text,
+              label: (
+                <div>
+                  <div className="font-medium">{suggestion.text}</div>
+                  <div className="text-sm text-gray-500">{suggestion.category}</div>
                 </div>
-                <Title level={4} className="mb-2">
-                  {method.title}
-                </Title>
-                <Text strong className="text-lg mb-2 block">
-                  {method.content}
-                </Text>
-                <Tag color={method.color}>
-                  {method.description}
-                </Tag>
-              </Card>
-            ))}
-          </div>
+              ),
+            }))}
+            open={showSuggestions && (suggestions.length > 0 || suggestionsLoading)}
+            onDropdownVisibleChange={(open) => setShowSuggestions(open)}
+            className="w-full"
+            notFoundContent={suggestionsLoading ? <Spin size="small" /> : "Không tìm thấy gợi ý"}
+          >
+            <Search
+              placeholder="Tìm kiếm câu hỏi..."
+              allowClear
+              size="large"
+              onSearch={handleSearch}
+              loading={loading}
+              prefix={<SearchOutlined />}
+              className="w-full mx-auto"
+            />
+          </AutoComplete>
         </div>
 
-        {/* FAQ Section */}
-        <div>
-          <Title level={2} className="text-center mb-6">
-            Câu Hỏi Thường Gặp
-          </Title>
-          <Collapse
-            items={filteredFAQs}
-            className="bg-white"
-            size="large"
-          />
-        </div>
+        {/* Search Results or FAQ Section */}
+        {loading ? (
+          <div className="text-center py-8">
+            <Spin size="large" />
+            <div className="mt-4">Đang tìm kiếm...</div>
+          </div>
+        ) : (
+          <div>
+            <Title level={2} className="text-center mb-6">
+              {searchResults.length > 0 ? (
+                <div>
+                  <div className="text-2xl font-bold text-gray-800">
+                    {totalResults} Kết quả tìm kiếm cho "{searchTerm}"
+                  </div>
+                </div>
+              ) : (
+                'Câu Hỏi Thường Gặp'
+              )}
+            </Title>
+            <Collapse
+              items={filteredFAQs}
+              className="bg-white"
+              size="large"
+            />
+          </div>
+        )}
 
         {/* Additional Help */}
         <div className="mt-12 text-center">

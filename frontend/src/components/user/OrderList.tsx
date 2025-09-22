@@ -31,15 +31,21 @@ const OrderList: FC<OrderListProps> = ({ orders, onCancel }) => {
             <p className="mt-1 max-w-2xl text-sm text-gray-500">Trạng thái: {order.status}</p>
           </div>
           <div className="px-4 py-4 bg-gray-50" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-end">
-              <Button
-                type="primary"
-                danger
-                disabled={order.status === OrderStatus.CANCELLED}
-                onClick={() => onCancel(order.id)}
-              >
-                Hủy đơn hàng
-              </Button>
+            <div className="flex justify-end gap-2">
+              {(order.status === OrderStatus.PENDING || order.status === OrderStatus.CONFIRMED || order.status === OrderStatus.PROCESSING) && (
+                <Button
+                  type="primary"
+                  danger
+                  onClick={() => onCancel(order.id)}
+                >
+                  Hủy đơn hàng
+                </Button>
+              )}
+              {(order.status === OrderStatus.SHIPPED || order.status === OrderStatus.DELIVERED || order.status === OrderStatus.CANCELLED) && (
+                <Button onClick={() => navigate(`/user/orders/${order.id}`)}>
+                  Xem chi tiết
+                </Button>
+              )}
             </div>
           </div>
         </div>

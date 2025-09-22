@@ -10,6 +10,7 @@ import categoryRoutes from "./routes/categoryRoutes";
 import shippingAddressRoutes from './routes/shippingAddressRoutes';
 import discountCodeRoutes from './routes/discountCodeRoutes';
 import shipperRoutes from './routes/shipperRoutes';
+import helpCenterRoutes from './routes/helpCenterRoutes';
 
 const app = express();
 
@@ -26,5 +27,7 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/shipping-addresses', shippingAddressRoutes);
 app.use('/api/discount-codes', discountCodeRoutes);
 app.use('/api/shippers', shipperRoutes);
+app.use('/api/help-center', helpCenterRoutes);
+
 
 export default app; 

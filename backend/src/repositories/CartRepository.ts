@@ -9,12 +9,44 @@ export class CartRepository implements ICartRepository {
   async getCart(userId: number): Promise<any> {
     let cart = await this.prisma.cart.findUnique({
       where: { userId },
-      include: { items: { include: { product: true } } }
+      include: { 
+        items: { 
+          include: { 
+            product: {
+              select: {
+                id: true,
+                name: true,
+                imageUrl: true,
+                stock: true,
+                status: true,
+                price: true,
+                promotionalPrice: true
+              }
+            } 
+          } 
+        } 
+      }
     });
     if (!cart) {
       cart = await this.prisma.cart.create({
         data: { userId },
-        include: { items: { include: { product: true } } }
+        include: { 
+          items: { 
+            include: { 
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  imageUrl: true,
+                  stock: true,
+                  status: true,
+                  price: true,
+                  promotionalPrice: true
+                }
+              } 
+            } 
+          } 
+        }
       });
     }
     return cart;
@@ -24,11 +56,39 @@ export class CartRepository implements ICartRepository {
     if (!cart) {
       cart = await this.prisma.cart.create({ data: { userId } });
     }
+    
+    // Get product to determine the correct price (promotional or regular)
+    const product = await this.prisma.product.findUnique({ where: { id: productId } });
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    
+    // Use promotional price if available and valid, otherwise use regular price
+    const regularPrice = Number(product.price);
+    const promotionalPrice = product.promotionalPrice ? Number(product.promotionalPrice) : null;
+    
+    const price = (promotionalPrice && promotionalPrice > 0 && promotionalPrice < regularPrice) 
+      ? promotionalPrice 
+      : regularPrice;
+    
     const existingItem = await this.prisma.cartItem.findFirst({ where: { cartId: cart.id, productId } });
     if (existingItem) {
-      return this.prisma.cartItem.update({ where: { id: existingItem.id }, data: { quantity: existingItem.quantity + quantity } });
+      return this.prisma.cartItem.update({ 
+        where: { id: existingItem.id }, 
+        data: { 
+          quantity: existingItem.quantity + quantity,
+          price: price // Update price to current price
+        } 
+      });
     }
-    return this.prisma.cartItem.create({ data: { cartId: cart.id, productId, quantity } });
+    return this.prisma.cartItem.create({ 
+      data: { 
+        cartId: cart.id, 
+        productId, 
+        quantity,
+        price: price
+      } 
+    });
   }
   async updateCartItem(userId: number, itemId: number, quantity: number): Promise<CartItem> {
     const cart = await this.prisma.cart.findUnique({ where: { userId } });

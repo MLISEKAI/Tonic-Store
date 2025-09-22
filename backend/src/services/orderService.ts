@@ -72,6 +72,13 @@ export const createOrder = async (
 
     const order = await orderRepository.createOrderWithItems(orderData, orderWithItemsInclude);
 
+    // If order is created with DELIVERED status, update soldCount immediately
+    if (status === OrderStatus.DELIVERED) {
+      for (const item of items) {
+        await productRepository.updateSoldCount(item.productId, item.quantity);
+      }
+    }
+
     // Create notification for the user
     await orderRepository.createNotification(
       userId,

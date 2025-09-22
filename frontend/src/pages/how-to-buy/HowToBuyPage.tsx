@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Card, Steps, Typography, Row, Col, Space, Button, List, Alert } from 'antd';
 import { 
   UserOutlined, 
@@ -7,7 +7,6 @@ import {
   TruckOutlined,
   CheckCircleOutlined,
   QuestionCircleOutlined,
-  PhoneOutlined,
   MessageOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
@@ -15,6 +14,14 @@ import { Link } from 'react-router-dom';
 const { Title, Text, Paragraph } = Typography;
 
 const HowToBuyPage: React.FC = () => {
+  const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const handleStepChange = (index: number) => {
+    contentRefs.current[index]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
+
   const steps = [
     {
       title: 'Tạo Tài Khoản',
@@ -234,23 +241,30 @@ const HowToBuyPage: React.FC = () => {
         {/* Steps */}
         <div className="mb-16">
           <Steps
+            // current={current}
             direction="vertical"
-            size="large"
+            size="default"
             items={steps.map(step => ({
               title: step.title,
               description: step.description,
               icon: step.icon,
             }))}
+            onChange={handleStepChange}
           />
-          
           <div className="mt-8">
             {steps.map((step, index) => (
-              <Card key={index} className="mb-6">
-                <Title level={3} className="mb-4">
-                  Bước {index + 1}: {step.title}
-                </Title>
-                {step.content}
-              </Card>
+              <div
+                key={index}
+                ref={(el) => (contentRefs.current[index] = el)}
+                className="mb-6 scroll-mt-[156px]"
+              >
+                <Card key={index} className="mb-6">
+                  <Title level={3} className="mb-4">
+                    Bước {index + 1}: {step.title}
+                  </Title>
+                  {step.content}
+                </Card>
+              </div>
             ))}
           </div>
         </div>

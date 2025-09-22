@@ -125,7 +125,7 @@ const CheckoutPage: React.FC = () => {
   
       // Chuẩn bị dữ liệu đơn hàng
       const cartTotal = cart.items.reduce((sum, item) => 
-        sum + parseFloat(item.product.price.toString().replace(',', '.')) * item.quantity, 
+        sum + parseFloat(item.price.toString().replace(',', '.')) * item.quantity, 
         0
       );
 
@@ -133,7 +133,7 @@ const CheckoutPage: React.FC = () => {
         items: cart.items.map(item => ({
           productId: item.product.id,
           quantity: item.quantity,
-          price: parseFloat(item.product.price.toString().replace(',', '.'))
+          price: parseFloat(item.price.toString().replace(',', '.'))
         })),
         totalPrice: finalPrice || cartTotal,
         originalPrice: cartTotal,
@@ -440,7 +440,7 @@ const CheckoutPage: React.FC = () => {
             <PromotionCodeInput
               ref={promotionCodeRef}
               orderValue={cart.items.reduce((sum, item) => 
-                sum + parseFloat(item.product.price.toString().replace(',', '.')) * item.quantity, 
+                sum + parseFloat(item.price.toString().replace(',', '.')) * item.quantity, 
                 0
               )}
               onDiscountApplied={(discount, final, code) => {
@@ -454,7 +454,7 @@ const CheckoutPage: React.FC = () => {
               {cart.items.map((item) => (
                 <div key={item.product.id} className="flex justify-between">
                   <span>{item.product.name} x {item.quantity}</span>
-                  <span>{formatPrice(item.product.price * item.quantity)}</span>
+                  <span>{formatPrice(item.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
@@ -462,7 +462,7 @@ const CheckoutPage: React.FC = () => {
             <div className="border-t pt-4 space-y-2">
               <div className="flex justify-between">
                 <span>Tạm tính:</span>
-                <span>{formatPrice(cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0))}</span>
+                <span>{formatPrice(cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0))}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-green-600">
@@ -472,7 +472,7 @@ const CheckoutPage: React.FC = () => {
               )}
               <div className="flex justify-between font-semibold">
                 <span>Tổng cộng:</span>
-                <span>{formatPrice(finalPrice || cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0))}</span>
+                <span>{formatPrice(finalPrice || cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0))}</span>
               </div>
             </div>
           </div>

@@ -224,7 +224,7 @@ const BlogPage: React.FC = () => {
                   <Tag color="blue">{filteredPosts[0].category}</Tag>
                   <Space>
                     <CalendarOutlined />
-                    <Paragraph>{formatDate(filteredPosts[0].publishDate)}</Paragraph>
+                    <div>{formatDate(filteredPosts[0].publishDate)}</div>
                   </Space>
                 </div>
                 <Title level={3} className="mb-4">
@@ -236,16 +236,16 @@ const BlogPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <Space>
                     <UserOutlined />
-                    <Paragraph>{filteredPosts[0].author}</Paragraph>
+                    <div>{filteredPosts[0].author}</div>
                   </Space>
                   <Space>
                     <Space>
                       <EyeOutlined />
-                      <Paragraph>{filteredPosts[0].viewCount}</Paragraph>
+                      <div>{filteredPosts[0].viewCount}</div>
                     </Space>
                     <Space>
                       <LikeOutlined />
-                      <Paragraph>{filteredPosts[0].likes}</Paragraph>
+                      <div>{filteredPosts[0].likes}</div>
                     </Space>
                   </Space>
                 </div>
@@ -279,8 +279,8 @@ const BlogPage: React.FC = () => {
                   className="h-full"
                 >
                   <div className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Tag color="blue">{post.category}</Tag>
+                    <div className="mb-3">
+                      <Tag className="mb-2" color="blue">{post.category}</Tag>
                       <Space wrap>
                          <Tag icon={<CalendarOutlined />}>{post.publishDate}</Tag>
                          <Tag icon={<UserOutlined />}>{post.author}</Tag>
@@ -299,16 +299,16 @@ const BlogPage: React.FC = () => {
                     <div className="flex items-center justify-between mb-4">
                       <Space>
                         <UserOutlined />
-                        <Paragraph className="text-sm">{post.author}</Paragraph>
+                        <div className="text-sm">{post.author}</div>
                       </Space>
                       <Space>
                         <Space>
                           <EyeOutlined />
-                          <Paragraph className="text-sm">{post.viewCount}</Paragraph>
+                          <div className="text-sm">{post.viewCount}</div>
                         </Space>
                         <Space>
                           <LikeOutlined />
-                          <Paragraph className="text-sm">{post.likes}</Paragraph>
+                          <div className="text-sm">{post.likes}</div>
                         </Space>
                       </Space>
                     </div>

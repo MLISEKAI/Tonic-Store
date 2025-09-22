@@ -14,6 +14,7 @@ interface CartItem {
   id: number;
   product: Product;
   quantity: number;
+  price: number;
 }
 
 interface Cart {
@@ -80,25 +81,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       setError(null);
-      const result = await CartService.addToCart(product.id, quantity);
-      setCart(prevCart => {
-        const existingItem = prevCart.items.find(item => item.product.id === product.id);
-        if (existingItem) {
-          return {
-            ...prevCart,
-            items: prevCart.items.map(item =>
-              item.product.id === product.id
-                ? { ...item, quantity: item.quantity + quantity }
-                : item
-            )
-          };
-        } else {
-          return {
-            ...prevCart,
-            items: [...prevCart.items, { id: result.id, product, quantity }]
-          };
-        }
-      });
+      await CartService.addToCart(product.id, quantity);
+      await fetchCart();
     } catch (err) {
       setError('Không thể thêm vào giỏ hàng');
       console.error('Error adding to cart:', err);

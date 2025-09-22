@@ -416,7 +416,7 @@ const Footer: FC<FooterProps> = ({
               ))}
             </div>
           </section>
-          <div className="w-full h-px bg-gray-300 my-8" />
+          <div className="w-full h-px bg-gray-300 my-4" />
         </>
       )}
 
@@ -547,7 +547,7 @@ const Footer: FC<FooterProps> = ({
         <section>
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-500 text-sm text-center md:text-left">
-              © {new Date().getFullYear()} Tonic Store. Bảo lưu mọi quyền.
+              © {new Date().getFullYear()} Tonic Store. Tất cả các quyền được bảo lưu.
             </p>
           </div>
         </section>

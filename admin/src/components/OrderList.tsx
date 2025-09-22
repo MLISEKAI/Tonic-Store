@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Select, notification, Modal, Input, Card, Typography, Descriptions, Divider, Space, Tag } from 'antd';
+import { Rate } from 'antd';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import OrderService from '../services/orderService';
@@ -29,6 +30,7 @@ const OrderList: React.FC = () => {
   const [transactionId, setTransactionId] = useState('');
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedOrderDetail, setSelectedOrderDetail] = useState<OrderDetail | null>(null);
+  const [deliveryRating, setDeliveryRating] = useState<{ rating: number; comment?: string; createdAt: string } | null>(null);
   const [assignShipperModalVisible, setAssignShipperModalVisible] = useState(false);
   const [selectedOrderForShipper, setSelectedOrderForShipper] = useState<OrderDetail | null>(null);
   const [shippers, setShippers] = useState<any[]>([]);
@@ -183,6 +185,13 @@ const OrderList: React.FC = () => {
       // Lấy thông tin chi tiết mới nhất của đơn hàng
       const orderDetail = await OrderService.getOrder(order.id);
       setSelectedOrderDetail(orderDetail);
+      // Lấy đánh giá giao hàng (nếu có)
+      try {
+        const rating = await ShipperService.getOrderDeliveryRating(parseInt(order.id));
+        setDeliveryRating(rating);
+      } catch (e) {
+        setDeliveryRating(null);
+      }
       setDetailModalVisible(true);
     } catch (err) {
       console.error('Error fetching order details:', err);
@@ -556,6 +565,22 @@ const OrderList: React.FC = () => {
                 <Descriptions.Item label="Địa chỉ">{selectedOrderDetail.shipper.address}</Descriptions.Item>
                 <Descriptions.Item label="Được giao vào lúc">
                   {format(new Date(selectedOrderDetail.updatedAt), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                </Descriptions.Item>
+              </Descriptions>
+            )}
+
+            {deliveryRating && (
+              <Descriptions title="Đánh giá của người dùng" bordered>
+                <Descriptions.Item label="Số sao">
+                  <Rate disabled defaultValue={deliveryRating.rating} />
+                </Descriptions.Item>
+                {deliveryRating.comment && (
+                  <Descriptions.Item label="Nhận xét" span={3}>
+                    {deliveryRating.comment}
+                  </Descriptions.Item>
+                )}
+                <Descriptions.Item label="Thời gian">
+                  {format(new Date(deliveryRating.createdAt), 'dd/MM/yyyy HH:mm', { locale: vi })}
                 </Descriptions.Item>
               </Descriptions>
             )}

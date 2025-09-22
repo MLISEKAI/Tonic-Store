@@ -20,6 +20,8 @@ import {
   BellOutlined,
   MenuOutlined,
   CloseOutlined,
+  CreditCardOutlined,
+  GiftOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useAuth } from '../../contexts/AuthContext';
@@ -43,7 +45,7 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const { cart, totalItems, removeFromCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
@@ -142,6 +144,24 @@ const Navbar = () => {
         <Link to="/wishlist" className="flex items-center">
           <HeartOutlined className="mr-2" />
           Yêu thích
+        </Link>
+      )
+    },
+    {
+      key: 'wallet',
+      label: (
+        <Link to="/user/wallet" className="flex items-center">
+          <CreditCardOutlined className="mr-2" />
+          Ví Tonic Store
+        </Link>
+      )
+    },
+    {
+      key: 'xu',
+      label: (
+        <Link to="/user/xu" className="flex items-center">
+          <GiftOutlined className="mr-2" />
+          Tonic Xu
         </Link>
       )
     },

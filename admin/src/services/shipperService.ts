@@ -74,11 +74,11 @@ export const ShipperService = {
     }
   },
 
-  // Lấy lịch sử giao hàng của đơn hàng
+  // Lấy lịch sử giao hàng của một đơn hàng (admin)
   async getOrderDeliveryLogs(orderId: number) {
     try {
       const token = getAuthToken();
-      const response = await fetch(`${API_URL}/api/shippers/orders/${orderId}/logs`, {
+      const response = await fetch(`${API_URL}/api/orders/${orderId}/delivery/logs`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -91,6 +91,29 @@ export const ShipperService = {
       return response.json();
     } catch (error) {
       console.error('Error fetching delivery logs:', error);
+      throw error;
+    }
+  },
+
+  // Lấy đánh giá của người dùng cho đơn hàng (admin)
+  async getOrderDeliveryRating(orderId: number) {
+    try {
+      const token = getAuthToken();
+      const response = await fetch(`${API_URL}/api/orders/${orderId}/delivery/rating`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        // 404 coi như chưa có đánh giá
+        if (response.status === 404) return null;
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch delivery rating');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching delivery rating:', error);
       throw error;
     }
   }
