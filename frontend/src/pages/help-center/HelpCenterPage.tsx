@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Card, Collapse, Input, Button, Typography, Space, Tag, AutoComplete, Spin } from 'antd';
+import { Card, Collapse, Input, Button, Typography, Space, Tag, AutoComplete, Spin, Breadcrumb } from 'antd';
 import { SearchOutlined, PhoneOutlined, MailOutlined } from '@ant-design/icons';
 import { HelpCenterService, FAQSuggestion, FAQSearchResult } from '../../services/helpCenter/helpCenterService';
 import { useSearchParams } from 'react-router-dom';

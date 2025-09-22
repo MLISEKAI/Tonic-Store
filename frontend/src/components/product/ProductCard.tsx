@@ -8,7 +8,7 @@ import WishlistButton from '../home/WishlistButton';
 interface ProductCardProps {
   product: Product;
   onAddToCart?: (product: Product) => void;
-  breadcrumb?: { path: string; label: string };
+  breadcrumb?: { path: string; label: string }[];
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, breadcrumb }) => {
@@ -16,14 +16,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, breadcr
 
   const handleClick = () => {
     let fromMenu;
-    if (breadcrumb?.path === '/flash-sale') fromMenu = 'flash-sale';
-    else if (breadcrumb?.path === '/featured-products') fromMenu = 'featured-products';
-    else if (breadcrumb?.path === '/best-sellers') fromMenu = 'best-sellers';
-    else if (breadcrumb?.path === '/new-arrivals') fromMenu = 'new-arrivals';
-    else if (breadcrumb?.path === '/products') fromMenu = 'products';
-    else if (breadcrumb?.path === '/categories') fromMenu = 'categories';
+    if (breadcrumb && Array.isArray(breadcrumb) && breadcrumb.length > 0) {
+      const lastPath = breadcrumb[breadcrumb.length - 1].path;
+      if (lastPath === '/flash-sale') fromMenu = 'flash-sale';
+      else if (lastPath === '/featured-products') fromMenu = 'featured-products';
+      else if (lastPath === '/best-sellers') fromMenu = 'best-sellers';
+      else if (lastPath === '/new-arrivals') fromMenu = 'new-arrivals';
+      else if (lastPath === '/products') fromMenu = 'products';
+      else if (lastPath === '/categories') fromMenu = 'categories';
+    }
+  
     if (fromMenu) {
-      navigate(`/products/${product.id}?from=${fromMenu}`, { state: { breadcrumb, fromMenu } });
+      navigate(`/products/${product.id}`, { state: { fromMenu, breadcrumb } });
     } else {
       navigate(`/products/${product.id}`, { state: { breadcrumb } });
     }

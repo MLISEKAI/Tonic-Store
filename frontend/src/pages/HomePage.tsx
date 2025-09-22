@@ -12,6 +12,7 @@ import FlashSale from '../components/flash-sale/FlashSale';
 import Sidebar from '../components/layout/Sidebar';
 import Footer from '../components/layout/Footer';
 import { useAuth } from '../contexts/AuthContext';
+import { getBreadcrumbFromPath } from '../utils/breadcrumb';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -19,6 +20,9 @@ const HomePage = () => {
   const { products, filteredProducts } = useProducts();
   const { addToCart } = useCart();
   const [visibleSuggestions, setVisibleSuggestions] = useState(10);
+  const flashSaleBreadcrumb = getBreadcrumbFromPath('/flash-sale', '');
+  const featuredBreadcrumb = getBreadcrumbFromPath('/featured-products', '');
+  const bestSellersBreadcrumb = getBreadcrumbFromPath('/best-sellers', '');
 
   React.useEffect(() => {
     if (!isAuthenticated || !user) return;
@@ -37,13 +41,6 @@ const HomePage = () => {
         break;
     }
   }, [isAuthenticated, user, logout, navigate]);
-
-  if (loading) return <div>Đang kiểm tra đăng nhập...</div>;
-
-  // Breadcrumb context cho từng mục
-  const flashSaleBreadcrumb = { path: '/flash-sale', label: 'Khuyến mãi' };
-  const featuredBreadcrumb = { path: '/featured-products', label: 'Sản phẩm nổi bật' };
-  const bestSellersBreadcrumb = { path: '/best-sellers', label: 'Sản phẩm bán chạy' };
 
   const handleAddToCart = async (product: Product) => {
     try {

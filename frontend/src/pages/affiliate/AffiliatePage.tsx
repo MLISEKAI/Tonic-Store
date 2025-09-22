@@ -126,12 +126,12 @@ const AffiliatePage: React.FC = () => {
 
         {/* CTA */}
         <div className="text-center mb-16">
-          <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-0">
+          <Card className="bg-blue-50 border-blue-200">
             <Space direction="vertical" size="large">
-              <Title level={2} className="text-gray-800">
+              <Title level={2} className="text-blue-800">
                 Bắt Đầu Kiếm Tiền Ngay Hôm Nay
               </Title>
-              <Paragraph className="text-lg text-gray-600">
+              <Paragraph className="text-blue-700">
                 Tham gia chương trình affiliate và kiếm hoa hồng từ mỗi đơn hàng bạn giới thiệu
               </Paragraph>
               <Button

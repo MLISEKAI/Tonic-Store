@@ -23,13 +23,26 @@ const ProductDetailPage = () => {
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
 
-  let breadcrumbParent = location.state?.breadcrumb;
-  if (!breadcrumbParent && product?.promotionalPrice && product?.promotionalPrice < product?.price) {
-    breadcrumbParent = { path: '/flash-sale', label: 'Khuyến mãi' };
+  const state = location.state as { fromMenu?: string; breadcrumb?: any };
+  
+  let breadcrumb: { path: string; label: string }[] = [{ path: '/', label: 'Trang chủ' }];
+  
+  if (state?.fromMenu) {
+    if (state.fromMenu === 'featured-products') {
+      breadcrumb.push({ path: '/featured-products', label: 'Sản phẩm nổi bật' });
+    } else if (state.fromMenu === 'best-sellers') {
+      breadcrumb.push({ path: '/best-sellers', label: 'Sản phẩm bán chạy' });
+    } else if (state.fromMenu === 'flash-sale') {
+      breadcrumb.push({ path: '/flash-sale', label: 'Khuyến mãi' });
+    } else if (state.fromMenu === 'new-arrivals') {
+      breadcrumb.push({ path: '/new-arrivals', label: 'Hàng mới về' });
+    } else {
+      breadcrumb.push({ path: '/products', label: 'Sản phẩm' });
+    }
+  } else {
+    breadcrumb = getBreadcrumbFromPath(location.pathname, location.search);
   }
-  if (!breadcrumbParent) {
-    breadcrumbParent = getBreadcrumbFromPath(location.pathname, location.search);
-  }
+  
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -99,12 +112,11 @@ const ProductDetailPage = () => {
     <div className="container mx-auto px-4 py-6">
       {/* Breadcrumb */}
       <Breadcrumb className="mb-6 text-sm text-gray-600">
-        <Breadcrumb.Item>
-          <Link to="/" className="hover:text-blue-500">Trang chủ</Link>
-        </Breadcrumb.Item>
-        <Breadcrumb.Item>
-          <Link to={breadcrumbParent.path} className="hover:text-blue-500">{breadcrumbParent.label}</Link>
-        </Breadcrumb.Item>
+        {breadcrumb.map((item, index) => (
+          <Breadcrumb.Item key={index}>
+            <Link to={item.path} className="hover:text-blue-500">{item.label}</Link>
+          </Breadcrumb.Item>
+        ))}
         <Breadcrumb.Item>{product.name}</Breadcrumb.Item>
       </Breadcrumb>
   

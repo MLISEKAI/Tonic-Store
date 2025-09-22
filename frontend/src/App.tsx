@@ -31,6 +31,7 @@ import PromotionCode from "./pages/DiscountCodePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import HelpCenterPage from "./pages/help-center/HelpCenterPage";
+import OrdersHelpPage from "./pages/help-center/OrdersHelpPage";
 import MallPage from "./pages/mall/MallPage";
 import HowToBuyPage from "./pages/how-to-buy/HowToBuyPage";
 import TermsPage from "./pages/terms/TermsPage";
@@ -38,10 +39,10 @@ import PrivacyPage from "./pages/privacy/PrivacyPage";
 import CareersPage from "./pages/careers/CareersPage";
 import ReturnRefundPage from "./pages/return-refund/ReturnRefundPage";
 import HowToSellPage from "./pages/how-to-sell/HowToSellPage";
-import WalletPage from "./pages/user/WalletPage";
-import WalletHelpPage from "./pages/wallet/WalletHelpPage";
+import WalletPage from "./pages/wallet/WalletPage";
+import WalletHelpPage from "./pages/help-center/WalletHelpPage";
 import XuPage from "./pages/xu/XuPage";
-import XuHelpPage from "./pages/xu/XuHelpPage";
+import XuHelpPage from "./pages/help-center/XuHelpPage";
 import WarrantyPage from "./pages/warranty/WarrantyPage";
 import SellerPage from "./pages/seller/SellerPage";
 import AffiliatePage from "./pages/affiliate/AffiliatePage";
@@ -178,9 +179,7 @@ const AppContent = () => {
                           </ProtectedRoute>
                         } />
                         <Route path="/categories" element={<CategoriesPage />} />
-                        <Route path="/about" element={<AboutPage />} />
                         <Route path="/search" element={<SearchPage />} />
-                        <Route path="/contact" element={<ContactPage />} />
                         <Route path="/wishlist" element={
                           <ProtectedRoute>
                             <WishlistPage />
@@ -194,21 +193,21 @@ const AppContent = () => {
                         <Route path="/featured-products" element={<FeaturedProductsPage />} />
                         <Route path="/blog" element={<BlogPage />} />
                         <Route path="/blog/:id" element={<BlogPage />} />
-
+                        
+                        // Dịch vụ khách hàng
                         <Route path="/help-center" element={<HelpCenterPage />} />
-                        <Route path="/mall" element={<MallPage />} />
+                        <Route path="/help-center/orders" element={<OrdersHelpPage />} />
                         <Route path="/how-to-buy" element={<HowToBuyPage />} />
-                        <Route path="/terms" element={<TermsPage />} />
-                        <Route path="/privacy" element={<PrivacyPage />} />
-                        <Route path="/careers" element={<CareersPage />} />
                         <Route path="/return-refund" element={<ReturnRefundPage />} />
                         <Route path="/how-to-sell" element={<HowToSellPage />} />
+                        
                         <Route path="/wallet" element={<WalletHelpPage />} />
                         <Route path="/user/wallet" element={
                           <ProtectedRoute>
                             <WalletPage />
                           </ProtectedRoute>
                         } />
+                        
                         <Route path="/xu" element={<XuHelpPage />} />
                         <Route path="/user/xu" element={
                           <ProtectedRoute>
@@ -216,6 +215,14 @@ const AppContent = () => {
                           </ProtectedRoute>
                         } />
                         <Route path="/warranty" element={<WarrantyPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
+
+                        // Tonic Store Việt Nam
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/terms" element={<TermsPage />} />
+                        <Route path="/privacy" element={<PrivacyPage />} />
+                        <Route path="/careers" element={<CareersPage />} />
+                        <Route path="/mall" element={<MallPage />} />
                         <Route path="/seller" element={<SellerPage />} />
                         <Route path="/affiliate" element={<AffiliatePage />} />
                         <Route path="/media-contact" element={<MediaContactPage />} />
