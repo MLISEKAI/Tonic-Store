@@ -297,6 +297,7 @@ const Footer: FC<FooterProps> = ({
 
   // Sử dụng danh mục mặc định nếu không có categoryColumns được truyền vào
   const categoriesToShow = categoryColumns.length > 0 ? categoryColumns : defaultCategories;
+  
   // Dịch vụ khách hàng
   const customerServiceLinks = [
     { label: "Trung Tâm Trợ Giúp", path: "/help-center" },
@@ -306,7 +307,7 @@ const Footer: FC<FooterProps> = ({
     { label: "Hướng Dẫn Bán Hàng", path: "/how-to-sell" },
     { label: "Ví TonicPay", path: "/wallet" },
     { label: "Tonic Xu", path: "/xu" },
-    { label: "Đơn Hàng", path: "/user/orders" },
+    { label: "Hướng Dẫn Đơn Hàng", path: "/help-center/orders" },
     { label: "Trả Hàng/Hoàn Tiền", path: "/return-refund" },
     { label: "Liên Hệ", path: "/contact" },
     { label: "Chính Sách Bảo Hành", path: "/warranty" },
@@ -320,7 +321,7 @@ const Footer: FC<FooterProps> = ({
     { label: "Chính Sách Bảo Mật", path: "/privacy" },
     { label: "Tonic Mall", path: "/mall" },
     { label: "Kênh Người Bán", path: "/seller" },
-    { label: "Flash Sale", path: "/flash-sale" },
+    { label: "Khuyến Mãi", path: "/flash-sale" },
     { label: "Tiếp Thị Liên Kết", path: "/affiliate" },
     { label: "Liên Hệ Truyền Thông", path: "/media-contact" },
   ];

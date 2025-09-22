@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
-import { Spin, notification } from 'antd';
+import { Spin, notification, Breadcrumb } from 'antd';
 import { CategoryService } from '../services/category/categoryService';
 import { ProductService } from '../services/product/productService';
 import { CartService } from '../services/carts/cartService';
@@ -91,6 +91,14 @@ const CategoriesPage: FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Breadcrumb */}
+      <Breadcrumb className="mb-4 text-sm text-gray-600">
+        {breadcrumb.map((item, idx) => (
+          <Breadcrumb.Item key={idx}>
+            <Link to={item.path}>{item.label}</Link>
+          </Breadcrumb.Item>
+        ))}
+      </Breadcrumb>
       <h1 className="text-3xl font-bold mb-8 text-center">
         {selectedCategory ? `Sản phẩm trong danh mục: ${selectedCategory}` : 'Danh mục sản phẩm'}
       </h1>

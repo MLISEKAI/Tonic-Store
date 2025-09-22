@@ -1,20 +1,25 @@
 import React, { useRef } from 'react';
-import { Card, Steps, Typography, Row, Col, Space, Button, List, Alert, Avatar } from 'antd';
+import { Link, useLocation } from 'react-router-dom';
+import { Card, Steps, Typography, Row, Col, Space, Button, List, Alert, Avatar, Breadcrumb } from 'antd';
 import { 
   UserOutlined, 
   ShopOutlined, 
   DollarOutlined, 
   CheckCircleOutlined,
-  QuestionCircleOutlined,
   PhoneOutlined,
   MessageOutlined,
   TrophyOutlined
 } from '@ant-design/icons';
+import { getBreadcrumbFromPath } from '../../utils/breadcrumb';
 
 const { Title, Text, Paragraph } = Typography;
 
 const HowToSellPage: React.FC = () => {
   const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const location = useLocation();
+  const breadcrumb = getBreadcrumbFromPath(location.pathname, location.search);
+
+
   const handleStepChange = (index: number) => {
     contentRefs.current[index]?.scrollIntoView({
       behavior: 'smooth',
@@ -199,6 +204,13 @@ const HowToSellPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+       <Breadcrumb className="mb-4 text-sm text-gray-600">
+        {breadcrumb.map((item, idx) => (
+          <Breadcrumb.Item key={idx}>
+            <Link to={item.path}>{item.label}</Link>
+          </Breadcrumb.Item>
+        ))}
+      </Breadcrumb>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">

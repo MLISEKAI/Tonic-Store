@@ -145,7 +145,7 @@ const SellerPage: React.FC = () => {
 
         {/* CTA */}
         <div className="text-center mb-16">
-          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-0">
+          <Card className="bg-blue-50 border-blue-200">
             <Space direction="vertical" size="large">
               <Title level={2} className="text-gray-800">
                 Sẵn Sàng Bắt Đầu Bán Hàng?

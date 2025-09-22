@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Card, Collapse, Typography, Space, Tag, Button, Input, Row, Col, Alert, AutoComplete, Spin } from 'antd';
+import { Link, useLocation } from 'react-router-dom';
+import { Card, Collapse, Typography, Space, Tag, Button, Input, Row, Col, Alert, AutoComplete, Spin, Breadcrumb } from 'antd';
 import { 
   GiftOutlined, 
   PhoneOutlined, 
@@ -7,10 +8,11 @@ import {
   SearchOutlined,
   StarOutlined,
   TrophyOutlined,
-  ExclamationCircleOutlined,
   ShoppingOutlined,
   CrownOutlined
 } from '@ant-design/icons';
+import { getBreadcrumbFromPath } from '../../utils/breadcrumb';
+
 
 const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
@@ -42,6 +44,8 @@ const XuHelpPage: React.FC = () => {
   const [suggestions, setSuggestions] = useState<FAQSearchResult[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const location = useLocation();
+  const breadcrumb = getBreadcrumbFromPath(location.pathname, location.search);
 
   // Debounced search for suggestions
   const debouncedSearch = useCallback(
@@ -346,6 +350,13 @@ const XuHelpPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+       <Breadcrumb className="mb-4 text-sm text-gray-600">
+        {breadcrumb.map((item, idx) => (
+          <Breadcrumb.Item key={idx}>
+            <Link to={item.path}>{item.label}</Link>
+          </Breadcrumb.Item>
+        ))}
+      </Breadcrumb>
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -444,13 +455,12 @@ const XuHelpPage: React.FC = () => {
 
         {/* Contact Support */}
         <div className="mt-12 text-center">
-          <Card className="bg-purple-50 border-purple-200">
+          <Card className="bg-blue-50 border-blue-200">
             <Space direction="vertical" size="large">
-              <Title level={3} className="text-purple-800">
-                <ExclamationCircleOutlined className="mr-2" />
+              <Title level={3} className="text-blue-800">
                 Không tìm thấy câu trả lời?
               </Title>
-              <Text className="text-purple-700">
+              <Text className="text-blue-700">
                 Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ bạn
               </Text>
               <Space>

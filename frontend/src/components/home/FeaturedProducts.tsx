@@ -7,7 +7,7 @@ interface FeaturedProductsProps {
   products: Product[];
   onAddToCart: (product: Product) => void;
   showViewAll?: boolean;
-  breadcrumb: { path: string; label: string };
+  breadcrumb: { path: string; label: string }[];
 }
 
 const PAGE_SIZE = 5;

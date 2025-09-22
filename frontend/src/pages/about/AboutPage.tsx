@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Row, Col, Typography, Statistic, Timeline, Avatar, Space } from 'antd';
+import { Card, Row, Col, Typography, Statistic, Timeline, Avatar, Space, Button } from 'antd';
 import { 
   TeamOutlined, 
   TrophyOutlined, 
@@ -8,7 +8,8 @@ import {
   GlobalOutlined,
   CustomerServiceOutlined,
   ShoppingCartOutlined,
-  SafetyOutlined
+  SafetyOutlined,
+  PhoneOutlined
 } from '@ant-design/icons';
 
 const { Title, Text, Paragraph } = Typography;
@@ -230,21 +231,21 @@ const AboutPage: React.FC = () => {
 
         {/* Contact CTA */}
         <div className="text-center">
-          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-0">
+          <Card className="bg-blue-50 border-blue-200">
             <Space direction="vertical" size="large">
-              <Title level={2} className="text-gray-800">
+              <Title level={2} className="text-blue-800">
                 Bạn Có Câu Hỏi Về Chúng Tôi?
               </Title>
-              <Paragraph className="text-lg text-gray-600">
+              <Paragraph className="text-blue-700">
                 Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn
               </Paragraph>
               <Space size="large">
-                <a href="/contact" className="text-blue-600 hover:text-blue-800">
+                <Button type="primary" size="large" href="/contact" icon={<PhoneOutlined />}>
                   Liên Hệ Với Chúng Tôi
-                </a>
-                <a href="/careers" className="text-blue-600 hover:text-blue-800">
+                </Button>
+                <Button type="primary" size="large" href="/careers" icon={<TeamOutlined />}>
                   Gia Nhập Đội Ngũ
-                </a>
+                </Button>
               </Space>
             </Space>
           </Card>

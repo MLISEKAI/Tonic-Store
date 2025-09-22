@@ -6,7 +6,7 @@ import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 interface BestSellersProductsProps {
   products: Product[];
   onAddToCart: (product: Product) => void;
-  breadcrumb: { path: string; label: string };
+  breadcrumb: { path: string; label: string }[];
 }
 
 const PAGE_SIZE = 5;

@@ -9,10 +9,10 @@ import { useFlashSale } from '../../hooks/useFlashSale';
 import ProductCard from '../product/ProductCard';
 
 interface FlashSaleProps {
-  breadcrumb: { path: string; label: string };
+  breadcrumb: { path: string; label: string }[];
 }
 
-const FlashSale: React.FC<FlashSaleProps> = ({ breadcrumb }) => {
+const FlashSale: React.FC<FlashSaleProps> = ({ breadcrumb}) => {
   const { products, loading, error } = useFlashSale();
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -65,21 +65,22 @@ const FlashSale: React.FC<FlashSaleProps> = ({ breadcrumb }) => {
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Flash Sale</h2>
-        <Link
-          to="/flash-sale"
-          className="text-blue-500 flex items-center hover:text-blue-600 transition-colors"
-        >
-          Xem tất cả <RightOutlined className="text-xs ml-1"/>
-        </Link>
+          <Link
+            to="/flash-sale"
+            state={{ fromMenu: 'flash-sale' }}
+            className="text-blue-500 flex items-center hover:text-blue-600 transition-colors"
+          >
+            Xem tất cả <RightOutlined className="text-xs ml-1"/>
+          </Link>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {products.slice(0, 5).map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onAddToCart={() => handleAddToCart(product)}
-            breadcrumb={breadcrumb}
-          />
+         <ProductCard
+          key={product.id}
+          product={product}
+          onAddToCart={() => handleAddToCart(product)}
+          breadcrumb={breadcrumb}
+        />
         ))}
       </div>
     </div>

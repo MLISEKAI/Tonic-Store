@@ -10,7 +10,6 @@ import {
   MessageOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
-
 const { Title, Text, Paragraph } = Typography;
 
 const HowToBuyPage: React.FC = () => {

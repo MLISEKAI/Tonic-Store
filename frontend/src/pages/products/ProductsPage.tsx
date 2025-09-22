@@ -1,7 +1,7 @@
-import { Input, Select, notification, Spin } from 'antd';
+import { Input, Select, notification, Spin, Breadcrumb } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { ProductService } from '../../services/product/productService';
@@ -101,6 +101,14 @@ const ProductsPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Breadcrumb */}
+      <Breadcrumb className="mb-4 text-sm text-gray-600">
+        {breadcrumb.map((item, idx) => (
+            <Breadcrumb.Item key={idx}>
+              <Link to={item.path}>{item.label}</Link>
+            </Breadcrumb.Item>
+          ))}
+      </Breadcrumb>
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <h1 className="text-3xl font-bold mb-4 md:mb-0">
           {categoryId ? decodeURIComponent(categoryId) : 'Tất cả sản phẩm'}
