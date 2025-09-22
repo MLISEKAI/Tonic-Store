@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Card, Steps, Typography, Row, Col, Space, Button, List, Alert, Avatar } from 'antd';
 import { 
   UserOutlined, 
@@ -14,6 +14,13 @@ import {
 const { Title, Text, Paragraph } = Typography;
 
 const HowToSellPage: React.FC = () => {
+  const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const handleStepChange = (index: number) => {
+    contentRefs.current[index]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
   const steps = [
     {
       title: 'Đăng Ký Bán Hàng',
@@ -229,16 +236,23 @@ const HowToSellPage: React.FC = () => {
               description: step.description,
               icon: step.icon,
             }))}
+            onChange={handleStepChange}
           />
           
           <div className="mt-8">
             {steps.map((step, index) => (
+              <div
+                key={index}
+                ref={(el) => (contentRefs.current[index] = el)}
+                className="mb-6 scroll-mt-[156px]"
+              >
               <Card key={index} className="mb-6">
                 <Title level={3} className="mb-4">
                   Bước {index + 1}: {step.title}
                 </Title>
                 {step.content}
               </Card>
+              </div>
             ))}
           </div>
         </div>
@@ -251,13 +265,6 @@ const HowToSellPage: React.FC = () => {
               <Col xs={24} sm={12} lg={8} key={index}>
                 <Card className="h-full">
                   <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0">
-                      {req.required ? (
-                        <CheckCircleOutlined className="text-green-500 text-xl" />
-                      ) : (
-                        <QuestionCircleOutlined className="text-blue-500 text-xl" />
-                      )}
-                    </div>
                     <div>
                       <Title level={4} className="mb-2">{req.title}</Title>
                       <Paragraph className="text-gray-600">{req.description}</Paragraph>

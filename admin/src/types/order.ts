@@ -55,6 +55,12 @@ export interface OrderDetail extends Omit<Order, 'status' | 'items'> {
   };
   promotionCode?: string;
   discount: number;
+  deliveryRating?: {
+    id: number;
+    rating: number;
+    comment?: string;
+    createdAt: string;
+  };
 }
 
 export interface OrderResponse {

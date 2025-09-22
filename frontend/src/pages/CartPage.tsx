@@ -76,7 +76,7 @@ export const CartPage: FC = () => {
   };
 
   const calculateTotal = () => {
-    return cart.items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+    return cart.items.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
   if (!cart.items || cart.items.length === 0) {
@@ -102,7 +102,7 @@ export const CartPage: FC = () => {
               />
               <div className="ml-4 flex-1">
                 <h3 className="font-semibold">{item.product.name}</h3>
-                <p className="text-gray-600">{formatPrice(item.product.price)}</p>
+                <p className="text-gray-600">{formatPrice(item.price)}</p>
               </div>
               <div className="flex items-center">
                 <button

@@ -9,6 +9,7 @@ interface CartItem {
     imageUrl?: string;
   };
   quantity: number;
+  price: number; // Giá tại thời điểm thêm vào giỏ hàng
 }
 
 interface Cart {
@@ -29,7 +30,7 @@ export function useCartState() {
   }, [cart.items]);
 
   const totalPrice = useMemo(() => {
-    return cart.items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+    return cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
   }, [cart.items]);
 
   const clearCart = () => {

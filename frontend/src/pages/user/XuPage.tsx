@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Typography, Button, Input, Space, List, Tag, Modal, Form, Select, Statistic, Alert } from 'antd';
+import { Card, Row, Col, Typography, Button, Input, List, Tag, Modal, Form, Select, Alert } from 'antd';
 import { 
   GiftOutlined, 
   PlusOutlined, 
   MinusOutlined, 
   HistoryOutlined,
   QrcodeOutlined,
-  ShoppingCartOutlined,
   StarOutlined,
   TrophyOutlined
 } from '@ant-design/icons';
@@ -17,6 +16,16 @@ const { Option } = Select;
 
 const XuPage: React.FC = () => {
   const { user } = useAuth();
+  
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <Title level={2}>Vui lòng đăng nhập để sử dụng Tonic Xu</Title>
+        </div>
+      </div>
+    );
+  }
   const [isConvertModalVisible, setIsConvertModalVisible] = useState(false);
   const [isRedeemModalVisible, setIsRedeemModalVisible] = useState(false);
   const [form] = Form.useForm();

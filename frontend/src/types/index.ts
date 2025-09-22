@@ -5,6 +5,7 @@ export enum Role {
 }
 
 export enum OrderStatus {
+  CONFIRMED = 'CONFIRMED',
   PENDING = 'PENDING',
   PROCESSING = 'PROCESSING',
   SHIPPED = 'SHIPPED',
@@ -112,6 +113,7 @@ export interface CartItem {
   cartId: number;
   productId: number;
   quantity: number;
+  price: number;
   product?: Product;
   cart?: Cart;
   createdAt: string;

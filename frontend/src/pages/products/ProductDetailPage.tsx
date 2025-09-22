@@ -130,12 +130,18 @@ const ProductDetailPage = () => {
           </div>
   
           <div className="flex items-center space-x-4">
-            <span className="text-2xl font-bold text-red-500">
-              {formatPrice(product.price)}
-            </span>
-            {product.promotionalPrice && (
-              <span className="text-base text-gray-400 line-through">
-                {formatPrice(product.promotionalPrice)}
+            {product.promotionalPrice && product.promotionalPrice < product.price ? (
+              <>
+                <span className="text-2xl font-bold text-red-500">
+                  {formatPrice(product.promotionalPrice)}
+                </span>
+                <span className="text-base text-gray-400 line-through">
+                  {formatPrice(product.price)}
+                </span>
+              </>
+            ) : (
+              <span className="text-2xl font-bold text-red-500">
+                {formatPrice(product.price)}
               </span>
             )}
           </div>

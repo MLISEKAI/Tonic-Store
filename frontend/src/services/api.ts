@@ -131,6 +131,11 @@ export const ENDPOINTS = {
   SHIPPER: {
     UPDATE_STATUS: (orderId: number) => `${API_URL}/api/shippers/orders/${orderId}/status`,
   },
+  // Help Center
+  HELP_CENTER: {
+    SEARCH: `${API_URL}/api/help-center/search`,
+    SUGGESTIONS: `${API_URL}/api/help-center/suggestions`,
+  },
 };
 
 // Helper function to handle API responses

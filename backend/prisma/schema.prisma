@@ -96,6 +96,7 @@ model CartItem {
   cartId    Int
   productId Int
   quantity  Int      @default(1)
+  price     Float    
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt @default(now())
   cart      Cart     @relation(fields: [cartId], references: [id])

@@ -26,7 +26,7 @@ export const PromotionService = {
   // Lấy danh sách mã giảm giá có sẵn
   getAvailablePromotionCodes: async (): Promise<PromotionCode[]> => {
     try {
-      const response = await fetch(`${API_URL}/discount-codes`, {
+      const response = await fetch(`${API_URL}/api/discount-codes`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -46,7 +46,7 @@ export const PromotionService = {
   // Lấy danh sách mã giảm giá đã nhận
   getClaimedPromotionCodes: async (): Promise<PromotionCode[]> => {
     try {
-      const response = await fetch(`${API_URL}/discount-codes/claimed`, {
+      const response = await fetch(`${API_URL}/api/discount-codes/claimed`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -81,7 +81,7 @@ export const PromotionService = {
         };
       }
 
-      const response = await fetch(`${API_URL}/discount-codes/validate`, {
+      const response = await fetch(`${API_URL}/api/discount-codes/validate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ export const PromotionService = {
         };
       }
 
-      const response = await fetch(`${API_URL}/discount-codes/claim`, {
+      const response = await fetch(`${API_URL}/api/discount-codes/claim`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ export const PromotionService = {
         };
       }
 
-      const response = await fetch(`${API_URL}/discount-codes/apply`, {
+      const response = await fetch(`${API_URL}/api/discount-codes/apply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
