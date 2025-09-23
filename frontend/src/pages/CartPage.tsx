@@ -32,7 +32,7 @@ export const CartPage: FC = () => {
       navigate('/');
       return;
     }
-
+  
     if (!cart.items || cart.items.length === 0) {
       notification.error({
         message: 'Giỏ hàng trống',
@@ -42,27 +42,23 @@ export const CartPage: FC = () => {
       });
       return;
     }
-
-    // Check if user has any shipping addresses
+  
     try {
       const addresses = await ShippingAddressService.getShippingAddresses();
-      if (addresses.length === 0) {
+  
+      if (!addresses || addresses.length === 0) {
         Modal.confirm({
           title: 'Thiếu địa chỉ giao hàng',
-          content: 'Bạn cần thêm địa chỉ giao hàng trước khi thanh toán. Bạn có muốn thêm địa chỉ ngay bây giờ không?',
+          content:
+            'Bạn cần thêm địa chỉ giao hàng trước khi thanh toán. Bạn có muốn thêm địa chỉ ngay bây giờ không?',
           okText: 'Thêm địa chỉ',
           cancelText: 'Quay lại',
-          onOk: () => {
-            navigate('/user/profile');
-          },
-          onCancel: () => {
-            // Do nothing, stay on cart page
-          },
+          onOk: () => navigate('/user/profile'),
+          onCancel: () => navigate('/cart'),
         });
         return;
       }
-
-      // If we have addresses, proceed to checkout
+  
       navigate('/checkout');
     } catch (error) {
       console.error('Error checking shipping addresses:', error);

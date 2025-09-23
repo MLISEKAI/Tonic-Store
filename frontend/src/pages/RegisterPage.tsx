@@ -22,7 +22,7 @@ const RegisterPage = () => {
         email: values.email.toLowerCase().trim(),
         password: values.password,
         phone: values.phone.trim(),
-        address: values.address.trim()
+        address: values.address ? values.address.trim() : ""
       };
 
       // Đăng ký tài khoản
@@ -132,14 +132,14 @@ const RegisterPage = () => {
             name="address"
             label="Địa chỉ"
             rules={[
-              { required: true, message: 'Vui lòng nhập địa chỉ!' },
+              { required: false, message: 'Vui lòng nhập địa chỉ!' },
               { min: 5, message: 'Địa chỉ phải có ít nhất 5 ký tự!' },
               { whitespace: true, message: 'Địa chỉ không được chỉ chứa khoảng trắng!' }
             ]}
           >
             <Input
               size="large"
-              placeholder="Địa chỉ"
+              placeholder="Địa chỉ (không bắt buộc)"
               prefix={<HomeOutlined className="text-gray-400" />}
             />
           </Form.Item>

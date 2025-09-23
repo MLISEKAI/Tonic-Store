@@ -162,6 +162,11 @@ export interface Payment {
   updatedAt: string;
 }
 
+export type IconItem = {
+  name: string;
+  svg: React.FC<React.SVGProps<SVGSVGElement>>;
+};
+
 export interface Review {
   id: number;
   userId: number;

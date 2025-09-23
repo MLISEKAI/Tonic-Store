@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Card, Collapse, Typography, Space, Tag, Button, Input, Row, Col, List, Alert, AutoComplete, Spin, Breadcrumb } from 'antd';
+import { Card, Collapse, Typography, Space, Tag, Button, Input, Row, Col, List, Alert, AutoComplete, Spin } from 'antd';
 import { 
   WalletOutlined, 
   PhoneOutlined, 
@@ -10,8 +10,6 @@ import {
   CreditCardOutlined,
   BankOutlined,
 } from '@ant-design/icons';
-import { getBreadcrumbFromPath } from '../../utils/breadcrumb';
-
 
 const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
@@ -43,8 +41,6 @@ const WalletHelpPage: React.FC = () => {
   const [suggestions, setSuggestions] = useState<FAQSearchResult[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const location = useLocation();
-  const breadcrumb = getBreadcrumbFromPath(location.pathname, location.search);
 
   // Debounced search for suggestions
   const debouncedSearch = useCallback(
@@ -343,13 +339,6 @@ const WalletHelpPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-       <Breadcrumb className="mb-4 text-sm text-gray-600">
-        {breadcrumb.map((item, idx) => (
-          <Breadcrumb.Item key={idx}>
-            <Link to={item.path}>{item.label}</Link>
-          </Breadcrumb.Item>
-        ))}
-      </Breadcrumb>
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
