@@ -17,8 +17,8 @@ export const registerUser = async (
   role: "CUSTOMER" | "ADMIN" | "DELIVERY" = "CUSTOMER"
 ) => {
   // Validate required fields
-  if (!name || !email || !password || !phone || !address) {
-    throw new Error("Name, email, password, phone and address are required");
+  if (!name || !email || !password || !phone) {
+    throw new Error("Name, email, password and phone are required");
   }
 
   // Validate email format
@@ -39,10 +39,23 @@ export const registerUser = async (
       email,
       password: hashedPassword,
       phone,
-      address,
+      address: address || null,
       role
     }
   });
+  
+  // Nếu có nhập địa chỉ, tạo luôn shipping address mặc định cho user
+  if (address && address.trim() !== "") {
+    await prisma.shippingAddress.create({
+      data: {
+        userId: user.id,
+        name,
+        phone,
+        address: address.trim(),
+        isDefault: true
+      }
+    });
+  }
   
   const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: "1d" });
   return { token, user };

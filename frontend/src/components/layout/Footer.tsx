@@ -1,21 +1,10 @@
 import { Link } from "react-router-dom";
-import {
-  FacebookOutlined,
-  InstagramOutlined,
-  LinkedinOutlined,
-  CreditCardOutlined,
-  BankOutlined,
-  AlipayOutlined,
-  PayCircleOutlined,
-  AppleOutlined,
-  AndroidOutlined,
-  WindowsOutlined,
-  CarOutlined,
-  TruckOutlined,
-  RocketOutlined,
-  ShopOutlined,
-} from "@ant-design/icons";
 import type { FC } from "react";
+import { paymentIcons } from "../../constants/paymentIcons";
+import { socialIcon } from "../../constants/socialIcons";
+import { shippingIcon } from "../../constants/shippingIcons";
+import { appdownloadIcon } from "../../constants/appdownloadIcons";
+
 
 type FooterCategory = {
   name: string;
@@ -326,47 +315,6 @@ const Footer: FC<FooterProps> = ({
     { label: "Liên Hệ Truyền Thông", path: "/media-contact" },
   ];
 
-  // Icon thanh toán
-  const paymentIcons = [
-    <CreditCardOutlined key="credit" className="text-2xl text-gray-500" />,
-    <BankOutlined key="bank" className="text-2xl text-gray-500" />,
-    <AlipayOutlined key="alipay" className="text-2xl text-gray-500" />,
-    <PayCircleOutlined key="pay" className="text-2xl text-gray-500" />,
-    <AppleOutlined key="applepay" className="text-2xl text-gray-500" />,
-    <AndroidOutlined key="googlepay" className="text-2xl text-gray-500" />,
-    <WindowsOutlined key="windowspay" className="text-2xl text-gray-500" />,
-  ];
-
-  // Icon vận chuyển
-  const shippingIcons = [
-    <CarOutlined key="car" className="text-2xl text-gray-500" />,
-    <TruckOutlined key="truck" className="text-2xl text-gray-500" />,
-    <RocketOutlined key="rocket" className="text-2xl text-gray-500" />,
-    <ShopOutlined key="shop" className="text-2xl text-gray-500" />,
-    <BankOutlined key="bank2" className="text-2xl text-gray-500" />,
-    <CreditCardOutlined key="credit2" className="text-2xl text-gray-500" />,
-    <AlipayOutlined key="alipay2" className="text-2xl text-gray-500" />,
-    <PayCircleOutlined key="pay2" className="text-2xl text-gray-500" />,
-  ];
-
-  // Icon mạng xã hội
-  const socialIcons = [
-    {
-      icon: <FacebookOutlined className="text-xl" />,
-      label: "Facebook",
-      href: "#",
-    },
-    {
-      icon: <InstagramOutlined className="text-xl" />,
-      label: "Instagram",
-      href: "#",
-    },
-    {
-      icon: <LinkedinOutlined className="text-xl" />,
-      label: "LinkedIn",
-      href: "#",
-    },
-  ];
 
   return (
     <footer
@@ -429,7 +377,7 @@ const Footer: FC<FooterProps> = ({
             : "max-w-7xl mx-auto p-8"
         }
       >
-        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 text-sm text-gray-600">
+        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 text-sm text-gray-600">
           {/* Dịch Vụ Khách Hàng */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase">
@@ -475,9 +423,11 @@ const Footer: FC<FooterProps> = ({
                 Thanh Toán
               </h3>
               <div className="flex flex-wrap gap-2 items-center">
-                {paymentIcons.map((icon, idx) => (
-                  <span key={idx}>{icon}</span>
-                ))}
+              {paymentIcons.map(({ name, svg: Icon }) => (
+                <div key={name}>
+                  <Icon width={32} height={32} />
+                </div>
+              ))}
               </div>
             </div>
             <div>
@@ -485,9 +435,11 @@ const Footer: FC<FooterProps> = ({
                 Đơn Vị Vận Chuyển
               </h3>
               <div className="flex flex-wrap gap-2 items-center">
-                {shippingIcons.map((icon, idx) => (
-                  <span key={idx}>{icon}</span>
-                ))}
+              {shippingIcon.map(({ name, svg: Icon }) => (
+                <div key={name}>
+                <Icon width={32} height={32} />
+              </div>
+              ))}
               </div>
             </div>
           </div>
@@ -498,17 +450,12 @@ const Footer: FC<FooterProps> = ({
               Theo Dõi Chúng Tôi
             </h3>
             <div className="flex flex-col space-y-2">
-              {socialIcons.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="flex items-center space-x-2 text-gray-400 hover:text-blue-600 transition-colors duration-200"
-                  aria-label={item.label}
-                >
-                  <span>{item.icon}</span>
-                  <span className="text-sm">{item.label}</span>
-                </a>
-              ))}
+            {socialIcon.map(({ name, svg: Icon }) => (
+              <div key={name} className="flex items-center gap-2">
+                <Icon width={32} height={32} />
+                <span className="text-sm text-gray-700">{name}</span>
+              </div>
+            ))}
             </div>
           </div>
 
@@ -523,21 +470,12 @@ const Footer: FC<FooterProps> = ({
               className="w-20 h-20 object-cover border mb-4"
             />
             <div className="flex flex-col space-y-2">
-              <img
-                src="/assets/stores/appstore.png"
-                alt="App Store"
-                className="w-24 h-auto"
-              />
-              <img
-                src="/assets/stores/googleplay.png"
-                alt="Google Play"
-                className="w-24 h-auto"
-              />
-              <img
-                src="/assets/stores/appgallery.png"
-                alt="App Gallery"
-                className="w-24 h-auto"
-              />
+            {appdownloadIcon.map(({ name, svg: Icon }) => (
+              <div key={name} className="flex items-center gap-2">
+                <Icon width={32} height={32} />
+                <span className="text-sm text-gray-700">{name}</span>
+              </div>
+            ))}
             </div>
           </div>
         </section>
