@@ -1,26 +1,18 @@
-import { ENDPOINTS, handleResponse } from '../api';
+import { ENDPOINTS, fetchWithCredentials, getHeaders, handleResponse } from '../api';
 
 export const ShippingAddressService = {
   // Lấy danh sách địa chỉ giao hàng
   async getShippingAddresses() {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.SHIPPING.ADDRESSES, {
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+    const response = await fetchWithCredentials(ENDPOINTS.SHIPPING.ADDRESSES, {
+      headers: getHeaders()
     });
     return handleResponse(response);
   },
 
   // Lấy chi tiết địa chỉ giao hàng
   async getShippingAddress(id: number) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.SHIPPING.UPDATE_ADDRESS(id), {
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+    const response = await fetchWithCredentials(ENDPOINTS.SHIPPING.UPDATE_ADDRESS(id), {
+      headers: getHeaders()
     });
     return handleResponse(response);
   },
@@ -32,13 +24,9 @@ export const ShippingAddressService = {
     address: string;
     isDefault?: boolean;
   }) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.SHIPPING.ADD_ADDRESS, {
+    const response = await fetchWithCredentials(ENDPOINTS.SHIPPING.ADD_ADDRESS, {
       method: 'POST',
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
+      headers: getHeaders(),
       body: JSON.stringify(data)
     });
     return handleResponse(response);
@@ -51,13 +39,9 @@ export const ShippingAddressService = {
     address?: string;
     isDefault?: boolean;
   }) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.SHIPPING.UPDATE_ADDRESS(id), {
+    const response = await fetchWithCredentials(ENDPOINTS.SHIPPING.UPDATE_ADDRESS(id), {
       method: 'PUT',
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
+      headers: getHeaders(),
       body: JSON.stringify(data)
     });
     return handleResponse(response);
@@ -65,27 +49,19 @@ export const ShippingAddressService = {
 
   // Xóa địa chỉ giao hàng
   async deleteShippingAddress(id: number) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.SHIPPING.DELETE_ADDRESS(id), {
+    const response = await fetchWithCredentials(ENDPOINTS.SHIPPING.DELETE_ADDRESS(id), {
       method: 'DELETE',
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getHeaders()
     });
     return handleResponse(response);
   },
 
   // Đặt địa chỉ mặc định
   async setDefaultShippingAddress(id: number) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.SHIPPING.SET_DEFAULT(id), {
+    const response = await fetchWithCredentials(ENDPOINTS.SHIPPING.SET_DEFAULT(id), {
       method: 'POST',
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getHeaders()
     });
     return handleResponse(response);
   }
-}; 
+};

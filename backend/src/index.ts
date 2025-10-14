@@ -32,7 +32,10 @@ const app = express();
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 app.use(compression() as unknown as RequestHandler);
 app.use(express.json());
 app.use(morgan('combined', { stream: { write: (message: string) => logger.info(message.trim()) } }));

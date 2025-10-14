@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Product } from '../../types';
 import ProductCard from '../product/ProductCard';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Link } from 'react-router-dom';
 
 interface BestSellersProductsProps {
   products: Product[];
@@ -26,7 +27,12 @@ const BestSellersProducts: React.FC<BestSellersProductsProps> = ({ products, onA
     <div className="bg-white p-6 rounded-lg shadow-sm relative">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Sản phẩm bán chạy</h2>
-        <a href="/best-sellers" className="text-blue-500">Xem tất cả</a>
+        <Link
+          to="/best-sellers"
+          className="text-blue-500 flex items-center hover:text-blue-600 transition-colors"
+        >
+          Xem tất cả <RightOutlined className="text-xs ml-1"/>
+        </Link>
       </div>
       {/* Nút chuyển trang trái */}
       {page > 0 && (

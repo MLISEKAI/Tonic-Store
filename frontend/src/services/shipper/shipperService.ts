@@ -1,22 +1,14 @@
-import { ENDPOINTS, handleResponse } from '../api';
+import { ENDPOINTS, fetchWithCredentials, getHeaders, handleResponse } from '../api';
 
 export const ShipperService = {
   // Lấy danh sách đơn hàng cần giao
   async getDeliveryOrders(page = 1, limit = 10, filters = {}) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Authentication required. Please login again.');
-    }
     const params = new URLSearchParams({ page: String(page), limit: String(limit), ...filters });
     const url = `${ENDPOINTS.ORDER.DELIVERY_LIST}?${params.toString()}`;
     try {
-      const response = await fetch(url, {
+      const response = await fetchWithCredentials(url, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
+        headers: getHeaders()
       });
       if (!response.ok) {
         let errorMessage = 'Failed to fetch delivery orders';
@@ -26,7 +18,6 @@ export const ShipperService = {
           errorMessage = errorData.message || errorData.error || errorMessage;
         } catch (e) {}
         if (response.status === 401) {
-          localStorage.removeItem('token');
           throw new Error('Session expired. Please login again.');
         }
         if (response.status === 403) {
@@ -45,14 +36,10 @@ export const ShipperService = {
 
   // Cập nhật trạng thái giao hàng
   async updateDeliveryStatus(orderId: number, status: string, note?: string) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${ENDPOINTS.SHIPPER.UPDATE_STATUS(orderId)}`,
+    const response = await fetchWithCredentials(`${ENDPOINTS.SHIPPER.UPDATE_STATUS(orderId)}`,
     {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getHeaders(),
       body: JSON.stringify({ status, note })
     });
     // Kiểm tra response là JSON trước khi parse
@@ -81,13 +68,10 @@ export const ShipperService = {
 
   // Lấy lịch sử giao hàng của một đơn hàng
   async getOrderDeliveryLogs(orderId: number) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(
+    const response = await fetchWithCredentials(
       `${ENDPOINTS.ORDER.DELIVERY_LOGS(orderId)}`,
       {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: getHeaders()
       }
     );
     return handleResponse(response);
@@ -95,13 +79,10 @@ export const ShipperService = {
 
   // Lấy đánh giá shipper của một đơn hàng
   async getShipperRating(orderId: number) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(
+    const response = await fetchWithCredentials(
       `${ENDPOINTS.ORDER.DELIVERY_RATING(orderId)}`,
       {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: getHeaders()
       }
     );
     return handleResponse(response);
@@ -109,18 +90,14 @@ export const ShipperService = {
 
   // Đánh giá shipper
   async rateShipper(orderId: number, rating: number, comment?: string) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(
+    const response = await fetchWithCredentials(
       `${ENDPOINTS.ORDER.DELIVERY_RATING(orderId)}`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: getHeaders(),
         body: JSON.stringify({ rating, comment })
       }
     );
     return handleResponse(response);
   }
-}; 
+};

@@ -1,4 +1,7 @@
-export const config = {
+import dotenv from "dotenv";
+dotenv.config();
+
+const config = {
   vnpay: {
     tmnCode: process.env.VNPAY_TMN_CODE || '',
     secretKey: process.env.VNPAY_SECRET_KEY || '',
@@ -7,9 +10,27 @@ export const config = {
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'your-secret-key',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    expiresIn: process.env.JWT_EXPIRES_IN || '1d',
+    refreshSecret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'your-refresh-secret-key',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    cookieOptions: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+    },
+    refreshCookieOptions: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+    },
+    blacklistEnabled: process.env.JWT_BLACKLIST_ENABLED === 'true',
+    blacklistTTL: parseInt(process.env.JWT_BLACKLIST_TTL || '86400'), // 1 day in seconds
   },
   database: {
     url: process.env.DATABASE_URL || 'postgresql://user:password@localhost:5432/tonic_store',
   },
-}; 
+};
+
+export default config;

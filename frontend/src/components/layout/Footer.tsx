@@ -2,9 +2,6 @@ import { Link } from "react-router-dom";
 import type { FC } from "react";
 import { paymentIcons } from "../../constants/paymentIcons";
 import { socialIcon } from "../../constants/socialIcons";
-import { shippingIcon } from "../../constants/shippingIcons";
-import { appdownloadIcon } from "../../constants/appdownloadIcons";
-
 
 type FooterCategory = {
   name: string;
@@ -430,16 +427,42 @@ const Footer: FC<FooterProps> = ({
               ))}
               </div>
             </div>
+
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase">
                 Đơn Vị Vận Chuyển
               </h3>
               <div className="flex flex-wrap gap-2 items-center">
-              {shippingIcon.map(({ name, svg: Icon }) => (
-                <div key={name}>
-                <Icon width={32} height={32} />
+                <a
+                  href="https://www.vnpost.vn/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img 
+                    src="https://upload.wikimedia.org/wikipedia/vi/2/2f/Vietnam_Post_logo.png"
+                    alt="Vietnam Post" 
+                    className="h-12"
+                  />
+                </a>
               </div>
-              ))}
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase">
+                Chứng nhận bởi
+              </h3>
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://www.moit.gov.vn/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img
+                    src="https://quocluat.vn/photos/blog_post/truong-hop-nao-can-thong-bao-va-dang-ky-website-voi-bo-cong-thuong-3.png"
+                    alt="Bộ Công Thương"
+                    className="h-10 object-contain"
+                  />
+                </a>
               </div>
             </div>
           </div>
@@ -450,32 +473,59 @@ const Footer: FC<FooterProps> = ({
               Theo Dõi Chúng Tôi
             </h3>
             <div className="flex flex-col space-y-2">
-            {socialIcon.map(({ name, svg: Icon }) => (
-              <div key={name} className="flex items-center gap-2">
+            {socialIcon.map(({ name, svg: Icon, link }) => (
+              <a
+                key={name}
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2"
+              >
                 <Icon width={32} height={32} />
-                <span className="text-sm text-gray-700">{name}</span>
-              </div>
+                <span className="text-sm text-gray-700 hover:text-blue-600 transition-colors duration-200">{name}</span>
+              </a>
             ))}
             </div>
           </div>
 
-          {/* Tải Ứng Dụng */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase">
               Tải Ứng Dụng Trên Điện Thoại
             </h3>
-            <img
-              src="/assets/qr-code.png"
-              alt="QR App"
-              className="w-20 h-20 object-cover border mb-4"
-            />
-            <div className="flex flex-col space-y-2">
-            {appdownloadIcon.map(({ name, svg: Icon }) => (
-              <div key={name} className="flex items-center gap-2">
-                <Icon width={32} height={32} />
-                <span className="text-sm text-gray-700">{name}</span>
+
+            <div className="flex flex-col items-start space-y-4">
+              {/* QR Code */}
+              <img
+                src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://google.com"
+                alt="QR App"
+                className="w-24 h-24 object-cover border"
+              />
+
+              {/* App Store & Google Play */}
+              <div className="flex flex-col space-y-2 w-full items-start">
+                <a
+                  href="https://apps.apple.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img
+                    src="https://frontend.tikicdn.com/_desktop-next/static/img/icons/appstore.png"
+                    alt="App Store"
+                    className="h-9"
+                  />
+                </a>
+                <a
+                  href="https://play.google.com/store"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img
+                    src="https://frontend.tikicdn.com/_desktop-next/static/img/icons/playstore.png"
+                    alt="Google Play"
+                    className="h-9"
+                  />
+                </a>
               </div>
-            ))}
             </div>
           </div>
         </section>

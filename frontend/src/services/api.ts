@@ -4,6 +4,22 @@ if (!API_URL) {
   throw new Error('VITE_API_URL environment variable is not set');
 }
 
+// Cấu hình fetch để tự động gửi cookies với mọi request
+export const fetchWithCredentials = (url: string, options: RequestInit = {}) => {
+  return fetch(url, {
+    ...options,
+    credentials: 'include', // Tự động gửi cookies với mọi request
+  });
+};
+
+// Hàm getHeaders để sử dụng trong tất cả các API calls
+export const getHeaders = (contentType = 'application/json') => {
+  const headers: Record<string, string> = {
+    'Content-Type': contentType,
+  };
+  return headers;
+};
+
 // API endpoints
 export const ENDPOINTS = {
   // Auth
@@ -115,9 +131,9 @@ export const ENDPOINTS = {
   // Notifications
   NOTIFICATION: {
     LIST: `${API_URL}/api/notifications`,
-    MARK_READ: (id: string) => `${API_URL}/api/notifications/${id}/read`,
+    MARK_READ: (id: number) => `${API_URL}/api/notifications/${id}/read`,
     MARK_ALL_READ: `${API_URL}/api/notifications/read-all`,
-    DELETE: (id: string) => `${API_URL}/api/notifications/${id}`,
+    DELETE: (id: number) => `${API_URL}/api/notifications/${id}`,
     DELETE_ALL: `${API_URL}/api/notifications`,
   },
   // Contact

@@ -165,6 +165,7 @@ export interface Payment {
 export type IconItem = {
   name: string;
   svg: React.FC<React.SVGProps<SVGSVGElement>>;
+  link: string;
 };
 
 export interface Review {
@@ -195,4 +196,51 @@ export interface FlashSale {
   discount: number;
   startTime: string;
   endTime: string;
+}
+
+export interface Notification {
+  id: number;
+  title: string;
+  message: string;  
+  isRead: boolean;
+  createdAt: string;
+};
+
+export interface PromotionCode {
+  id: number;
+  code: string;
+  description: string;
+  type: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  discount: number;
+  minOrderValue?: number;
+  maxDiscount?: number;
+  startDate: string;
+  endDate: string;
+  usageLimit?: number;
+  usedCount: number;
+  isActive: boolean;
+}
+
+export interface ValidatePromotionResponse {
+  isValid: boolean;
+  discountCode?: PromotionCode;
+  discountAmount?: number;
+  message?: string;
+}
+
+export interface ContactMessagePayload {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+}
+
+export interface ContactMessageResponse {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
 }

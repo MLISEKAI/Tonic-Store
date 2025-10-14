@@ -31,6 +31,7 @@ model User {
   deliveryRatings DeliveryRating[]
   discountCodeUsages DiscountCodeUsage[]
   discountCodeClaims DiscountCodeClaim[]
+  blacklistedTokens TokenBlacklist[]
 }
 
 model Category {
@@ -354,4 +355,15 @@ model DiscountCodeClaim {
   @@unique([userId, discountCodeId])
   @@index([discountCodeId])
   @@index([userId])
+}
+
+model TokenBlacklist {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(500)
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
 }

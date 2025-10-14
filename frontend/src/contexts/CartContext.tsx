@@ -3,16 +3,16 @@ import { useAuth } from './AuthContext';
 import { CartService } from '../services/carts/cartService';
 import { useCartState } from '../hooks/useCartState';
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  imageUrl?: string;
-}
+import { Product } from '../types';
 
 interface CartItem {
   id: number;
-  product: Product;
+  product: {
+    id: number;
+    name: string;
+    price: number;
+    imageUrl?: string;
+  };
   quantity: number;
   price: number;
 }
@@ -56,7 +56,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
       const data = await CartService.getCart();
-      setCart(data);
+      setCart({
+        items: data.items?.map(item => ({
+          id: item.id,
+          product: item.product ?? { id: 0, name: 'Unknown', price: 0, imageUrl: '' },
+          quantity: item.quantity,
+          price: item.price,
+        })) || []
+      });
     } catch (err) {
       setError('Không thể tải giỏ hàng');
       console.error('Error fetching cart:', err);
@@ -67,7 +74,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setCart({ items: [] });
+      setCart({
+        items: []
+      });
       return;
     }
     fetchCart();
@@ -98,8 +107,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null);
       await CartService.removeFromCart(cartItemId);
       setCart(prevCart => ({
-        ...prevCart,
-        items: prevCart.items.filter(item => item.id !== cartItemId)
+        items: prevCart.items ? prevCart.items.filter(item => item.id !== cartItemId) : []
       }));
     } catch (err) {
       setError('Không thể xóa sản phẩm');
@@ -162,4 +170,4 @@ export const useCart = () => {
     throw new Error('useCart must be used within a CartProvider');
   }
   return context;
-}; 
+};

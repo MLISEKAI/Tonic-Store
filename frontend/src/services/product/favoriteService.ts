@@ -1,15 +1,12 @@
-import { ENDPOINTS, handleResponse } from '../api';
+import { ENDPOINTS, fetchWithCredentials, getHeaders, handleResponse } from '../api';
 
 export const FavoriteService = {
   // Lấy danh sách sản phẩm yêu thích
   async getFavorites(page = 1, limit = 10) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(
+    const response = await fetchWithCredentials(
       `${ENDPOINTS.FAVORITE.LIST}?page=${page}&limit=${limit}`,
       {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: getHeaders()
       }
     );
     return handleResponse(response);
@@ -17,13 +14,9 @@ export const FavoriteService = {
 
   // Thêm sản phẩm vào danh sách yêu thích
   async addToFavorites(productId: string) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.FAVORITE.ADD, {
+    const response = await fetchWithCredentials(ENDPOINTS.FAVORITE.ADD, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getHeaders(),
       body: JSON.stringify({ productId })
     });
     return handleResponse(response);
@@ -31,13 +24,10 @@ export const FavoriteService = {
 
   // Xóa sản phẩm khỏi danh sách yêu thích
   async removeFromFavorites(productId: string) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.FAVORITE.REMOVE(productId), {
+    const response = await fetchWithCredentials(ENDPOINTS.FAVORITE.REMOVE(productId), {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: getHeaders()
     });
     return handleResponse(response);
   }
-}; 
+};

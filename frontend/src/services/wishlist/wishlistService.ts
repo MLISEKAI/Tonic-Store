@@ -1,25 +1,19 @@
-import { ENDPOINTS, handleResponse } from '../api';
+import { ENDPOINTS, fetchWithCredentials, getHeaders, handleResponse } from '../api';
 
 export const WishlistService = {
   // Lấy danh sách sản phẩm yêu thích
   async getWishlist() {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token && token !== 'null') headers['Authorization'] = `Bearer ${token}`;
-    const response = await fetch(ENDPOINTS.WISHLIST.LIST, {
-      headers
+    const response = await fetchWithCredentials(ENDPOINTS.WISHLIST.LIST, {
+      headers: getHeaders()
     });
     return handleResponse(response);
   },
 
   // Thêm sản phẩm vào wishlist
   async addToWishlist(productId: number) {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token && token !== 'null') headers['Authorization'] = `Bearer ${token}`;
-    const response = await fetch(ENDPOINTS.WISHLIST.ADD, {
+    const response = await fetchWithCredentials(ENDPOINTS.WISHLIST.ADD, {
       method: 'POST',
-      headers,
+      headers: getHeaders(),
       body: JSON.stringify({ productId })
     });
     return handleResponse(response);
@@ -27,24 +21,18 @@ export const WishlistService = {
 
   // Xóa sản phẩm khỏi wishlist
   async removeFromWishlist(productId: number) {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token && token !== 'null') headers['Authorization'] = `Bearer ${token}`;
-    const response = await fetch(ENDPOINTS.WISHLIST.REMOVE(productId), {
+    const response = await fetchWithCredentials(ENDPOINTS.WISHLIST.REMOVE(productId), {
       method: 'DELETE',
-      headers
+      headers: getHeaders()
     });
     return handleResponse(response);
   },
 
   // Kiểm tra trạng thái sản phẩm trong wishlist
   async checkWishlistStatus(productId: number) {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token && token !== 'null') headers['Authorization'] = `Bearer ${token}`;
-    const response = await fetch(ENDPOINTS.WISHLIST.CHECK(productId), {
-      headers
+    const response = await fetchWithCredentials(ENDPOINTS.WISHLIST.CHECK(productId), {
+      headers: getHeaders()
     });
     return handleResponse(response);
   }
-}; 
+};

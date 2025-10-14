@@ -1,7 +1,13 @@
-const API_URL = import.meta.env.VITE_API_URL;
+export const API_URL = import.meta.env.VITE_API_URL;
 
-const handleResponse = async (response: Response) => {
+// Hàm xử lý response từ API
+export const handleResponse = async (response: Response) => {
   if (!response.ok) {
+    if (response.status === 401) {
+      // Xử lý lỗi xác thực
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
     const errorData = await response.json();
     const errorMessage = errorData.error || errorData.details || 'Something went wrong';
     throw new Error(errorMessage);
@@ -11,18 +17,27 @@ const handleResponse = async (response: Response) => {
   return JSON.parse(text);
 };
 
-const getHeaders = () => ({
-  'Authorization': `Bearer ${localStorage.getItem('token')}`,
-  'Content-Type': 'application/json',
-});
+// Cấu hình fetch để tự động gửi cookies với mọi request
+export const fetchWithCredentials = (url: string, options: RequestInit = {}) => {
+  return fetch(url, {
+    ...options,
+    credentials: 'include', // Tự động gửi cookies với mọi request
+  });
+};
+
+// Hàm getHeaders để sử dụng trong tất cả các API calls
+export const getHeaders = (contentType = 'application/json') => {
+  const headers: Record<string, string> = {
+    'Content-Type': contentType,
+  };
+  return headers;
+};
 
 // Auth API
 export const login = async (email: string, password: string) => {
-  const response = await fetch(`${API_URL}/api/auth/login`, {
+  const response = await fetchWithCredentials(`${API_URL}/api/auth/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getHeaders(),
     body: JSON.stringify({ email, password }),
   });
   return handleResponse(response);
@@ -31,16 +46,8 @@ export const login = async (email: string, password: string) => {
 // Shipping Address API
 export const getShippingAddresses = async () => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(`${API_URL}/api/shipping-addresses`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+    const response = await fetchWithCredentials(`${API_URL}/api/shipping-addresses`, {
+      headers: getHeaders()
     });
 
     const data = await handleResponse(response);
@@ -58,12 +65,9 @@ export const createShippingAddress = async (data: {
   userId: number;
   isDefault?: boolean;
 }) => {
-  const response = await fetch(`${API_URL}/api/shipping-addresses`, {
+  const response = await fetchWithCredentials(`${API_URL}/api/shipping-addresses`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      'Content-Type': 'application/json'
-    },
+    headers: getHeaders(),
     body: JSON.stringify(data)
   });
   return handleResponse(response);
@@ -76,24 +80,18 @@ export const updateShippingAddress = async (id: number, data: {
   userId?: number;
   isDefault?: boolean;
 }) => {
-  const response = await fetch(`${API_URL}/api/shipping-addresses/${id}`, {
+  const response = await fetchWithCredentials(`${API_URL}/api/shipping-addresses/${id}`, {
     method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      'Content-Type': 'application/json'
-    },
+    headers: getHeaders(),
     body: JSON.stringify(data)
   });
   return handleResponse(response);
 };
 
 export const deleteShippingAddress = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/shipping-addresses/${id}`, {
+  const response = await fetchWithCredentials(`${API_URL}/api/shipping-addresses/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      'Content-Type': 'application/json'
-    }
+    headers: getHeaders()
   });
   return handleResponse(response);
 };
@@ -255,4 +253,4 @@ export const reviewService = {
     if (!response.ok) throw new Error('Failed to delete review');
     return response.json();
   },
-}; 
+};

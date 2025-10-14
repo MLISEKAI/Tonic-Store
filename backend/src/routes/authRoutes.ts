@@ -3,15 +3,25 @@ import { registerUser } from "../services/auth/registerService";
 import { loginUser } from "../services/auth/loginService";
 import { Prisma } from "@prisma/client";
 import { sendResetPasswordEmail, resetPasswordByToken } from '../services/auth/forgotPasswordService';
+import { authenticate, refreshToken } from "../middleware/auth";
+import config  from "../config";
+import { addToBlacklist } from "../repositories/tokenBlacklistRepository";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, phone, address, role } = req.body;
-    const user = await registerUser(name, email, password, phone, address, role);
-    console.log("User registered successfully:", user);
-    res.json(user);
+    const result = await registerUser(name, email, password, phone, address, role);
+    console.log("User registered successfully:", result.user);
+    
+    // Thiết lập cookies
+    res.cookie('access_token', result.accessToken, config.jwt.cookieOptions);
+    res.cookie('refresh_token', result.refreshToken, config.jwt.refreshCookieOptions);
+    
+    // Trả về thông tin user (không bao gồm tokens trong response body)
+    res.json({ user: result.user });
   } catch (error) {
     console.error("Registration error details:", error);
     
@@ -36,10 +46,15 @@ router.post("/login", async (req, res) => {
     }
 
     console.log("Attempting to login user:", { email });
-    const { token, user } = await loginUser(email, password);
-    console.log("User logged in successfully:", { id: user.id, email: user.email, role: user.role });
+    const result = await loginUser(email, password);
+    console.log("User logged in successfully:", { id: result.user.id, email: result.user.email, role: result.user.role });
     
-    res.json({ token, user });
+    // Thiết lập cookies
+    res.cookie('access_token', result.accessToken, config.jwt.cookieOptions);
+    res.cookie('refresh_token', result.refreshToken, config.jwt.refreshCookieOptions);
+    
+    // Trả về thông tin user (không bao gồm tokens trong response body)
+    res.json({ user: result.user });
   } catch (error) {
     console.error("Login error:", error);
     if (error instanceof Error) {
@@ -52,6 +67,48 @@ router.post("/login", async (req, res) => {
     }
     res.status(500).json({ error: "Login failed", details: error instanceof Error ? error.message : "Unknown error" });
   }
+});
+
+router.post('/logout', authenticate, async (req, res) => {
+  try {
+    const accessToken = req.cookies?.access_token;
+    const refreshToken = req.cookies?.refresh_token;
+    
+    // Thêm tokens vào blacklist nếu tính năng blacklist được bật
+    if (config.jwt.blacklistEnabled && req.user) {
+      const userId = req.user.id;
+      
+      // Tính thời gian hết hạn của tokens
+      const accessTokenExp = jwt.decode(accessToken) as { exp: number } | null;
+      const refreshTokenExp = jwt.decode(refreshToken) as { exp: number } | null;
+      
+      // Thêm access token vào blacklist
+      if (accessToken && accessTokenExp) {
+        const accessTokenExpDate = new Date(accessTokenExp.exp * 1000);
+        await addToBlacklist(accessToken, userId, accessTokenExpDate);
+      }
+      
+      // Thêm refresh token vào blacklist
+      if (refreshToken && refreshTokenExp) {
+        const refreshTokenExpDate = new Date(refreshTokenExp.exp * 1000);
+        await addToBlacklist(refreshToken, userId, refreshTokenExpDate);
+      }
+    }
+    
+    // Xóa cookies
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+    
+    res.json({ message: 'Đăng xuất thành công' });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ error: "Đăng xuất thất bại" });
+  }
+});
+
+router.post('/refresh-token', refreshToken, (req, res) => {
+  // Middleware refreshToken đã xử lý việc tạo token mới và thiết lập cookie
+  res.json({ message: 'Token đã được làm mới' });
 });
 
 router.post('/forgot-password', async (req, res) => {

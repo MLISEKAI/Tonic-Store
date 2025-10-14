@@ -1,6 +1,19 @@
-import { ENDPOINTS, handleResponse } from '../api';
+import { ENDPOINTS, fetchWithCredentials, getHeaders, handleResponse } from '../api';
 
 export const UserService = {
+  // Đăng xuất
+  async logout() {
+    try {
+      const response = await fetchWithCredentials(ENDPOINTS.AUTH.LOGOUT, {
+        method: 'POST',
+        headers: getHeaders()
+      });
+      return await handleResponse(response);
+    } catch (error) {
+      console.error("Logout error:", error);
+      throw error;
+    }
+  },
   // Đăng ký tài khoản
   async register(data: {
     name: string;
@@ -52,7 +65,7 @@ export const UserService = {
         throw new Error('Email và mật khẩu không được để trống');
       }
 
-      const response = await fetch(ENDPOINTS.AUTH.LOGIN, {
+      const response = await fetchWithCredentials(ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,9 +78,6 @@ export const UserService = {
       });
 
       const data = await handleResponse(response);
-      if (data.token) {
-        localStorage.setItem('token', data.token.trim());
-      }
       return data;
     } catch (error) {
       if (error instanceof Error) {
@@ -79,17 +89,19 @@ export const UserService = {
 
   // Lấy thông tin hồ sơ
   async getProfile() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
+    try {
+      const response = await fetchWithCredentials(ENDPOINTS.USER.PROFILE, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
-    const response = await fetch(ENDPOINTS.USER.PROFILE, {
-      headers: {
-        'Authorization': `Bearer ${token.trim()}`
-      }
-    });
-    return handleResponse(response);
+      return await handleResponse(response);
+    } catch (error) {
+      console.error("Get profile error:", error);
+      throw error;
+    }
   },
 
   // Cập nhật thông tin hồ sơ
@@ -98,17 +110,9 @@ export const UserService = {
     phone?: string;
     address?: string;
   }) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(ENDPOINTS.USER.PROFILE, {
+    const response = await fetchWithCredentials(ENDPOINTS.USER.PROFILE, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.trim()}`
-      },
+      headers: getHeaders(),
       body: JSON.stringify(data)
     });
     return handleResponse(response);
@@ -119,17 +123,9 @@ export const UserService = {
     currentPassword: string;
     newPassword: string;
   }) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(ENDPOINTS.USER.CHANGE_PASSWORD, {
+    const response = await fetchWithCredentials(ENDPOINTS.USER.CHANGE_PASSWORD, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.trim()}`
-      },
+      headers: getHeaders(),
       body: JSON.stringify(data)
     });
     return handleResponse(response);
@@ -164,27 +160,21 @@ export const UserService = {
 
   // Gửi email xác thực
   async sendVerificationEmail() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(ENDPOINTS.USER.SEND_VERIFICATION, {
+    const response = await fetchWithCredentials(ENDPOINTS.USER.SEND_VERIFICATION, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token.trim()}`
-      }
+      headers: getHeaders()
     });
     return handleResponse(response);
   },
 
   // Xác thực email
   async verifyEmail(token: string) {
-    const response = await fetch(ENDPOINTS.USER.VERIFY_EMAIL, {
+    const response = await fetchWithCredentials(ENDPOINTS.USER.VERIFY_EMAIL, {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
     return handleResponse(response);
   }
-}; 
+};

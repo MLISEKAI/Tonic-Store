@@ -39,7 +39,8 @@ export function useAuthState() {
   }, []);
 
   const clearAuth = useCallback(() => {
-    localStorage.removeItem('token');
+    // Không cần xóa token từ localStorage vì đã sử dụng cookies
+    // Cookies sẽ được xóa bởi server khi logout
     setUser(null);
     setIsAuthenticated(false);
     setError(null);
@@ -55,4 +56,4 @@ export function useAuthState() {
     checkAuth,
     clearAuth
   };
-} 
+}
