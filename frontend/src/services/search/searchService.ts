@@ -1,4 +1,4 @@
-import { ENDPOINTS, handleResponse } from '../api';
+import { ENDPOINTS, fetchWithCredentials, getHeaders, handleResponse } from '../api';
 
 export const SearchService = {
   // Tìm kiếm sản phẩm
@@ -18,13 +18,10 @@ export const SearchService = {
 
   // Tìm kiếm đơn hàng
   async searchOrders(query: string, page = 1, limit = 10) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(
+    const response = await fetchWithCredentials(
       `${ENDPOINTS.SEARCH.ORDERS}?q=${query}&page=${page}&limit=${limit}`,
       {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: getHeaders()
       }
     );
     return handleResponse(response);
@@ -38,24 +35,18 @@ export const SearchService = {
 
   // Lấy lịch sử tìm kiếm
   async getSearchHistory() {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.SEARCH.HISTORY, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+    const response = await fetchWithCredentials(ENDPOINTS.SEARCH.HISTORY, {
+      headers: getHeaders()
     });
     return handleResponse(response);
   },
 
   // Xóa lịch sử tìm kiếm
   async clearSearchHistory() {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.SEARCH.HISTORY, {
+    const response = await fetchWithCredentials(ENDPOINTS.SEARCH.HISTORY, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: getHeaders()
     });
     return handleResponse(response);
   }
-}; 
+};

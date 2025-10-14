@@ -1,4 +1,4 @@
-import { ENDPOINTS, handleResponse } from '../api';
+import { ENDPOINTS, fetchWithCredentials, getHeaders, handleResponse } from '../api';
 
 export const ReviewService = {
   // Lấy đánh giá của sản phẩm
@@ -8,35 +8,20 @@ export const ReviewService = {
   },
 
   // Tạo đánh giá mới
-  async createReview(data: {
-    productId: number;
-    rating: number;
-    comment: string;
-  }) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.REVIEW.CREATE, {
+  async createReview(data: { productId: number; rating: number; comment: string }) {
+    const response = await fetchWithCredentials(ENDPOINTS.REVIEW.CREATE, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
+      headers: getHeaders(),
       body: JSON.stringify(data)
     });
     return handleResponse(response);
   },
 
   // Cập nhật đánh giá
-  async updateReview(reviewId: number, data: {
-    rating?: number;
-    comment?: string;
-  }) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.REVIEW.UPDATE(reviewId), {
+  async updateReview(reviewId: number, data: { rating?: number; comment?: string }) {
+    const response = await fetchWithCredentials(ENDPOINTS.REVIEW.UPDATE(reviewId), {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
+      headers: getHeaders(),
       body: JSON.stringify(data)
     });
     return handleResponse(response);
@@ -44,11 +29,10 @@ export const ReviewService = {
 
   // Xóa đánh giá
   async deleteReview(reviewId: number) {
-    const token = localStorage.getItem('token');
-    const response = await fetch(ENDPOINTS.REVIEW.DELETE(reviewId), {
+    const response = await fetchWithCredentials(ENDPOINTS.REVIEW.DELETE(reviewId), {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` }
+      headers: getHeaders()
     });
     return handleResponse(response);
   }
-}; 
+};

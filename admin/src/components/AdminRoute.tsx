@@ -1,37 +1,48 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { userService } from '../services/userService';
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
   useEffect(() => {
-    // Lưu token/role nếu có trên URL
+    // Lưu role nếu có trên URL (token sẽ được lưu trong cookie)
     const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
     const role = params.get('role');
     
-    if (token) {
-      localStorage.setItem('token', token);
-    }
     if (role) {
       localStorage.setItem('user', JSON.stringify({ role }));
-    }
-    
-    if (token || role) {
-      // Xóa token/role khỏi URL và reload lại để đảm bảo localStorage đã có
+      // Xóa role khỏi URL và reload lại
       window.history.replaceState({}, document.title, window.location.pathname);
       window.location.reload();
       return;
     }
+
+    // Kiểm tra quyền bằng cách gọi API
+    const checkAdminAccess = async () => {
+      try {
+        const userData = await userService.getUserById(1);
+        if (userData && userData.role === 'ADMIN') {
+          setIsAdmin(true);
+        } else {
+          window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
+        }
+      } catch (error) {
+        console.error('Error checking admin access:', error);
+        window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAdminAccess();
   }, []);
 
-  // Kiểm tra quyền như cũ
-  const localToken = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  
-  if (!localToken || user.role !== 'ADMIN') {
-    window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
-    return null;
+  if (isLoading) {
+    return <div>Đang kiểm tra quyền truy cập...</div>;
   }
 
-  return <>{children}</>;
+  return isAdmin ? <>{children}</> : null;
 };
 
 export default AdminRoute;

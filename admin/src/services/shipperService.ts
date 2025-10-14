@@ -1,23 +1,13 @@
-const API_URL = import.meta.env.VITE_API_URL;
+import { fetchWithCredentials, getHeaders } from './api';
 
-const getAuthToken = () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    throw new Error('No authentication token found');
-  }
-  return token;
-};
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const ShipperService = {
   // Lấy danh sách shipper
   async getAllShippers() {
     try {
-      const token = getAuthToken();
-      const response = await fetch(`${API_URL}/api/shippers`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await fetchWithCredentials(`${API_URL}/api/shippers`, {
+        headers: getHeaders()
       });
       if (!response.ok) {
         const error = await response.json();
@@ -33,12 +23,8 @@ export const ShipperService = {
   // Lấy thông tin chi tiết shipper
   async getShipperById(id: number) {
     try {
-      const token = getAuthToken();
-      const response = await fetch(`${API_URL}/api/shippers/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await fetchWithCredentials(`${API_URL}/api/shippers/${id}`, {
+        headers: getHeaders()
       });
       if (!response.ok) {
         const error = await response.json();
@@ -54,13 +40,9 @@ export const ShipperService = {
   // Gán shipper cho đơn hàng
   async assignShipperToOrder(orderId: number, shipperId: number) {
     try {
-      const token = getAuthToken();
-      const response = await fetch(`${API_URL}/api/shippers/orders/${orderId}/assign`, {
+      const response = await fetchWithCredentials(`${API_URL}/api/shippers/orders/${orderId}/assign`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: getHeaders(),
         body: JSON.stringify({ shipperId })
       });
       if (!response.ok) {
@@ -77,12 +59,8 @@ export const ShipperService = {
   // Lấy lịch sử giao hàng của một đơn hàng (admin)
   async getOrderDeliveryLogs(orderId: number) {
     try {
-      const token = getAuthToken();
-      const response = await fetch(`${API_URL}/api/orders/${orderId}/delivery/logs`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await fetchWithCredentials(`${API_URL}/api/orders/${orderId}/delivery/logs`, {
+        headers: getHeaders()
       });
       if (!response.ok) {
         const error = await response.json();
@@ -98,12 +76,8 @@ export const ShipperService = {
   // Lấy đánh giá của người dùng cho đơn hàng (admin)
   async getOrderDeliveryRating(orderId: number) {
     try {
-      const token = getAuthToken();
-      const response = await fetch(`${API_URL}/api/orders/${orderId}/delivery/rating`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await fetchWithCredentials(`${API_URL}/api/orders/${orderId}/delivery/rating`, {
+        headers: getHeaders()
       });
       if (!response.ok) {
         // 404 coi như chưa có đánh giá
@@ -117,4 +91,4 @@ export const ShipperService = {
       throw error;
     }
   }
-}; 
+};

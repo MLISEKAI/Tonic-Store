@@ -26,10 +26,19 @@ const AdminLayout: React.FC = () => {
   const selectedKey = pathname.split('/').slice(2).join('/') || 'dashboard';
 
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
+  const handleLogout = async () => {
+    try {
+      // Gọi API đăng xuất để xóa cookie
+      await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      localStorage.removeItem('user');
+      window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
+    } catch (error) {
+      console.error('Lỗi khi đăng xuất:', error);
+      window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
+    }
   };
 
   const handleMenuClick = (key: string) => {

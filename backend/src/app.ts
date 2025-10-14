@@ -14,7 +14,10 @@ import helpCenterRoutes from './routes/helpCenterRoutes';
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
@@ -30,4 +33,4 @@ app.use('/api/shippers', shipperRoutes);
 app.use('/api/help-center', helpCenterRoutes);
 
 
-export default app; 
+export default app;

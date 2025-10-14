@@ -39,10 +39,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check auth status when component mounts
   React.useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token && token !== 'null') {
-      checkAuth();
-    }
+    // Với cookies, chỉ cần kiểm tra auth mà không cần lấy token từ localStorage
+    checkAuth();
   }, [checkAuth]);
 
   // Lưu user vào localStorage mỗi khi user thay đổi
@@ -57,13 +55,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (credentials: { email: string; password: string }) => {
     try {
       const response = await UserService.login(credentials);
-      if (response.token) {
-        localStorage.setItem('token', response.token.trim());
-        await checkAuth();
-        return response;
-      } else {
-        throw new Error('No token received from server');
-      }
+      // Không cần lưu token vào localStorage vì đã được lưu trong HttpOnly cookies
+      await checkAuth();
+      return response;
     } catch (error) {
       clearAuth();
       throw error;
@@ -86,8 +80,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
-    clearAuth();
+  const logout = async () => {
+    try {
+      await UserService.logout();
+      clearAuth();
+    } catch (error) {
+      console.error('Logout error:', error);
+      clearAuth();
+    }
   };
 
   return (

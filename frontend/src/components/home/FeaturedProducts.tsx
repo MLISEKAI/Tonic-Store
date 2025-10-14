@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Product } from '../../types';
 import ProductCard from '../product/ProductCard';
 import { RightOutlined } from '@ant-design/icons';
+import { Link } from 'react-router-dom';
 
 interface FeaturedProductsProps {
   products: Product[];
@@ -33,9 +34,12 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Sản phẩm nổi bật</h2>
         {showViewAll && (
-          <a href="/featured-products" className="text-blue-500 mr-2">
-            Xem tất cả
-          </a>
+          <Link
+            to="/featured-products"
+            className="text-blue-500 flex items-center hover:text-blue-600 transition-colors"
+          >
+            Xem tất cả <RightOutlined className="text-xs ml-1"/>
+          </Link>
         )}
       </div>
       {/* Nút chuyển trang trái */}

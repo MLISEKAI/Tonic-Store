@@ -1,8 +1,10 @@
+import { fetchWithCredentials, getHeaders } from './api';
 import { User, CreateUserData, UpdateUserData } from '../types/user';
 
 const API_URL = `${import.meta.env.VITE_API_URL}/api/users`;
 const AUTH_URL = `${import.meta.env.VITE_API_URL}/api/auth`;
 
+// Xử lý phản hồi từ API
 const handleResponse = async (res: Response) => {
   if (!res.ok) {
     const error = await res.text();
@@ -13,33 +15,23 @@ const handleResponse = async (res: Response) => {
 
 export const userService = {
   getAllUsers: async (): Promise<User[]> => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(API_URL, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+    const res = await fetchWithCredentials(API_URL, {
+      headers: getHeaders(),
     });
     return handleResponse(res);
   },
 
   getUserById: async (id: number): Promise<User> => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+    const res = await fetchWithCredentials(`${API_URL}/${id}`, {
+      headers: getHeaders(),
     });
     return handleResponse(res);
   },
 
   createUser: async (data: CreateUserData): Promise<User> => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${AUTH_URL}/register`, {
+    const res = await fetchWithCredentials(`${AUTH_URL}/register`, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers: getHeaders(),
       body: JSON.stringify({
         name: data.name,
         email: data.email,
@@ -53,25 +45,18 @@ export const userService = {
   },
 
   updateUser: async (id: number, data: UpdateUserData): Promise<User> => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/${id}`, {
+    const res = await fetchWithCredentials(`${API_URL}/${id}`, {
       method: 'PUT',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers: getHeaders(),
       body: JSON.stringify(data),
     });
     return handleResponse(res);
   },
 
   deleteUser: async (id: number): Promise<void> => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/${id}`, {
+    const res = await fetchWithCredentials(`${API_URL}/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+      headers: getHeaders(),
     });
     if (!res.ok) {
       const error = await res.text();
@@ -80,13 +65,9 @@ export const userService = {
   },
 
   changeUserPassword: async (userId: number, newPassword: string): Promise<void> => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/${userId}/password`, {
+    const res = await fetchWithCredentials(`${API_URL}/${userId}/password`, {
       method: 'PUT',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers: getHeaders(),
       body: JSON.stringify({ newPassword }),
     });
     if (!res.ok) {

@@ -1,12 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import config from "../../config";
 
 const prisma = new PrismaClient();
-const SECRET_KEY = process.env.JWT_SECRET;
-if (!SECRET_KEY) {
-  throw new Error("JWT_SECRET environment variable is not set");
-}
+const SECRET_KEY: jwt.Secret = config.jwt.secret;
+const REFRESH_SECRET_KEY: jwt.Secret = config.jwt.refreshSecret;
 
 export const registerUser = async (
   name: string, 
@@ -57,6 +56,25 @@ export const registerUser = async (
     });
   }
   
-  const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: "1d" });
-  return { token, user };
+  // Tạo access token với thông tin tối thiểu
+  const accessToken = jwt.sign(
+    { id: user.id, role: user.role }, 
+    SECRET_KEY, 
+    { expiresIn: config.jwt.expiresIn as jwt.SignOptions["expiresIn"] }
+  );
+
+  // Tạo refresh token
+  const refreshToken = jwt.sign(
+    { id: user.id, role: user.role },
+    REFRESH_SECRET_KEY,
+    { expiresIn: config.jwt.refreshExpiresIn as jwt.SignOptions["expiresIn"] }
+  );
+  
+  // Trả về tokens và thông tin user (không bao gồm password)
+  const { password: _, ...userWithoutPassword } = user;
+  return { 
+    accessToken, 
+    refreshToken,
+    user: userWithoutPassword
+  };
 };

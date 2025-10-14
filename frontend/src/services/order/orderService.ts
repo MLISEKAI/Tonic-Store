@@ -1,4 +1,4 @@
-import { ENDPOINTS, handleResponse } from '../api';
+import { ENDPOINTS, fetchWithCredentials, getHeaders, handleResponse } from '../api';
 
 export const OrderService = {
   // Tạo đơn hàng mới
@@ -16,112 +16,88 @@ export const OrderService = {
     paymentMethod: string;
     userId: number;
   }) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(ENDPOINTS.ORDER.CREATE, {
+    try {
+    const response = await fetchWithCredentials(ENDPOINTS.ORDER.CREATE, {
       method: 'POST',
-      headers: { 
-        'Authorization': `Bearer ${token.trim()}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
+      headers: getHeaders(),
       body: JSON.stringify(orderData)
     });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to create order');
+    return handleResponse(response);
+    } catch (error: any) {
+      console.error('Lỗi khi tạo đơn hàng:', error);
+      throw new Error(error.message || 'Không thể tạo đơn hàng. Vui lòng thử lại sau.');
     }
-    return response.json();
   },
 
   // Lấy danh sách đơn hàng của user
-  async getUserOrders(userId: number, page = 1) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
+   async getUserOrders(page = 1, limit = 10, filters: Record<string, any> = {}) {
     try {
-      const response = await fetch(`${ENDPOINTS.ORDER.LIST}/user?page=${page}`, {
-        method: 'GET',
-        headers: { 
-          'Authorization': `Bearer ${token.trim()}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+        ...filters,
       });
+      const response = await fetchWithCredentials(
+        `${ENDPOINTS.ORDER.LIST}/user?${params.toString()}`,
+        {
+          method: 'GET',
+          headers: getHeaders(),
+        }
+      );
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Không tìm thấy đơn hàng');
-        }
-        if (response.status === 500) {
-          throw new Error('Lỗi server, vui lòng thử lại sau');
-        }
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch user orders');
+      return await handleResponse(response);
+    } catch (error: any) {
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        throw new Error('Mất kết nối. Kiểm tra Internet và thử lại.');
       }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error fetching user orders:', error);
-      throw error;
+      console.error('Lỗi khi tải danh sách đơn hàng:', error);
+      throw new Error(error.message || 'Không thể tải danh sách đơn hàng.');
     }
   },
 
   // Lấy chi tiết đơn hàng
   async getOrder(orderId: number) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
+    try {
+      const response = await fetchWithCredentials(ENDPOINTS.ORDER.DETAIL(orderId), {
+        method: 'GET',
+        headers: getHeaders(),
+      });
+      return await handleResponse(response);
+    } catch (error: any) {
+      console.error('Lỗi khi lấy chi tiết đơn hàng:', error);
+      throw new Error(error.message || 'Không thể lấy chi tiết đơn hàng.');
     }
-
-    const response = await fetch(ENDPOINTS.ORDER.DETAIL(orderId), {
-      headers: { 
-        'Authorization': `Bearer ${token.trim()}`,
-        'Accept': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch order');
-    }
-    return response.json();
   },
 
   // Hủy đơn hàng
   async cancelOrder(orderId: string) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
+     try {
+      const response = await fetchWithCredentials(
+        `${ENDPOINTS.ORDER.DETAIL(Number(orderId))}/cancel`,
+        {
+          method: 'PUT',
+          headers: getHeaders(),
+        }
+      );
+      return await handleResponse(response);
+    } catch (error: any) {
+      console.error('Lỗi khi hủy đơn hàng:', error);
+      throw new Error(error.message || 'Không thể hủy đơn hàng. Vui lòng thử lại.');
     }
-
-    const response = await fetch(`${ENDPOINTS.ORDER.DETAIL(Number(orderId))}/cancel`, {
-      method: 'PUT',
-      headers: { 
-        'Authorization': `Bearer ${token.trim()}`,
-        'Accept': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to cancel order');
-    }
-    return response.json();
   },
 
   // Lấy cập nhật realtime cho đơn hàng
   getOrderUpdates(orderId: number) {
-    const token = localStorage.getItem('token');
-    return new EventSource(
-      `${ENDPOINTS.ORDER.DETAIL(orderId)}/updates?token=${token}`
-    );
-  }
-}; 
+    const url = `${ENDPOINTS.ORDER.DETAIL(orderId)}/updates`;
+    const eventSource = new EventSource(url);
+
+    // Tự động reconnect nếu mất kết nối
+    eventSource.onerror = () => {
+      console.warn('Mất kết nối SSE. Thử kết nối lại sau 5 giây...');
+      eventSource.close();
+      setTimeout(() => this.getOrderUpdates(orderId), 5000);
+    };
+
+    return eventSource;
+  },
+};
