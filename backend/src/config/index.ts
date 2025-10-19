@@ -16,20 +16,20 @@ const config = {
     cookieOptions: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict' as const,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+      sameSite: process.env.NODE_ENV === 'production' ? ('strict' as const) : ('lax' as const),
+      maxAge: 24 * 60 * 60 * 1000,
     },
     refreshCookieOptions: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict' as const,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+      sameSite: process.env.NODE_ENV === 'production' ? ('strict' as const) : ('lax' as const),
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     },
     blacklistEnabled: process.env.JWT_BLACKLIST_ENABLED === 'true',
     blacklistTTL: parseInt(process.env.JWT_BLACKLIST_TTL || '86400'), // 1 day in seconds
   },
   database: {
-    url: process.env.DATABASE_URL || 'postgresql://user:password@localhost:5432/tonic_store',
+     url: process.env.DATABASE_URL || 'mysql://root:root@db:3306/tonic_store',
   },
 };
 

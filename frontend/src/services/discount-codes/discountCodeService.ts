@@ -1,4 +1,4 @@
-import { PromotionCode, ValidatePromotionResponse } from '../../types';
+import type { PromotionCode, ValidatePromotionResponse } from '../../types';
 import { API_URL, fetchWithCredentials, getHeaders, handleResponse } from '../api';
 
 export const PromotionService = {

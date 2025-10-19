@@ -1,21 +1,27 @@
-FROM sitespeedio/node:ubuntu-22-04-nodejs-20.17.0.1
+FROM node:20-bookworm
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy dependencies files
+COPY package.json yarn.lock ./
 
-ENV NODE_ENV=development
+# Install build tools
+RUN apt-get update && apt-get install -y make g++ python3 build-essential openssl && rm -rf /var/lib/apt/lists/*
 
-# Cài đặt các dependencies cần thiết
-RUN apt-get update && apt-get install -y make g++ python3 build-essential openssl
+# Install Yarn
+RUN npm install -g yarn && yarn config set registry https://registry.npmjs.org/
 
-# Cài yarn và các packages
-RUN npm install -g yarn
-RUN yarn install
+# Install dependencies
+RUN yarn install --network-timeout 100000
 
-# Sao chép source code
+# Copy source code
 COPY . .
 
+# Generate Prisma Client for correct binary target
+RUN npx prisma generate --binary-target=debian-openssl-3.0.x
 
-# Chạy prisma studio
-CMD ["npx", "prisma", "studio"] 
+# Expose port (optional for Studio)
+EXPOSE 5555
+
+# Default command (Prisma Studio or your backend)
+CMD ["npx", "prisma", "studio"]

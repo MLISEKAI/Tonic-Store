@@ -33,14 +33,18 @@ export const loginUser = async (email: string, password: string) => {
       { expiresIn: config.jwt.refreshExpiresIn as jwt.SignOptions["expiresIn"] }
     );
 
-    // Create notification for user login
-    await prisma.notification.create({
-      data: {
-        userId: user.id,
-        message: `Bạn vừa đăng nhập từ một thiết bị mới. Nếu không phải bạn, hãy đổi mật khẩu ngay.`,
-        isRead: false,
-      },
-    });
+    // Create notification for user login (non-critical)
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          message: `Bạn vừa đăng nhập từ một thiết bị mới. Nếu không phải bạn, hãy đổi mật khẩu ngay.`,
+          isRead: false,
+        },
+      });
+    } catch (notifyError) {
+      console.warn('Login notification creation failed, continuing login flow:', notifyError);
+    }
 
     // Trả về tokens và thông tin user (không bao gồm password)
     const { password: _, ...userWithoutPassword } = user;

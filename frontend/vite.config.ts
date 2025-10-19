@@ -7,6 +7,13 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://server-be:8085',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
     headers: {
       'Content-Security-Policy': `
         default-src 'self';

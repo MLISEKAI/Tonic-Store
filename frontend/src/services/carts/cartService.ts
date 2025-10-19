@@ -1,4 +1,4 @@
-import { Cart, CartItem } from '../../types';
+import { Cart } from '../../types';
 import { ENDPOINTS, fetchWithCredentials, getHeaders, handleResponse } from '../api';
 
 
@@ -36,9 +36,9 @@ export const CartService = {
     });
     const data = await handleResponse(response);
 
-    // Cập nhật lại cache sau khi thêm
-    cartCache = data;
-    lastFetched = Date.now();
+    // Mutation endpoints không trả về full cart → vô hiệu hóa cache để buộc fetch mới
+    cartCache = null;
+    lastFetched = 0;
 
     return data;
   },
@@ -52,9 +52,9 @@ export const CartService = {
     });
     const data = await handleResponse(response);
 
-    // Cập nhật lại cache
-    cartCache = data;
-    lastFetched = Date.now();
+    // Vô hiệu hóa cache để lần lấy giỏ hàng tiếp theo luôn là dữ liệu mới
+    cartCache = null;
+    lastFetched = 0;
 
     return data;
   },
@@ -67,9 +67,9 @@ export const CartService = {
     });
     const data = await handleResponse(response);
 
-    // Cập nhật lại cache
-    cartCache = data;
-    lastFetched = Date.now();
+    // Vô hiệu hóa cache
+    cartCache = null;
+    lastFetched = 0;
 
     return data;
   },

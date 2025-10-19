@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, message, List, Tag, Modal, Spin } from 'antd';
 import { GiftOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { PromotionService } from '../services/discount-codes/discountCodeService';
-import type { PromotionCode } from '../services/discount-codes/discountCodeService';
+import type { PromotionCode as PromotionCodeType } from '../types';
 import { formatDate } from '../utils/dateUtils';
 
 const PromotionCode: React.FC = () => {
-  const [promotionCodes, setPromotionCodes] = useState<PromotionCode[]>([]);
-  const [claimedCodes, setClaimedCodes] = useState<PromotionCode[]>([]);
+  const [promotionCodes, setPromotionCodes] = useState<PromotionCodeType[]>([]);
+  const [claimedCodes, setClaimedCodes] = useState<PromotionCodeType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCode, setSelectedCode] = useState<PromotionCode | null>(null);
+  const [selectedCode, setSelectedCode] = useState<PromotionCodeType | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const fetchPromotionCodes = async () => {
@@ -35,7 +35,7 @@ const PromotionCode: React.FC = () => {
     fetchPromotionCodes();
   }, []);
 
-  const handleViewCode = (code: PromotionCode) => {
+  const handleViewCode = (code: PromotionCodeType) => {
     setSelectedCode(code);
     setIsModalVisible(true);
   };
@@ -70,7 +70,7 @@ const PromotionCode: React.FC = () => {
     }
   };
 
-  const formatDiscount = (code: PromotionCode) => {
+  const formatDiscount = (code: PromotionCodeType) => {
     // Nếu không có code hoặc code không có trường discount, sẽ trả về '0'.
     if (!code || typeof code.discount === 'undefined') return '0';
     // Nếu code là loại phần trăm (PERCENTAGE), sẽ trả về số phần trăm.
@@ -81,7 +81,7 @@ const PromotionCode: React.FC = () => {
     return `${code.discount.toLocaleString('vi-VN')}đ`;
   };
 
-  const renderCodeDetails = (code: PromotionCode) => (
+  const renderCodeDetails = (code: PromotionCodeType) => (
     <div className="space-y-2">
       <p><strong>Mã:</strong> {code.code}</p>
       <p><strong>Giảm giá:</strong> {formatDiscount(code)}</p>

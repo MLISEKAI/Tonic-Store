@@ -1,6 +1,7 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+// In dev, use relative base so Vite proxy handles cookies as same-origin
+export const API_URL = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL;
 
-if (!API_URL) {
+if (!API_URL && !import.meta.env.DEV) {
   throw new Error('VITE_API_URL environment variable is not set');
 }
 
@@ -8,7 +9,7 @@ if (!API_URL) {
 export const fetchWithCredentials = (url: string, options: RequestInit = {}) => {
   return fetch(url, {
     ...options,
-    credentials: 'include', // Tự động gửi cookies với mọi request
+    credentials: 'include', 
   });
 };
 
@@ -158,14 +159,29 @@ export const ENDPOINTS = {
 export const handleResponse = async (response: Response) => {
   if (!response.ok) {
     if (response.status === 401) {
-      // Token hết hạn hoặc không hợp lệ
       localStorage.removeItem('token');
       throw new Error('Unauthorized');
     }
-    const error = await response.json();
-    throw new Error(error.message || 'Something went wrong');
+    const contentType = response.headers.get('content-type') || '';
+    try {
+      if (contentType.includes('application/json')) {
+        const error = await response.json();
+        throw new Error(error.message || error.error || `HTTP ${response.status}`);
+      }
+      const text = await response.text();
+      throw new Error(text || `HTTP ${response.status}`);
+    } catch (e) {
+      // Fallback when body is empty or parsing fails
+      if (e instanceof Error) throw e;
+      throw new Error(`HTTP ${response.status}`);
+    }
   }
-  return response.json();
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+  // When server returns empty body (204/empty 200)
+  return null as unknown as any;
 };
 
 // API functions

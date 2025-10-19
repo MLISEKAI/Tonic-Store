@@ -8,23 +8,26 @@ const userRepository = new UserRepository();
 
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
+const EMAIL_ENABLED = Boolean(EMAIL_USER && EMAIL_PASS);
 
-if (!EMAIL_USER || !EMAIL_PASS) {
-  throw new Error("EMAIL_USER hoặc EMAIL_PASS chưa được cấu hình trong .env");
-}
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS,
-    },
-});
+const transporter = EMAIL_ENABLED
+  ? nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: EMAIL_USER as string,
+        pass: EMAIL_PASS as string,
+      },
+    })
+  : null;
 
 async function sendPasswordChangeNotification(userEmail: string, userName: string, newPassword_PlainText: string) {
   try {
+    if (!EMAIL_ENABLED || !transporter) {
+      console.warn('Email not configured. Skipping password change notification.');
+      return;
+    }
     await transporter.sendMail({
-      from: EMAIL_USER,
+      from: EMAIL_USER as string,
       to: userEmail,
       subject: 'Thông báo thay đổi mật khẩu tài khoản Tonic Store',
       html: `

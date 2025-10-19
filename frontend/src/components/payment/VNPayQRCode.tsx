@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { VNPayTimer } from '../../utils/vnpay-timer';
-import * as QRCode from 'qrcode';
+// Dùng import động để tránh lỗi thiếu types khi build
+const QRCode = await import('qrcode');
 import '../../utils/vnpay-init';
 
 interface VNPayQRCodeProps {
