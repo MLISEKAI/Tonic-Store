@@ -6,35 +6,21 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Lưu role nếu có trên URL (token sẽ được lưu trong cookie)
-    const params = new URLSearchParams(window.location.search);
-    const role = params.get('role');
-    
-    if (role) {
-      localStorage.setItem('user', JSON.stringify({ role }));
-      // Xóa role khỏi URL và reload lại
-      window.history.replaceState({}, document.title, window.location.pathname);
-      window.location.reload();
-      return;
-    }
-
-    // Kiểm tra quyền bằng cách gọi API
     const checkAdminAccess = async () => {
+      setIsLoading(true);
       try {
-        const userData = await userService.getUserById(1);
-        if (userData && userData.role === 'ADMIN') {
+        const userData = await userService.getProfile();
+        if (userData?.role === 'ADMIN') {
           setIsAdmin(true);
         } else {
           window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
         }
       } catch (error) {
-        console.error('Error checking admin access:', error);
         window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
       } finally {
         setIsLoading(false);
       }
     };
-
     checkAdminAccess();
   }, []);
 

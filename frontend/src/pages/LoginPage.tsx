@@ -1,8 +1,7 @@
-import { Form, Input, Button, Card, notification } from 'antd';
+import { Form, Input, Button, notification } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useEffect } from 'react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -11,24 +10,14 @@ const LoginPage = () => {
   const redirectByRole = (role: string) => {
     if (role === 'ADMIN') {
       const adminUrl = import.meta.env.VITE_ADMIN_URL;
-      window.open(`${adminUrl}/admin?token=${encodeURIComponent(localStorage.getItem('token') || '')}&role=${encodeURIComponent(role)}`, '_blank');
+      window.open(`${adminUrl}/admin`, '_blank');
     } else if (role === 'DELIVERY') {
       navigate('/shipper/dashboard');
     } else {
       navigate('/');
     }
   };
-  
-  useEffect(() => {
-    if (!loading && isAuthenticated) {
-      try {
-        const userStr = localStorage.getItem('user');
-        const role = userStr ? JSON.parse(userStr).role : '';
-        redirectByRole(role);
-      } catch {}
-    }
-  }, [loading, isAuthenticated, navigate]);
-  
+
   const onFinish = async (values: { email: string; password: string }) => {
     try {
       const loginData = {

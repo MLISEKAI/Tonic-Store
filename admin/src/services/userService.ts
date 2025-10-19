@@ -28,6 +28,13 @@ export const userService = {
     return handleResponse(res);
   },
 
+  getProfile: async (): Promise<User> => {
+    const res = await fetchWithCredentials(`${API_URL}/profile`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(res);
+  },
+
   createUser: async (data: CreateUserData): Promise<User> => {
     const res = await fetchWithCredentials(`${AUTH_URL}/register`, {
       method: 'POST',

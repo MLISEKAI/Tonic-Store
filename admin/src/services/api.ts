@@ -1,20 +1,39 @@
-export const API_URL = import.meta.env.VITE_API_URL;
+// In dev, use relative base so Vite proxy handles cookies as same-origin
+export const API_URL = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL;
 
 // Hàm xử lý response từ API
 export const handleResponse = async (response: Response) => {
+  const contentType = response.headers.get('content-type') || '';
+
   if (!response.ok) {
     if (response.status === 401) {
-      // Xử lý lỗi xác thực
-      window.location.href = '/login';
+      window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
       throw new Error('Unauthorized');
     }
-    const errorData = await response.json();
-    const errorMessage = errorData.error || errorData.details || 'Something went wrong';
-    throw new Error(errorMessage);
+    try {
+      if (contentType.includes('application/json')) {
+        const errorData = await response.json();
+        const errorMessage = errorData.error || errorData.details || errorData.message || 'Something went wrong';
+        throw new Error(errorMessage);
+      }
+      const text = await response.text();
+      throw new Error(text || 'Something went wrong');
+    } catch (e) {
+      // Fallback if body is empty or not parsable
+      throw new Error('Something went wrong');
+    }
   }
-  const text = await response.text();
-  if (!text) return null;
-  return JSON.parse(text);
+
+  if (response.status === 204) return null;
+  try {
+    if (contentType.includes('application/json')) {
+      return await response.json();
+    }
+    const text = await response.text();
+    return text ? text : null;
+  } catch {
+    return null;
+  }
 };
 
 // Cấu hình fetch để tự động gửi cookies với mọi request
@@ -30,6 +49,10 @@ export const getHeaders = (contentType = 'application/json') => {
   const headers: Record<string, string> = {
     'Content-Type': contentType,
   };
+  const token = localStorage.getItem('token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
   return headers;
 };
 
@@ -97,12 +120,9 @@ export const deleteShippingAddress = async (id: number) => {
 };
 
 export const setDefaultShippingAddress = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/shipping-addresses/${id}/default`, {
+  const response = await fetchWithCredentials(`${API_URL}/api/shipping-addresses/${id}/default`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      'Content-Type': 'application/json'
-    }
+    headers: getHeaders(),
   });
   return handleResponse(response);
 };
@@ -110,47 +130,43 @@ export const setDefaultShippingAddress = async (id: number) => {
 // Categories API
 export const categoryService = {
   getAll: async () => {
-    const response = await fetch(`${API_URL}/api/categories`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/categories`, {
       headers: getHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to fetch categories');
-    return response.json();
+    return handleResponse(response);
   },
 
   create: async (data: any) => {
-    const response = await fetch(`${API_URL}/api/categories`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/categories`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to create category');
-    return response.json();
+    return handleResponse(response);
   },
 
   update: async (id: number, data: any) => {
-    const response = await fetch(`${API_URL}/api/categories/${id}`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/categories/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to update category');
-    return response.json();
+    return handleResponse(response);
   },
 
   delete: async (id: number) => {
-    const response = await fetch(`${API_URL}/api/categories/${id}`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/categories/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to delete category');
-    return response.json();
+    return handleResponse(response);
   },
 };
 
 // Promotions API
 export const promotionService = {
   getAll: async () => {
-    const response = await fetch(`${API_URL}/api/discount-codes`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/discount-codes`, {
       headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Failed to fetch promotions');
@@ -158,7 +174,7 @@ export const promotionService = {
   },
 
   create: async (data: any) => {
-    const response = await fetch(`${API_URL}/api/discount-codes`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/discount-codes`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -168,7 +184,7 @@ export const promotionService = {
   },
 
   update: async (id: string, data: any) => {
-    const response = await fetch(`${API_URL}/api/discount-codes/${id}`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/discount-codes/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -178,7 +194,7 @@ export const promotionService = {
   },
 
   delete: async (id: string) => {
-    const response = await fetch(`${API_URL}/api/discount-codes/${id}`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/discount-codes/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
@@ -187,7 +203,7 @@ export const promotionService = {
   },
 
   resetUsage: async (id: string) => {
-    const response = await fetch(`${API_URL}/api/discount-codes/${id}/reset`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/discount-codes/${id}/reset`, {
       method: 'POST',
       headers: getHeaders(),
     });
@@ -199,7 +215,7 @@ export const promotionService = {
 // Shipper API
 export const shipperService = {
   getAll: async () => {
-    const response = await fetch(`${API_URL}/api/users`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/users`, {
       headers: getHeaders(),
     });
     const data = await handleResponse(response);
@@ -208,7 +224,7 @@ export const shipperService = {
   },
 
   updateStatus: async (id: number, isActive: boolean) => {
-    const response = await fetch(`${API_URL}/api/users/${id}/status`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/users/${id}/status`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify({ isActive }),
@@ -217,7 +233,7 @@ export const shipperService = {
   },
 
   delete: async (id: number) => {
-    const response = await fetch(`${API_URL}/api/users/${id}`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/users/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
@@ -228,29 +244,26 @@ export const shipperService = {
 // Reviews API
 export const reviewService = {
   getAll: async () => {
-    const response = await fetch(`${API_URL}/api/reviews`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/reviews`, {
       headers: getHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to fetch reviews');
-    return response.json();
+    return handleResponse(response);
   },
 
   updateStatus: async (id: string, status: string) => {
-    const response = await fetch(`${API_URL}/api/reviews/${id}/status`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/reviews/${id}/status`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify({ status }),
     });
-    if (!response.ok) throw new Error('Failed to update review status');
-    return response.json();
+    return handleResponse(response);
   },
 
   delete: async (id: string) => {
-    const response = await fetch(`${API_URL}/api/reviews/${id}`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/reviews/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to delete review');
-    return response.json();
+    return handleResponse(response);
   },
 };

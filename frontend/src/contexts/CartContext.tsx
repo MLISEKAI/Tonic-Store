@@ -55,7 +55,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       setError(null);
-      const data = await CartService.getCart();
+      const data = await CartService.getCart(false);
       setCart({
         items: data.items?.map(item => ({
           id: item.id,

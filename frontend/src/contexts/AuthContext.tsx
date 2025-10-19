@@ -33,6 +33,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated,
     loading,
     error,
+    setUser,
+    setIsAuthenticated,
     checkAuth,
     clearAuth
   } = useAuthState();
@@ -43,23 +45,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuth();
   }, [checkAuth]);
 
-  // Lưu user vào localStorage mỗi khi user thay đổi
-  React.useEffect(() => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('user');
-    }
-  }, [user]);
+  // Không cần lưu user vào localStorage vì đã sử dụng cookies
+  // Dữ liệu user sẽ được lấy trực tiếp từ API mỗi khi refresh trang
 
   const login = async (credentials: { email: string; password: string }) => {
     try {
       const response = await UserService.login(credentials);
-      // Không cần lưu token vào localStorage vì đã được lưu trong HttpOnly cookies
+      console.log('Login successful:', response);
+      
+      // Gọi checkAuth ngay sau khi đăng nhập thành công
       await checkAuth();
+      
+      // Đảm bảo trạng thái đã được cập nhật
+      if (!isAuthenticated) {
+        console.log('Forcing authentication state update');
+        setIsAuthenticated(true);
+        
+        // Nếu không có user data, thử lấy lại từ API
+        if (!user) {
+          const userData = await UserService.getProfile();
+          setUser(userData);
+        }
+      }
+      
       return response;
     } catch (error) {
-      clearAuth();
+      console.error('Login error:', error);
       throw error;
     }
   };

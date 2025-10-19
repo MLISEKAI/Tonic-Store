@@ -17,7 +17,7 @@ const ShipperOrderHistoryPage: React.FC = () => {
   const [totalOrders, setTotalOrders] = useState(0);
 
   // Debounce searchName
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [internalSearch, setInternalSearch] = React.useState(searchName);
 
   useEffect(() => {

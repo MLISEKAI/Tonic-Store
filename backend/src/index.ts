@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction, RequestHandler } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import morgan from 'morgan';
 import helmet from 'helmet';
@@ -32,12 +33,24 @@ const app = express();
 
 // Middleware
 app.use(helmet());
+
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  'http://localhost:3001',
+]);
+
 app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.has(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
 }));
 app.use(compression() as unknown as RequestHandler);
 app.use(express.json());
+app.use(cookieParser());
 app.use(morgan('combined', { stream: { write: (message: string) => logger.info(message.trim()) } }));
 
 // Rate limiting

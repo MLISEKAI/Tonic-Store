@@ -1,6 +1,6 @@
 // Sử dụng namespace để tránh xung đột với biến toàn cục
 export const VNPayTimer = {
-  timer: null as NodeJS.Timeout | null,
+  timer: null as ReturnType<typeof setInterval> | null,
   startTime: null as number | null,
 
   startTimer(callback: () => void, interval: number = 1000) {

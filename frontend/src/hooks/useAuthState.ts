@@ -22,14 +22,20 @@ export function useAuthState() {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No token found');
-
+      
+      // Gọi API để lấy thông tin user từ cookies
       const userData = await UserService.getProfile();
-      setUser(userData);
-      setIsAuthenticated(true);
+      
+      // Chỉ set isAuthenticated = true khi có dữ liệu user hợp lệ
+      if (userData && userData.id) {
+        setUser(userData);
+        setIsAuthenticated(true);
+        console.log('User authenticated:', userData);
+      } else {
+        throw new Error('Invalid user data');
+      }
     } catch (error) {
-      localStorage.removeItem('token');
+      console.error('Authentication check failed:', error);
       setUser(null);
       setIsAuthenticated(false);
       setError('Authentication failed');

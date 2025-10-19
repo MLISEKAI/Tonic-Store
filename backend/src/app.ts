@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import productRoutes from './routes/productRoutes';
@@ -14,10 +15,21 @@ import helpCenterRoutes from './routes/helpCenterRoutes';
 
 const app = express();
 
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  'http://localhost:3001',
+]);
+
 app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.has(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
 }));
+app.use(cookieParser());
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);

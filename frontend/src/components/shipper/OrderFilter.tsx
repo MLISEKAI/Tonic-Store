@@ -32,7 +32,7 @@ const OrderFilter: React.FC<OrderFilterProps> = ({
   statusOptions
 }) => {
   // Debounce searchName
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [internalSearch, setInternalSearch] = React.useState(searchName);
 
   useEffect(() => {

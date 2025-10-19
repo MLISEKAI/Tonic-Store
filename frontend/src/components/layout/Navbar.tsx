@@ -45,7 +45,7 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const { cart, totalItems, removeFromCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
@@ -97,9 +97,10 @@ const Navbar = () => {
     const fetchNotifications = async () => {
       if (isAuthenticated) {
         try {
-          const notifications = await NotificationService.getNotifications();
-          setNotifications(notifications);
-          setUnreadNotificationCount(notifications.filter((n: { isRead: any; }) => !n.isRead).length);
+          const result = await NotificationService.getNotifications();
+          const list: Notification[] = Array.isArray(result) ? result : (result?.data ?? []);
+          setNotifications(list);
+          setUnreadNotificationCount(list.filter((n) => !n.isRead).length);
         } catch (error) {
           console.error("Failed to fetch notifications", error);
         }
@@ -352,8 +353,13 @@ const Navbar = () => {
               </Popover>
 
               {/* Auth */}
-              {isAuthenticated ? (
-                <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              {isAuthenticated && user ? (
+                <Dropdown 
+                  menu={{ items: userMenuItems }} 
+                  placement="bottomRight"
+                  trigger={['click']}
+                  arrow={{ pointAtCenter: true }}
+                >
                   <UserOutlined className="text-xl cursor-pointer" />
                 </Dropdown>
               ) : (

@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Statistic, Typography, Spin } from 'antd';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { StatsData } from '../types/stats';
+import { fetchWithCredentials } from '../services/api';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL;
 
 const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<StatsData | null>(null);
@@ -13,13 +14,7 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_URL}/api/stats`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        const response = await fetchWithCredentials(`${API_URL}/api/stats`);
         if (!response.ok) {
           throw new Error('Failed to fetch stats');
         }
