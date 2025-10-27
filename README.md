@@ -2,50 +2,7 @@
 
 A full-stack e-commerce platform built with modern technologies.
 
-## 🚀 Features
-
-- User authentication and authorization
-- Product management
-- Shopping cart functionality
-- Order processing
-- Admin dashboard
-- Responsive design
-
-## 🛠 Tech Stack
-
-### Frontend
-- React + TypeScript
-- Vite
-- Tailwind CSS
-- React Query
-- React Router
-
-### Backend
-- Node.js + TypeScript
-- Express.js
-- Prisma (ORM)
-- PostgreSQL
-- JWT Authentication
-
-### Admin Panel
-- React + TypeScript
-- Vite
-- Tailwind CSS
-- React Query
-
-### DevOps
-- Docker
-- Docker Compose
-- CI/CD (GitHub Actions)
-
-## 📦 Prerequisites
-
-- Node.js (v18 or higher)
-- Yarn
-- Docker
-- Docker Compose
-
-## 🚀 Getting Started
+## Getting Started
 
 1. Clone the repository:
 ```bash
@@ -95,7 +52,50 @@ cd admin
 yarn dev
 ```
 
-## 📁 Project Structure
+## Features
+
+- User authentication and authorization
+- Product management
+- Shopping cart functionality
+- Order processing
+- Admin dashboard
+- Responsive design
+
+## Tech Stack
+
+### Frontend
+- React + TypeScript
+- Vite
+- Tailwind CSS
+- React Query
+- React Router
+
+### Backend
+- Node.js + TypeScript
+- Express.js
+- Prisma (ORM)
+- PostgreSQL
+- JWT Authentication
+
+### Admin Panel
+- React + TypeScript
+- Vite
+- Tailwind CSS
+- React Query
+
+### DevOps
+- Docker
+- Docker Compose
+- CI/CD (GitHub Actions)
+
+## Prerequisites
+
+- Node.js (v18 or higher)
+- Yarn
+- Docker
+- Docker Compose
+
+## Project Structure
 
 ```
 tonic-store/
@@ -107,7 +107,7 @@ tonic-store/
 └── docker-compose.yml # Docker Compose configuration
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run frontend tests
@@ -119,11 +119,11 @@ cd backend
 yarn test
 ```
 
-## 📝 API Documentation
+## API Documentation
 
 API documentation is available at `/api/docs` when running the backend server.
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -137,9 +137,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Authors
 
-- Your Name - Initial work
+- Tran Thanh Loc
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Thanks to all contributors
 - Thanks to the open-source community
