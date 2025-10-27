@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu, Button } from 'antd';
+import { Layout, Menu, Button, Spin } from 'antd';
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -16,11 +16,12 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 const { Header, Sider, Content } = Layout;
 
-const AdminLayout: React.FC = () => {
+const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
+  
   // Lấy key từ URL để highlight menu
   const pathname = location.pathname;
   const selectedKey = pathname.split('/').slice(2).join('/') || 'dashboard';
@@ -154,4 +155,4 @@ const AdminLayout: React.FC = () => {
   );
 };
 
-export default AdminLayout;
+export default AdminPage;

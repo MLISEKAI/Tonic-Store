@@ -30,11 +30,24 @@ const DashboardPage: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <Spin size="large" />;
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '60vh',
+        }}
+      >
+        <Spin size="large" tip="Đang tải thống kê..." />
+      </div>
+    );
   }
+
   if (!stats) {
     return <Typography>Lỗi tải thống kê</Typography>;
   }
+
   const statCards = [
     { title: 'Tổng sản phẩm', value: stats.totalProducts, color: '#4caf50' },
     { title: 'Tổng người dùng', value: stats.totalUsers, color: '#2196f3' },

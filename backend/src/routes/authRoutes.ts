@@ -5,7 +5,7 @@ import { Prisma } from "@prisma/client";
 import { sendResetPasswordEmail, resetPasswordByToken } from '../services/auth/forgotPasswordService';
 import { authenticate, refreshToken } from "../middleware/auth";
 import config  from "../config";
-import { addToBlacklist } from "../repositories/tokenBlacklistRepository";
+import { addToBlacklist } from '../repositories/tokenBlacklistRepository';
 import jwt from "jsonwebtoken";
 
 const router = express.Router();
@@ -94,6 +94,11 @@ router.post('/logout', authenticate, async (req, res) => {
         await addToBlacklist(refreshToken, userId, refreshTokenExpDate);
       }
     }
+    
+    // Xóa hoặc revoke token (dùng revoke cho chuẩn)
+    // if (refreshToken) { // This line was removed as per the edit hint
+    //   await revokeRefreshToken(refreshToken); // This line was removed as per the edit hint
+    // }
     
     // Xóa cookies
     res.clearCookie('access_token');

@@ -2,10 +2,11 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import config from "../../config";
+import { createRefreshToken } from '../../repositories/refreshTokenRepository';
 
 const prisma = new PrismaClient();
-const SECRET_KEY: jwt.Secret = config.jwt.secret;
-const REFRESH_SECRET_KEY: jwt.Secret = config.jwt.refreshSecret;
+const SECRET_KEY: jwt.Secret = config.jwt.secret || '';
+const REFRESH_SECRET_KEY: jwt.Secret = config.jwt.refreshSecret || '';
 
 export const registerUser = async (
   name: string, 
@@ -13,7 +14,8 @@ export const registerUser = async (
   password: string, 
   phone: string,
   address: string,
-  role: "CUSTOMER" | "ADMIN" | "DELIVERY" = "CUSTOMER"
+  role: "CUSTOMER" | "ADMIN" | "DELIVERY" = "CUSTOMER",
+  deviceInfo: string | null = null
 ) => {
   // Validate required fields
   if (!name || !email || !password || !phone) {
@@ -69,6 +71,13 @@ export const registerUser = async (
     REFRESH_SECRET_KEY,
     { expiresIn: config.jwt.refreshExpiresIn as jwt.SignOptions["expiresIn"] }
   );
+  
+  // Sau khi sinh refreshToken
+  const refreshExp = jwt.decode(refreshToken) as { exp: number } | null;
+  if (refreshExp) {
+    await prisma.refreshToken.deleteMany({ where: { userId: user.id, deviceInfo } });
+    await createRefreshToken(refreshToken, user.id, new Date(refreshExp.exp * 1000), deviceInfo);
+  }
   
   // Trả về tokens và thông tin user (không bao gồm password)
   const { password: _, ...userWithoutPassword } = user;
