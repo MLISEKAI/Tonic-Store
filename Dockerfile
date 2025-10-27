@@ -6,9 +6,9 @@ ENV NPM_CONFIG_PRODUCTION=false
 WORKDIR /app
 
 # Copy package files
-COPY package.json yarn.lock ./
 COPY frontend/package.json ./frontend/
 COPY backend/package.json ./backend/
+COPY admin/package.json ./admin/
 
 # Install dependencies
 RUN yarn install
@@ -21,6 +21,9 @@ RUN cd frontend && yarn build
 
 # Build backend
 RUN cd backend && yarn build
+
+# Build admin
+RUN cd admin && yarn build
 
 # Start server
 CMD ["yarn", "prd:serve"]
