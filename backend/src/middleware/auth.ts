@@ -1,5 +1,5 @@
 // KIỂM TRA XÁC THỰC JWT TRONG BACKEND
-import { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import jwt, { SignOptions, Secret } from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import config from "../config";

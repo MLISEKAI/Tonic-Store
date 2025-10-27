@@ -1,14 +1,9 @@
-import React, { useState } from 'react';
-import { Card, Row, Col, Typography, Button, Input, Space, List, Tag, Modal, Form, Select, Upload, message } from 'antd';
+import React from 'react';
+import { Card, Row, Col, Typography, Button, Input, Space, Tag, Form, Select, Upload, message } from 'antd';
 import { 
   PhoneOutlined, 
   MailOutlined, 
-  UserOutlined,
-  FileTextOutlined,
   UploadOutlined,
-  CheckCircleOutlined,
-  TeamOutlined,
-  CameraOutlined
 } from '@ant-design/icons';
 
 const { Title, Text, Paragraph } = Typography;
@@ -16,7 +11,6 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 const MediaContactPage: React.FC = () => {
-  const [isContactModalVisible, setIsContactModalVisible] = useState(false);
   const [form] = Form.useForm();
 
   const mediaContacts = [
@@ -103,7 +97,6 @@ const MediaContactPage: React.FC = () => {
   const handleSubmit = (values: any) => {
     console.log('Media contact form:', values);
     message.success('Yêu cầu đã được gửi! Chúng tôi sẽ liên hệ lại trong vòng 24h.');
-    setIsContactModalVisible(false);
     form.resetFields();
   };
 

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { createReview, getProductReviews, getUserReviews, updateReview, deleteReview, getAllReviews} from '../services/reviewService';
 import { updateProductRating } from '../services/productService';
 

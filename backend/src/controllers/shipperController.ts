@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import * as shipperService from '../services/shipperService';
 import { OrderStatus } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';

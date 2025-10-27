@@ -1,6 +1,6 @@
 import React from 'react';
 import { Layout, Menu } from 'antd';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   DashboardOutlined,
   HistoryOutlined,
@@ -18,7 +18,6 @@ interface ShipperLayoutProps {
 
 const ShipperLayout: React.FC<ShipperLayoutProps> = ({ children }) => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { logout, user } = useAuth();
 
   const menuItems = [

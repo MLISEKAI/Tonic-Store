@@ -1,4 +1,4 @@
-import { Form, Input, Button, Card, notification } from 'antd';
+import { Form, Input, Button, notification } from 'antd';
 import { MailOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { forgotPassword } from '../services/api';

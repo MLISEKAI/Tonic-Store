@@ -10,7 +10,7 @@ interface ProductSectionProps {
   products: Product[];
   onAddToCart: (product: Product) => void;
   showViewAll?: boolean;
-  type?: 'default' | 'flash-sale' | 'featured' | 'best-sellers';
+  // type?: 'default' | 'flash-sale' | 'featured' | 'best-sellers';
 }
 
 const ProductSection: React.FC<ProductSectionProps> = ({
@@ -19,7 +19,7 @@ const ProductSection: React.FC<ProductSectionProps> = ({
   products,
   onAddToCart,
   showViewAll = true,
-  type = 'default'
+  // type = 'default'
 }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">

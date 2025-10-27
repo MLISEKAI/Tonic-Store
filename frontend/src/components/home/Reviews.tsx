@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Rate, Avatar, Spin } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { Review, Product } from '../../types';

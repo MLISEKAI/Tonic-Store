@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Checkbox, Button, message } from 'antd';
+import { Modal, Checkbox, message } from 'antd';
 
 interface DeliveryChecklistModalProps {
   visible: boolean;

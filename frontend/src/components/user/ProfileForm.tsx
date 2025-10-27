@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Form, Input, Button, Checkbox, notification } from 'antd';
+import { Form, Input, Button, notification } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { UserProfile } from '../../types/user';
 import { ShippingAddressService } from '../../services/shipping/shippingAddressService';

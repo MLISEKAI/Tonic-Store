@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { discountCodeService } from '../services/discountCodeService';
 
 // Lấy tất cả mã giảm giá

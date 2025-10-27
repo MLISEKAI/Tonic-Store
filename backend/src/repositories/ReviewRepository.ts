@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { IReviewRepository } from './interfaces/IReviewRepository';
+import type { IReviewRepository } from './interfaces/IReviewRepository';
 
 export class ReviewRepository implements IReviewRepository {
   private prisma: PrismaClient;

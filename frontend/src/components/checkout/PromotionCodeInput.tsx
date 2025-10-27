@@ -1,5 +1,5 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Input, Button, message, Space, Typography, Card, List, Radio } from 'antd';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { message, Space, Typography, Card, List, Radio } from 'antd';
 import { PromotionService } from '../../services/discount-codes/discountCodeService';
 
 const { Text } = Typography;
@@ -14,9 +14,7 @@ export interface PromotionCodeInputRef {
 }
 
 const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputProps>(({ orderValue, onDiscountApplied }, ref) => {
-  const [code, setCode] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [claimedCodes, setClaimedCodes] = useState<any[]>([]);
+  const [claimedCodes, setClaimedCodes] = useState<Record<string, any>[]>([]);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
 
@@ -24,7 +22,6 @@ const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputP
     clearAppliedCode: () => {
       setSelectedCode(null);
       setDiscountAmount(0);
-      setCode('');
       onDiscountApplied(0, orderValue, undefined);
     }
   }));
@@ -50,7 +47,6 @@ const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputP
       return;
     }
     try {
-      setLoading(true);
       const result = await PromotionService.applyPromotionCode(codeToUse, orderValue);
       if (result.isValid && result.discountCode && result.discountAmount) {
         setDiscountAmount(result.discountAmount);
@@ -65,8 +61,6 @@ const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputP
       setDiscountAmount(0);
       onDiscountApplied(0, orderValue, undefined);
       message.error(error instanceof Error ? error.message : 'Không thể áp dụng mã giảm giá');
-    } finally {
-      setLoading(false);
     }
   };
 

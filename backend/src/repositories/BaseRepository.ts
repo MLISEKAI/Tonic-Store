@@ -1,5 +1,5 @@
 import { prisma } from '../prisma';
-import { IBaseRepository } from './interfaces/IBaseRepository';
+import type { IBaseRepository } from './interfaces/IBaseRepository';
 
 export class BaseRepository<T> implements IBaseRepository<T> {
   protected model: any;

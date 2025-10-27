@@ -201,7 +201,8 @@ export interface FlashSale {
 export interface Notification {
   id: number;
   title: string;
-  message: string;  
+  message: string;
+  link?: string;
   isRead: boolean;
   createdAt: string;
 };

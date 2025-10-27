@@ -1,7 +1,7 @@
 import React from 'react';
-import { Rate, Button, Tag } from 'antd';
+import { Rate, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { Product, ProductStatus } from '../../types';
+import { Product } from '../../types';
 import { formatPrice } from '../../utils/format';
 import WishlistButton from '../home/WishlistButton';
 
@@ -11,12 +11,12 @@ interface ProductCardProps {
   breadcrumb?: { path: string; label: string }[];
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, breadcrumb }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, breadcrumb }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
     let fromMenu;
-    if (breadcrumb && Array.isArray(breadcrumb) && breadcrumb.length > 0) {
+    if (breadcrumb && Array.isArray(breadcrumb) && breadcrumb.length > 0) { 
       const lastPath = breadcrumb[breadcrumb.length - 1].path;
       if (lastPath === '/flash-sale') fromMenu = 'flash-sale';
       else if (lastPath === '/featured-products') fromMenu = 'featured-products';

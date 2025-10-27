@@ -1,4 +1,5 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import type { Request, Response } from 'express';
 import { authenticate, authenticateSSE } from '../middleware/auth';
 import { createOrder, getOrder, updateOrderStatus, getAllOrders, cancelOrder } from '../services/orderService';
 import { createPayment, updatePaymentStatus } from '../services/paymentService';

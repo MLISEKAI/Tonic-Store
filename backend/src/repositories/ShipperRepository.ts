@@ -1,5 +1,5 @@
 import { PrismaClient, OrderStatus } from '@prisma/client';
-import { IShipperRepository } from './interfaces/IShipperRepository';
+import type { IShipperRepository } from './interfaces/IShipperRepository';
 
 export class ShipperRepository implements IShipperRepository {
   private prisma: PrismaClient;

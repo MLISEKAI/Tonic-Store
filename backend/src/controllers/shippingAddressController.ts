@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import * as shippingAddressService from '../services/shippingAddressService';
 
 export const getShippingAddresses = async (req: Request, res: Response) => {

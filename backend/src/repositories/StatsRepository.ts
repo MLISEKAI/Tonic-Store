@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { IStatsRepository } from './interfaces/IStatsRepository';
+import type { IStatsRepository } from './interfaces/IStatsRepository';
 
 export class StatsRepository implements IStatsRepository {
   private prisma: PrismaClient;
