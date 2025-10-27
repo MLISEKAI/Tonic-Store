@@ -8,9 +8,6 @@ COPY package.json yarn.lock ./
 # Cài đặt các dependencies
 RUN yarn install --frozen-lockfile
 
-# Sao chép file .env vào container
-COPY .env .env
-
 COPY . .
 
 EXPOSE 5173
