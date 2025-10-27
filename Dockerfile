@@ -3,31 +3,37 @@ FROM node:22-alpine AS production
 # Thêm build tools (typescript, node-gyp)
 RUN apk add --no-cache python3 make g++ bash git
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 ENV NPM_CONFIG_PRODUCTION=false
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files trước để tận dụng cache
 COPY frontend/package.json frontend/yarn.lock ./frontend/
 COPY backend/package.json backend/yarn.lock ./backend/
 COPY admin/package.json admin/yarn.lock ./admin/
 
-# Cài dependencies
-RUN yarn global add typescript
+# Install dependencies cho frontend (bao gồm devDependencies)
+WORKDIR /app/frontend
 RUN yarn install --frozen-lockfile
 
+WORKDIR /app
 # Copy source code
 COPY . .
 
 # Build frontend
-RUN cd frontend && yarn build
+WORKDIR /app/frontend
+RUN yarn build
 
-# Build backend
-RUN cd backend && yarn build
+# Install dependencies và build backend
+WORKDIR /app/backend
+RUN yarn install --frozen-lockfile
+RUN yarn build
 
-# Build admin
-RUN cd admin && yarn build
+# Install dependencies và build admin
+WORKDIR /app/admin
+RUN yarn install --frozen-lockfile
+RUN yarn build
 
 # Chạy backend (server chính)
 WORKDIR /app/backend

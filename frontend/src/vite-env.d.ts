@@ -1,9 +1,12 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  VITE_API_URL: string;
-  VITE_PORT: number;
-  VITE_FRONTEND_URL: string;
+  readonly VITE_API_URL: string;
+  readonly VITE_PORT: number;
+  readonly VITE_FRONTEND_URL: string;
+  readonly DEV: boolean;
+  readonly PROD: boolean;
+  readonly MODE: string;
 }
 
 interface ImportMeta {
