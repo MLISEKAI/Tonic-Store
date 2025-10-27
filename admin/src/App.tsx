@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import AdminLayout from './pages/AdminLayout'
+import AdminPage from './pages/AdminPage'
 import DashboardPage from './pages/DashboardPage'
 import ProductManagement from './components/ProductManagement'
 import ProductCategories from './components/ProductCategories'
@@ -9,12 +9,12 @@ import Reviews from './components/Reviews'
 import UserManagement from './components/UserManagement'
 import ShipperList from './components/ShipperList'
 import Promotions from './components/DiscountCode'
-import AdminRoute from './components/AdminRoute'
+import AdminRouter from './components/AdminRouter'
 
 function App() {
   return (
     <Routes>
-      <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+      <Route path="/admin" element={<AdminRouter><AdminPage /></AdminRouter>}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="product-list" element={<ProductManagement />} />

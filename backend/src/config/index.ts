@@ -9,9 +9,9 @@ const config = {
     returnUrl: process.env.VNPAY_RETURN_URL || 'http://localhost:3000/orders/vnpay/callback',
   },
   jwt: {
-    secret: process.env.JWT_SECRET || 'your-secret-key',
+    secret: process.env.JWT_SECRET,
     expiresIn: process.env.JWT_EXPIRES_IN || '1d',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'your-refresh-secret-key',
+    refreshSecret: process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     cookieOptions: {
       httpOnly: true,

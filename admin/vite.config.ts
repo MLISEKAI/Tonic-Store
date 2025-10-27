@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(new URL('./src', import.meta.url).pathname),
     },
   },
   optimizeDeps: {
@@ -18,8 +18,9 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8085',
+        target: 'http://server-be:8085',
         changeOrigin: true,
+        secure: false,
       },
     },
     headers: {

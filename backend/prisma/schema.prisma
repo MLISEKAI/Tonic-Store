@@ -32,6 +32,7 @@ model User {
   discountCodeUsages DiscountCodeUsage[]
   discountCodeClaims DiscountCodeClaim[]
   blacklistedTokens TokenBlacklist[]
+  refreshTokens RefreshToken[]
 }
 
 model Category {
@@ -365,5 +366,19 @@ model TokenBlacklist {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([expiresAt])
+}
+
+model RefreshToken {
+  id          Int      @id @default(autoincrement())
+  token       String   @unique @db.VarChar(500) // Có thể lưu hash nếu muốn
+  userId      Int
+  deviceInfo  String?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  revoked     Boolean  @default(false)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
   @@index([expiresAt])
 }

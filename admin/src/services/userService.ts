@@ -21,6 +21,23 @@ export const userService = {
     return handleResponse(res);
   },
 
+  login: async (email: string, password: string) => {
+    const res = await fetchWithCredentials(`${AUTH_URL}/login`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ email, password }),
+    });
+    return handleResponse(res);
+  },
+
+  logout: async () => {
+    const res = await fetchWithCredentials(`${AUTH_URL}/logout`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return handleResponse(res);
+  },
+
   getUserById: async (id: number): Promise<User> => {
     const res = await fetchWithCredentials(`${API_URL}/${id}`, {
       headers: getHeaders(),
