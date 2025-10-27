@@ -64,7 +64,9 @@ const OrderService = {
   async updateOrderStatus(id: string, status: string) {
     try {
      const response = await fetchWithCredentials(`${API_URL}/api/orders/${id}/status`, {
-        headers: getHeaders()
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify({ status })
       });
       if (!response.ok) throw new Error('Network response was not ok');
       return await response.json();
@@ -77,7 +79,9 @@ const OrderService = {
   async updatePaymentStatus(id: string, status: string, transactionId?: string) {
     try {
       const response = await fetchWithCredentials(`${API_URL}/api/orders/${id}/payment`, {
-        headers: getHeaders()
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify({ status, transactionId })
       });
       if (!response.ok) throw new Error('Network response was not ok');
       return await response.json();
