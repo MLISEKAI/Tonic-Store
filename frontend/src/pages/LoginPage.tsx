@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, loading, user, logout } = useAuth();
+  const { login } = useAuth();
 
   const redirectByRole = (role: string) => {
     if (role === 'ADMIN') {

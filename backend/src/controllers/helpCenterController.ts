@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 
 // Dữ liệu FAQ mẫu - trong thực tế có thể lưu trong database
 const faqData = [

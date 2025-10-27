@@ -1,12 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { notification } from 'antd';
 import { NotificationService } from '../services/notification/notificationService';
-
-interface Notification {
-  id: string;
-  message: string;
-  createdAt: string;
-}
+import type { Notification } from '../types';
 
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -14,7 +9,8 @@ const NotificationsPage = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const data = await NotificationService.getNotifications();
+        const result = await NotificationService.getNotifications();
+        const data = Array.isArray(result) ? result : result.data;
         setNotifications(data);
       } catch (error) {
         notification.error({

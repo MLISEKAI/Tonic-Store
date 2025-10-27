@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { PrismaClient, OrderStatus } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
-import { ParsedQs } from "qs";
+import type { ParsedQs } from "qs";
 import { createPaymentUrl } from "../services/vnpayService";
 
 const prisma = new PrismaClient();

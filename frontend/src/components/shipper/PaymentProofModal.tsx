@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Upload, Button, message } from 'antd';
+import { Modal, Upload, message } from 'antd';
 
 interface PaymentProofModalProps {
   visible: boolean;

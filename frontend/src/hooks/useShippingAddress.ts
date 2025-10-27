@@ -26,7 +26,7 @@ export function useShippingAddress(token: string) {
       const data = await getShippingAddresses(token);
       setAddresses(data);
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);

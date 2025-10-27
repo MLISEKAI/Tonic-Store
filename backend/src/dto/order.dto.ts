@@ -1,6 +1,6 @@
-import { OrderItemDto } from './order-item.dto';
-import { PaymentDto } from './payment.dto';
-import { UserDto } from './user.dto';
+import type { OrderItemDto } from './order-item.dto';
+import type { PaymentDto } from './payment.dto';
+import type { UserDto } from './user.dto';
 
 export class OrderDto {
   id!: number;

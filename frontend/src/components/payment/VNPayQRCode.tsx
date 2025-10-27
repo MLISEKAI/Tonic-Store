@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { VNPayTimer } from '../../utils/vnpay-timer';
-// Dùng import động để tránh lỗi thiếu types khi build
 const QRCode = await import('qrcode');
 import '../../utils/vnpay-init';
 
@@ -22,10 +21,10 @@ const VNPayQRCode: React.FC<VNPayQRCodeProps> = ({ paymentUrl, onTimeout }) => {
       margin: 2,
       errorCorrectionLevel: 'H'
     })
-      .then(url => {
+      .then((url: string) => {
         setQrCodeDataUrl(url);
       })
-      .catch(err => {
+      .catch((err: Error) => {
         console.error('Error generating QR code:', err);
       });
 

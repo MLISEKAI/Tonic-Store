@@ -1,5 +1,5 @@
 import { PrismaClient, CartItem } from '@prisma/client';
-import { ICartRepository } from './interfaces/ICartRepository';
+import type { ICartRepository } from './interfaces/ICartRepository';
 
 export class CartRepository implements ICartRepository {
   private prisma: PrismaClient;

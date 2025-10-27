@@ -16,7 +16,7 @@ import { getBreadcrumbFromPath } from '../utils/breadcrumb';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, loading, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const { products, filteredProducts } = useProducts();
   const { addToCart } = useCart();
   const [visibleSuggestions, setVisibleSuggestions] = useState(10);

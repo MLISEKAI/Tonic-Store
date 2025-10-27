@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import * as wishlistService from '../services/wishlistService';
 
 export const WishlistController = {

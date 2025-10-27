@@ -1,4 +1,5 @@
-import express, { Request, Response } from "express";
+import express from "express";
+import type { Request, Response } from "express";
 import { getAllUsers, deleteUser, getUserProfile, updateUserProfile, changeUserPassword, changeOwnPassword, updateUser } from "../services/userService";
 import { authenticate, requireAdmin } from "../middleware/auth";
 

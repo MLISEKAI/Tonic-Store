@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Typography, Button, Input, Space, List, Tag, Modal, Form, Select, Statistic, Steps } from 'antd';
+import { Card, Row, Col, Typography, Button, Input, Space, Tag, Modal, Form, Select, Steps } from 'antd';
 import { 
   ShareAltOutlined, 
   DollarOutlined, 
   CheckCircleOutlined,
   LinkOutlined,
   TrophyOutlined,
-  TeamOutlined,
-  BarChartOutlined,
-  GiftOutlined,
   PhoneOutlined,
   MailOutlined
 } from '@ant-design/icons';

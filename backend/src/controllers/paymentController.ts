@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { PrismaClient, PaymentMethod, PaymentStatus, OrderStatus } from '@prisma/client';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
 import { discountCodeService } from '../services/discountCodeService';

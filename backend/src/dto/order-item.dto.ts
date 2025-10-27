@@ -1,4 +1,4 @@
-import { ProductDto } from './product.dto';
+import type { ProductDto } from './product.dto';
 
 export class OrderItemDto {
   id!: number;

@@ -32,14 +32,7 @@ import { CategoryService } from '../../services/category/categoryService';
 import type { Category } from '../../types';
 import { NotificationService } from '../../services/notification/notificationService';
 import { useWishlist } from '../../contexts/WishlistContext';
-
-interface Notification {
-  id: string;
-  message: string;
-  link?: string;
-  isRead: boolean;
-  createdAt: string;
-}
+import type { Notification } from '../../types';
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');

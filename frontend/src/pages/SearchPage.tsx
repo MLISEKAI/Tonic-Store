@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Empty, Spin, Card, Button, notification, Select, Slider, Checkbox, Rate, Row, Col, Radio, InputNumber } from 'antd';
+import { Empty, Spin, Card, Button, notification, Select, Checkbox, Rate, Row, Col, InputNumber } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons';
 import { ProductService } from '../services/product/productService';
 import { useAuth } from '../contexts/AuthContext';

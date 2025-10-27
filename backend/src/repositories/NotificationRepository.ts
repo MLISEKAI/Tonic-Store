@@ -1,5 +1,5 @@
 import { PrismaClient, Notification } from '@prisma/client';
-import { INotificationRepository } from './interfaces/INotificationRepository';
+import type { INotificationRepository } from './interfaces/INotificationRepository';
 
 export class NotificationRepository implements INotificationRepository {
   private prisma: PrismaClient;

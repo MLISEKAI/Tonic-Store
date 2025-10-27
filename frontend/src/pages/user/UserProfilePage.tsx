@@ -22,8 +22,10 @@ const ProfilePage: FC = () => {
 
   const fetchProfile = async () => {
     try {
+      setLoading(true)
       const data = await UserService.getProfile();
       setProfile(data);
+      setLoading(false)
     } catch (error) {
       message.error('Không thể tải thông tin hồ sơ');
     }
