@@ -1,16 +1,16 @@
 # Tonic Store
 
-A full-stack e-commerce platform built with modern technologies.
+Một nền tảng thương mại điện tử đầy đủ được xây dựng với công nghệ hiện đại.
 
-## Getting Started
+## Bắt đầu
 
-1. Clone the repository:
+1. Sao chép kho lưu trữ:
 ```bash
-git clone https://github.com/your-username/tonic-store.git
+git clone https://github.com/MLISEKAI/tonic-store.git
 cd tonic-store
 ```
 
-2. Install dependencies:
+2. Cài đặt phụ thuộc:
 ```bash
 # Install frontend dependencies
 cd frontend
@@ -25,7 +25,7 @@ cd ../admin
 yarn install
 ```
 
-3. Set up environment variables:
+3. Thiết lập các biến môi trường:
 ```bash
 # Copy .env.example files and update with your values
 cp frontend/.env.example frontend/.env
@@ -33,12 +33,12 @@ cp backend/.env.example backend/.env
 cp admin/.env.example admin/.env
 ```
 
-4. Start the development environment:
+4. Bắt đầu môi trường phát triển:
 ```bash
 # Using Docker Compose
 docker-compose up -d
 
-# Or run services individually
+# Hoặc chạy các dịch vụ riêng lẻ
 # Backend
 cd backend
 yarn dev
@@ -52,14 +52,14 @@ cd admin
 yarn dev
 ```
 
-## Features
+## Đặc trưng
 
-- User authentication and authorization
-- Product management
-- Shopping cart functionality
-- Order processing
-- Admin dashboard
-- Responsive design
+- Xác thực và ủy quyền người dùng
+- Quản lý sản phẩm
+- Chức năng giỏ hàng
+- Xử lý đơn hàng
+- Bảng điều khiển quản trị
+- Thiết kế đáp ứng
 
 ## Tech Stack
 
