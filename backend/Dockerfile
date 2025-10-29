@@ -9,9 +9,15 @@ RUN apt-get update && apt-get install -y openssl
 
 RUN yarn install --frozen-lockfile
 
-RUN npx prisma generate
-
 COPY . .
 
-# Start server (debug mode)
-CMD ["node", "--inspect=0.0.0.0:9229", "-r", "ts-node/register", "src/index.ts"]
+RUN npx prisma generate
+RUN yarn build
+
+EXPOSE 8085 9229
+
+# Chạy backend dev
+CMD ["yarn", "start:dev"]
+
+# Chạy backend prod (sau khi build)
+# CMD ["node", "dist/index.js"]

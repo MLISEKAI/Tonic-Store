@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   server-fe:
     build:
@@ -6,21 +8,14 @@ services:
     env_file:
       - ./frontend/.env
     environment:
-      - NODE_ENV=development
-      - NODE_OPTIONS=--max-old-space-size=4096
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-    restart: on-failure
+      - NODE_ENV=production
     ports:
-      - "5173:5173"
-    command: yarn run dev
+      - "80"
+    restart: unless-stopped
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -33,17 +28,13 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - NODE_ENV=development
-    volumes:
-      - ./backend:/app
-      - ./backend/.env:/app/.env   
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-    restart: unless-stopped
+      - NODE_ENV=production
+      - FRONTEND_URL=http://3.107.78.154
+      - ADMIN_URL=http://3.107.78.154:3001
+    command: yarn start:prod
     ports:
-      - '8085:8085'
-      - '9229:9229'
-    command: 'yarn start:dev'
+      - "8085"
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
@@ -55,7 +46,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-
   server-fe-admin:
     build:
       context: ./admin
@@ -63,50 +53,23 @@ services:
     env_file:
       - ./admin/.env
     environment:
-      - NODE_ENV=development
-      - NODE_OPTIONS=--max-old-space-size=4096
-    volumes:
-      - ./admin:/app
-      - /app/node_modules
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-    restart: on-failure
+      - NODE_ENV=production
     ports:
-      - "3001:3001"
-    command: yarn run dev
+      - "80"
+    restart: unless-stopped
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
 
-  prisma-studio:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    env_file:
-      - ./backend/.env
-    volumes:
-      - ./backend:/app
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    ports:
-      - "5555:5555"
-    command: npx prisma studio
-    networks:
-      - app-network
-
   db:
     image: mysql:8.0
     container_name: tonic-store
-    restart: always
+    restart: unless-stopped
     ports:
       - "3306:3306"
     env_file:
@@ -125,35 +88,14 @@ services:
       timeout: 10s
     networks:
       - app-network
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
-    restart: always
-    depends_on:
-      - db
-    ports:
-      - "9000:80"
-    env_file:
-      - ./backend/.env
-    environment:
-      PMA_HOST: db
-      UPLOAD_LIMIT: 300M
-    networks:
-      - app-network
-
+  # Prometheus
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
     ports:
       - "9090:9090"
     networks:
@@ -195,14 +137,39 @@ services:
       - app-network
     restart: unless-stopped
 
+  nginx-proxy:
+    image: nginx:latest
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./docker/nginx/certs:/etc/letsencrypt
+      - ./docker/nginx/html:/var/www/certbot
+      - ./docker/nginx/logs:/var/log/nginx
+    depends_on:
+      - server-fe
+      - server-fe-admin
+      - server-be
+    networks:
+      - app-network
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./docker/nginx/certs:/etc/letsencrypt
+      - ./docker/nginx/html:/var/www/certbot
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.20.0.0/16
 
 volumes:
   prometheus_data:
   grafana_data:
+
