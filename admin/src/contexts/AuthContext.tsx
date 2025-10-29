@@ -29,6 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(profile);
       } catch (error) {
         setUser(null);
+        window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
       } finally {
         setLoading(false);
       }

@@ -1,3 +1,45 @@
-docker
+# Environment files
 .env
+**/.env
+**/.env.local
+**/.env.production
+
+# Node modules & build outputs
+**/node_modules/
+**/dist/
+**/build/
+**/.next/
+**/dist-ssr/
+
+# Logs
+**/logs/
+*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+**/lerna-debug.log*
+
+# Docker related
+docker/db/data/
+docker/nginx/logs/
+docker/nginx/certs/
+docker/nginx/html/
+docker/
 backend/logs/
+
+# Prisma
+backend/prisma/dev.db
+backend/prisma/migrations/
+
+# Editor / OS files
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.local
