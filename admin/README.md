@@ -1,79 +1,88 @@
-🛠️ Tonic Store - Admin Dashboard
+# Tonic Store - Admin Dashboard
 
-Hệ thống quản trị cho Tonic Store, được phát triển bằng React + TypeScript, sử dụng Ant Design, Vite, và TailwindCSS.
-Cung cấp giao diện trực quan để quản lý sản phẩm, đơn hàng, người dùng, shipper, mã giảm giá và thống kê.
+**Tonic Store Admin** là hệ thống quản trị dành cho nền tảng thương mại điện tử **Tonic Store**, được phát triển bằng **React + TypeScript**, sử dụng **Ant Design**, **Vite**, và **TailwindCSS**.  
+Cung cấp giao diện trực quan để quản lý **sản phẩm, đơn hàng, người dùng, shipper, mã giảm giá** và **thống kê doanh thu**.
 
-# Bắt đầu
-Yêu cầu hệ thống
+---
 
-Node.js ≥ 16
-Yarn hoặc npm
+## Bắt đầu
 
-Cài đặt
+### Yêu cầu hệ thống
+- Node.js ≥ 16  
+- Yarn hoặc npm
+
+### Cài đặt
+```bash
 git clone https://github.com/MLISEKAI/tonic-store.git
 cd admin
 yarn install
 
-Chạy ứng dụng:
+## Chạy ứng dụng
 yarn dev
 
-# Cách xác nhận đơn hàng 
-tài khoản admin : admin@example.com
-mật khẩu : 'admin123
-vào admin tạo tải khoản shipper sau đó đăng nhập tài khoản shipper rồi mới xác nhận được giao hàng 
-cách xác nhận đơn hàng 
+## Cách xác nhận đơn hàng
+
+Tài khoản admin:
+
+Email: admin@example.com  
+Mật khẩu: admin123
+
+Quy trình:
+
+Đăng nhập bằng tài khoản admin.
+
+Vào trang Quản lý Shipper, tạo tài khoản shipper.
+
+Đăng xuất tài khoản admin và đăng nhập bằng tài khoản shipper vừa tạo.
+
+Tài khoản shipper mới có thể xác nhận giao hàng.
 
 # Dashboard
 
 Thống kê tổng quan (sản phẩm, đơn hàng, doanh thu, người dùng)
 
-Biểu đồ trực quan (Pie, Bar, Doanh số theo danh mục)
+Biểu đồ trực quan: Pie, Bar, Doanh số theo danh mục
 
-Đơn hàng & sản phẩm nổi bật
+Hiển thị đơn hàng & sản phẩm nổi bật
 
 # Quản lý
+## Đơn hàng
 
-Đơn hàng: lọc, cập nhật trạng thái, xem chi tiết, xác nhận thanh toán
+Lọc, cập nhật trạng thái, xem chi tiết
 
-Sản phẩm: CRUD, hình ảnh, danh mục, tồn kho
+Xác nhận thanh toán & giao hàng
 
-Người dùng: tìm kiếm, phân quyền, xem chi tiết
+## Sản phẩm
 
-Shipper: phân công, theo dõi, lịch sử giao hàng
+CRUD (tạo, sửa, xóa, xem)
 
-Mã giảm giá: tạo, cập nhật, quản lý hiệu lực & lượt dùng
+Hình ảnh, danh mục, tồn kho
 
-Đánh giá: xem và quản lý đánh giá khách hàng
+##Người dùng
 
-# Công nghệ
+Tìm kiếm, phân quyền, xem chi tiết
+
+## Shipper
+
+Phân công, theo dõi, xem lịch sử giao hàng
+
+## Mã giảm giá
+
+Tạo, cập nhật, quản lý hiệu lực & lượt dùng
+
+## Đánh giá
+
+Xem & quản lý đánh giá của khách hàng
+
+## Công nghệ
+Thành phần	Công nghệ sử dụng
 Frontend	React 18, TypeScript, Vite
 UI	Ant Design 5, TailwindCSS
 Routing & State	React Router, React Query
 Charts & Utils	Recharts, date-fns
 Auth	JWT, Protected Routes, Cookies
 
-# Cấu trúc thư mục
-admin/
-├── src/
-│   ├── components/   # UI & module components
-│   ├── pages/        # Trang quản lý
-│   ├── services/     # API services
-│   ├── contexts/     # Auth & global context
-│   └── types/        # TypeScript definitions
-├── public/
-├── dist/
-└── vite.config.ts
-
-# Xác thực & Bảo mật
-
-Chỉ ADMIN mới có quyền truy cập Dashboard
-
-JWT-based authentication
-
-Tự động redirect nếu chưa đăng nhập
-
-Cookies được sử dụng để duy trì phiên đăng nhập
-
-# Tác giả
+##Tác giả
 
 Tran Thanh Loc
+Cảm ơn cộng đồng mã nguồn mở và tất cả những người đóng góp! 💙
