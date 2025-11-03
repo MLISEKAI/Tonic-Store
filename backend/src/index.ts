@@ -38,17 +38,30 @@ app.use(helmet());
 const allowedOrigins = new Set([
   'http://localhost:5173',
   'http://localhost:3001',
+  // 'https://domain',
+
 ]);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.has(origin)) {
-      return callback(null, true);
+    // Cho phép khi không có origin (Postman, curl)
+    if (!origin) return callback(null, true);
+
+    // Nếu là local thì chỉ cho localhost
+    if (process.env.NODE_ENV === 'development') {
+      if (origin.includes('localhost')) return callback(null, true);
     }
+
+    // Nếu là production thì kiểm tra domain thực tế
+    if (process.env.NODE_ENV === 'production') {
+      if (allowedOrigins.has(origin)) return callback(null, true);
+    }
+
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,
 }));
+
 app.use(compression() as unknown as RequestHandler);
 app.use(express.json());
 app.use(cookieParser());

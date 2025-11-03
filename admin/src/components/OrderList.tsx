@@ -18,10 +18,9 @@ const orderStatusOptions = [
   { value: 'CANCELLED', label: 'Cancelled' },
 ];
 
-
 const OrderList: React.FC = () => {
   const [orders, setOrders] = useState<OrderDetail[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [status, setStatus] = useState<OrderStatus | ''>('');
@@ -81,8 +80,8 @@ const OrderList: React.FC = () => {
   };
 
   const fetchOrders = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await OrderService.getAllOrders({ page, limit: 10 }, status);
 
       // Kiểm tra nếu response là mảng
@@ -119,6 +118,7 @@ const OrderList: React.FC = () => {
   }, [page, status]);
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+    setLoading(true);
     try {
       await OrderService.updateOrderStatus(orderId, newStatus);
       notification.success({
@@ -127,7 +127,7 @@ const OrderList: React.FC = () => {
         placement: 'topRight',
         duration: 2,
       });
-      fetchOrders();
+      await fetchOrders();
     } catch (err) {
       notification.error({
         message: 'Lỗi',
@@ -135,12 +135,14 @@ const OrderList: React.FC = () => {
         placement: 'topRight',
         duration: 2,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleConfirmPayment = async () => {
     if (!selectedOrder) return;
-    
+
     // Kiểm tra mã giao dịch nếu là chuyển khoản
     if (selectedOrder.payment?.method === 'BANK_TRANSFER' && !transactionId) {
       notification.error({
@@ -151,16 +153,17 @@ const OrderList: React.FC = () => {
       });
       return;
     }
-    
+
+    setLoading(true);
     try {
       // Cập nhật trạng thái thanh toán
       await OrderService.updatePaymentStatus(selectedOrder.id, 'COMPLETED', transactionId);
-      
+
       // Tự động cập nhật trạng thái đơn hàng sang CONFIRMED nếu đang ở PENDING
       if (selectedOrder.status === 'PENDING') {
         await OrderService.updateOrderStatus(selectedOrder.id, 'CONFIRMED');
       }
-      
+
       notification.success({
         message: 'Thành công',
         description: 'Xác nhận thanh toán thành công',
@@ -169,7 +172,7 @@ const OrderList: React.FC = () => {
       });
       setConfirmModalVisible(false);
       setTransactionId('');
-      fetchOrders();
+      await fetchOrders();
     } catch (err) {
       notification.error({
         message: 'Lỗi',
@@ -177,10 +180,13 @@ const OrderList: React.FC = () => {
         placement: 'topRight',
         duration: 2,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleViewDetails = async (order: OrderDetail) => {
+    setLoading(true);
     try {
       // Lấy thông tin chi tiết mới nhất của đơn hàng
       const orderDetail = await OrderService.getOrder(order.id);
@@ -201,6 +207,8 @@ const OrderList: React.FC = () => {
         placement: 'topRight',
         duration: 2,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -211,6 +219,7 @@ const OrderList: React.FC = () => {
     setSelectedOrderForShipper(order);
     setAssignShipperModalVisible(true);
 
+    setLoading(true);
     try {
       const shipperList = await ShipperService.getAllShippers();
       setShippers(shipperList);
@@ -221,12 +230,15 @@ const OrderList: React.FC = () => {
         placement: 'topRight',
         duration: 2,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleConfirmAssignShipper = async () => {
     if (!selectedOrderForShipper || !selectedShipperId) return;
 
+    setLoading(true);
     try {
       setAssigningShipper(true);
       await ShipperService.assignShipperToOrder(
@@ -264,6 +276,7 @@ const OrderList: React.FC = () => {
       });
     } finally {
       setAssigningShipper(false);
+      setLoading(false);
     }
   };
 
@@ -328,7 +341,7 @@ const OrderList: React.FC = () => {
               return '#6B7280'; // xám
           }
         };
-    
+
         return (
           <Space size="small">
             <span style={{ color: getColor(), fontWeight: 500 }}>

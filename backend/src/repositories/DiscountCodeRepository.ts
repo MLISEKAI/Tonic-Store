@@ -9,8 +9,18 @@ export class DiscountCodeRepository extends BaseRepository<any> {
   async findAll() {
     const codes = await this.model.findMany({ orderBy: { createdAt: 'desc' } });
     const now = new Date();
+    
+    // Tính số lượng claim (người đã nhận mã) thay vì usedCount
+    const claimCounts = await prisma.discountCodeClaim.groupBy({
+      by: ['discountCodeId'],
+      _count: true,
+    });
+    const claimMap = new Map(claimCounts.map(cc => [cc.discountCodeId, cc._count]));
+    
     return codes.map((code: any) => ({
       ...code,
+      // Sử dụng số lượng claim thay vì usedCount
+      usedCount: claimMap.get(code.id) || 0,
       isActive: code.isActive && code.startDate <= now && code.endDate >= now
     }));
   }
@@ -53,7 +63,14 @@ export class DiscountCodeRepository extends BaseRepository<any> {
   }
 
   async checkUserUsage(userId: number, discountCodeId: number) {
-    const usage = await prisma.discountCodeUsage.findFirst({ where: { userId, discountCodeId } });
+    // Kiểm tra xem user đã có bản ghi DiscountCodeUsage với mã này chưa
+    // Nếu có, nghĩa là user đã dùng mã này rồi
+    const usage = await prisma.discountCodeUsage.findFirst({ 
+      where: { 
+        userId, 
+        discountCodeId 
+      } 
+    });
     return !!usage;
   }
 

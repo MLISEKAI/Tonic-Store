@@ -13,7 +13,9 @@ COPY . .
 
 RUN npx prisma generate
 
+RUN yarn build
+
 EXPOSE 8085 9229
 
-# Chạy backend dev
-CMD ["yarn", "start:dev"]
+# Chạy backend prod
+CMD ["node", "dist/index.js"]

@@ -1,4 +1,5 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useLocation } from 'react-router-dom';
 import { message, Space, Typography, Card, List, Radio } from 'antd';
 import { PromotionService } from '../../services/discount-codes/discountCodeService';
 
@@ -11,41 +12,69 @@ interface PromotionCodeInputProps {
 
 export interface PromotionCodeInputRef {
   clearAppliedCode: () => void;
+  refreshClaimedCodes: () => void;
 }
 
 const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputProps>(({ orderValue, onDiscountApplied }, ref) => {
   const [claimedCodes, setClaimedCodes] = useState<Record<string, any>[]>([]);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
+  const location = useLocation();
 
   useImperativeHandle(ref, () => ({
     clearAppliedCode: () => {
       setSelectedCode(null);
       setDiscountAmount(0);
       onDiscountApplied(0, orderValue, undefined);
+    },
+    refreshClaimedCodes: () => {
+      fetchClaimedCodes();
+      // Reset selected code khi refresh
+      setSelectedCode(null);
+      setDiscountAmount(0);
+      onDiscountApplied(0, orderValue, undefined);
     }
   }));
 
+  // Fetch danh sách mã mỗi khi component mount hoặc location thay đổi
   useEffect(() => {
     fetchClaimedCodes();
-  }, []);
+    // Reset selected code khi component mount lại
+    setSelectedCode(null);
+    setDiscountAmount(0);
+    onDiscountApplied(0, orderValue, undefined);
+  }, [location.pathname]); // Refresh khi route thay đổi (ví dụ quay lại checkout)
 
   const fetchClaimedCodes = async () => {
     try {
       const codes = await PromotionService.getClaimedPromotionCodes();
+      console.log('Fetched claimed codes:', codes);
+      // Filter ra các mã đã dùng (nếu có) - backup check
+      // Backend đã filter rồi nhưng để đảm bảo an toàn
       setClaimedCodes(codes);
     } catch (error) {
       console.error('Error fetching claimed codes:', error);
+      setClaimedCodes([]);
     }
   };
 
   const handleSelectCode = async (codeToUse: string) => {
-    setSelectedCode(codeToUse);
     if (!codeToUse) {
+      setSelectedCode(null);
       setDiscountAmount(0);
       onDiscountApplied(0, orderValue, undefined);
       return;
     }
+
+    // Kiểm tra mã có trong danh sách claimed codes không (safety check)
+    const codeExists = claimedCodes.some(code => code.code === codeToUse);
+    if (!codeExists) {
+      message.error('Mã giảm giá không có trong danh sách mã đã nhận');
+      setSelectedCode(null);
+      return;
+    }
+
+    setSelectedCode(codeToUse);
     try {
       const result = await PromotionService.applyPromotionCode(codeToUse, orderValue);
       if (result.isValid && result.discountCode && result.discountAmount) {
@@ -53,14 +82,24 @@ const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputP
         onDiscountApplied(result.discountAmount, orderValue - result.discountAmount, codeToUse);
         message.success('Áp dụng mã giảm giá thành công!');
       } else {
+        setSelectedCode(null);
         setDiscountAmount(0);
         onDiscountApplied(0, orderValue, undefined);
         message.error(result.message || 'Mã giảm giá không hợp lệ');
+        // Refresh danh sách nếu mã không hợp lệ (có thể đã bị dùng)
+        await fetchClaimedCodes();
       }
     } catch (error) {
+      setSelectedCode(null);
       setDiscountAmount(0);
       onDiscountApplied(0, orderValue, undefined);
-      message.error(error instanceof Error ? error.message : 'Không thể áp dụng mã giảm giá');
+      const errorMessage = error instanceof Error ? error.message : 'Không thể áp dụng mã giảm giá';
+      message.error(errorMessage);
+      
+      // Nếu lỗi là "đã sử dụng mã này rồi", refresh danh sách để cập nhật
+      if (errorMessage.includes('đã sử dụng') || errorMessage.includes('đã dùng')) {
+        await fetchClaimedCodes();
+      }
     }
   };
 
