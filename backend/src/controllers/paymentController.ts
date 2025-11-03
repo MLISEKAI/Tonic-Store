@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { PrismaClient, PaymentMethod, PaymentStatus, OrderStatus } from '@prisma/client';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
-import { discountCodeService } from '../services/discountCodeService';
+import { discountCodeService, processDiscountCodeUsage } from '../services/discountCodeService';
 
 const prisma = new PrismaClient();
 
@@ -89,51 +89,8 @@ export const verifyPaymentController = async (req: Request, res: Response) => {
           data: { status: 'CONFIRMED' }
         });
 
-        // Nếu có sử dụng mã giảm giá, cập nhật trạng thái sử dụng
-        if (order.promotionCode) {
-          // Tìm mã giảm giá theo code
-          const discountCode = await prisma.discountCode.findFirst({
-            where: { code: order.promotionCode }
-          });
-
-          if (discountCode) {
-            // Tìm claim của mã giảm giá này
-            const claim = await prisma.discountCodeClaim.findFirst({
-              where: {
-                userId: order.userId,
-                discountCodeId: discountCode.id,
-                isUsed: false
-              }
-            });
-
-            if (claim) {
-              // Cập nhật trạng thái sử dụng của claim
-              await prisma.discountCodeClaim.update({
-                where: { id: claim.id },
-                data: { isUsed: true }
-              });
-
-              // Tạo bản ghi sử dụng
-              await prisma.discountCodeUsage.create({
-                data: {
-                  userId: order.userId,
-                  discountCodeId: discountCode.id,
-                  orderId: order.id
-                }
-              });
-
-              // Tăng số lượt sử dụng của mã
-              await prisma.discountCode.update({
-                where: { id: discountCode.id },
-                data: {
-                  usedCount: {
-                    increment: 1
-                  }
-                }
-              });
-            }
-          }
-        }
+        // Xử lý discount code usage khi payment verified thành công
+        await processDiscountCodeUsage(order.promotionCode, order.userId, order.id);
 
         // Create delivery log for confirmed status
         if (order.shipperId) {

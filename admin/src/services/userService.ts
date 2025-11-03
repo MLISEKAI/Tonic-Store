@@ -77,14 +77,21 @@ export const userService = {
     return handleResponse(res);
   },
 
-  deleteUser: async (id: number): Promise<void> => {
-    const res = await fetchWithCredentials(`${API_URL}/${id}`, {
+  deleteUser: async (id: number, force: boolean = false): Promise<void> => {
+    const url = force ? `${API_URL}/${id}?force=true` : `${API_URL}/${id}`;
+    const res = await fetchWithCredentials(url, {
       method: 'DELETE',
       headers: getHeaders(),
     });
     if (!res.ok) {
-      const error = await res.text();
-      throw new Error(error || 'Failed to delete user');
+      let errorData;
+      try {
+        errorData = await res.json();
+      } catch {
+        const errorText = await res.text();
+        errorData = { error: errorText };
+      }
+      throw new Error(errorData.error || errorData.message || 'Failed to delete user');
     }
   },
 

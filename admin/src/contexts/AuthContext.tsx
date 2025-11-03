@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { userService } from '../services/userService';
 
@@ -12,7 +11,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>
   logout: () => Promise<void>;
 }
 
@@ -26,10 +25,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkSession = async () => {
       try {
         const profile = await userService.getProfile();
+        if (profile.role !== 'ADMIN') {
+          setUser(null);
+          return;
+        }
         setUser(profile);
       } catch (error) {
         setUser(null);
-        window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
+        console.error('Error checking session:', error);
       } finally {
         setLoading(false);
       }
@@ -39,13 +42,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     const result = await userService.login(email, password);
+    if (result.role !== 'ADMIN') {
+      throw new Error('Bạn không có quyền truy cập vào trang quản trị');
+    }
     setUser(result);
     console.log(result);
+    return result;
   };
 
   const logout = async () => {
     await userService.logout();
     setUser(null);
+    window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
   };
 
   return (

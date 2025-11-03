@@ -13,6 +13,10 @@ const UserManagement: React.FC = () => {
   const [changePassword, setChangePassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -78,8 +82,12 @@ const UserManagement: React.FC = () => {
       } else {
         await userService.createUser(values);
         message.success('Thêm người dùng thành công!');
+        // Chờ 1 chút nếu cần (token/session đồng bộ)
+        await new Promise(r => setTimeout(r, 200));
+
+        // Fetch lại danh sách user
+        await fetchUsers();
       }
-      fetchUsers();
       handleCancel();
     } catch (error) {
       console.error('Error saving user:', error);
@@ -87,14 +95,38 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const showDeleteModal = (user: User) => {
+    setUserToDelete(user);
+    setDeleteConfirmed(false);
+    setIsDeleteModalVisible(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteModalVisible(false);
+    setUserToDelete(null);
+    setDeleteConfirmed(false);
+  };
+
+  const handleDelete = async () => {
+    if (!userToDelete || !deleteConfirmed) {
+      message.warning('Vui lòng xác nhận bằng cách tích vào ô xác nhận!');
+      return;
+    }
+
     try {
-      await userService.deleteUser(id);
-      message.error('Xóa người dùng thành công!');
+      setIsDeleting(true);
+      await userService.deleteUser(userToDelete.id, true); // Force delete
+      message.success('Xóa người dùng thành công! Dữ liệu mua hàng đã được giữ lại trong dashboard.');
+      setIsDeleteModalVisible(false);
+      setUserToDelete(null);
+      setDeleteConfirmed(false);
       fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
-      message.error('Có lỗi xảy ra. Vui lòng thử lại!');
+      const errorMessage = error instanceof Error ? error.message : 'Có lỗi xảy ra. Vui lòng thử lại!';
+      message.error(errorMessage);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -141,7 +173,7 @@ const UserManagement: React.FC = () => {
           <Button
             danger
             icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
+            onClick={() => showDeleteModal(record)}
           >
             Xóa
           </Button>
@@ -279,6 +311,54 @@ const UserManagement: React.FC = () => {
             <Input.TextArea rows={4} />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="Xác nhận xóa người dùng"
+        open={isDeleteModalVisible}
+        onCancel={handleDeleteCancel}
+        onOk={handleDelete}
+        okText="Xóa"
+        cancelText="Hủy"
+        okButtonProps={{ danger: true, loading: isDeleting }}
+        width={500}
+      >
+        <div style={{ marginBottom: 16 }}>
+          <p style={{ fontSize: 16, marginBottom: 12 }}>
+            <strong>Bạn có chắc chắn muốn xóa người dùng này?</strong>
+          </p>
+          {userToDelete && (
+            <div style={{ background: '#f5f5f5', padding: 12, borderRadius: 4, marginBottom: 12 }}>
+              <p style={{ margin: 0 }}><strong>Tên:</strong> {userToDelete.name}</p>
+              <p style={{ margin: 0 }}><strong>Email:</strong> {userToDelete.email}</p>
+              <p style={{ margin: 0 }}><strong>Vai trò:</strong> {userToDelete.role}</p>
+            </div>
+          )}
+          <div style={{ 
+            background: '#fff3cd', 
+            border: '1px solid #ffc107', 
+            borderRadius: 4, 
+            padding: 12, 
+            marginBottom: 16 
+          }}>
+            <p style={{ margin: 0, color: '#856404' }}>
+              <strong>⚠️ Lưu ý quan trọng:</strong>
+            </p>
+            <ul style={{ margin: '8px 0 0 0', paddingLeft: 20, color: '#856404' }}>
+              <li>Người dùng này sẽ bị xóa kể cả khi đang còn liên kết với các bảng hay dữ liệu khác</li>
+              <li>Dữ liệu mua hàng (orders) sẽ được giữ lại trong dashboard để thống kê</li>
+              <li>Một số dữ liệu không quan trọng sẽ bị xóa (giỏ hàng, danh sách yêu thích, thông báo, etc.)</li>
+              <li>Thông tin người dùng sẽ được ẩn danh nhưng hồ sơ vẫn tồn tại để liên kết với đơn hàng</li>
+            </ul>
+          </div>
+          <Checkbox
+            checked={deleteConfirmed}
+            onChange={(e) => setDeleteConfirmed(e.target.checked)}
+            style={{ marginTop: 8 }}
+          >
+            <span style={{ fontWeight: 'bold' }}>Tôi hiểu và xác nhận muốn xóa người dùng này</span>
+          </Checkbox>
+        </div>
       </Modal>
     </Card>
   );

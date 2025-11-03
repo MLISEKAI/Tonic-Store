@@ -3,6 +3,7 @@ import { PrismaClient, OrderStatus } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import type { ParsedQs } from "qs";
 import { createPaymentUrl } from "../services/vnpayService";
+import { processDiscountCodeUsage } from "../services/discountCodeService";
 
 const prisma = new PrismaClient();
 
@@ -33,15 +34,14 @@ export const OrderController = {
       } = req.body;
 
       // Validate input
+      // promotionCode và discount có thể null/undefined nếu không dùng mã giảm giá
       if (
         !userId ||
         !items ||
         !shippingAddress ||
         !shippingPhone ||
         !shippingName ||
-        !paymentMethod ||
-        !promotionCode ||
-        !discount
+        !paymentMethod
       ) {
         return res.status(400).json({ error: "Missing required fields" });
       }
@@ -101,6 +101,21 @@ export const OrderController = {
           note: 'Order created'
         }
       });
+
+      // Xử lý discount code usage cho COD (vì COD thanh toán ngay khi đặt hàng)
+      console.log(`[OrderController] Checking discount code usage. promotionCode: "${promotionCode}", type: ${typeof promotionCode}, paymentMethod: "${paymentMethod}", orderId: ${order.id}`);
+      
+      if (promotionCode && paymentMethod === "COD") {
+        console.log(`[OrderController] ✓ Processing discount code usage for COD order. Code: "${promotionCode}", userId: ${userId}, orderId: ${order.id}`);
+        try {
+          await processDiscountCodeUsage(promotionCode, userId, order.id);
+          console.log(`[OrderController] ✓ Finished processing discount code usage for order ${order.id}`);
+        } catch (error) {
+          console.error(`[OrderController] ✗ Error processing discount code usage:`, error);
+        }
+      } else {
+        console.log(`[OrderController] ✗ Skipping discount code usage. promotionCode: "${promotionCode}" (${typeof promotionCode}), paymentMethod: "${paymentMethod}"`);
+      }
 
       // Nếu phương thức thanh toán là COD, không cần tạo URL thanh toán
       if (paymentMethod === "COD") {
