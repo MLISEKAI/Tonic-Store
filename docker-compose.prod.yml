@@ -4,7 +4,7 @@ services:
   server-fe:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     env_file:
       - ./frontend/.env
     environment:
@@ -24,13 +24,11 @@ services:
   server-be:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     env_file:
       - ./backend/.env
     environment:
       - NODE_ENV=production
-      - FRONTEND_URL=http://3.107.78.154
-      - ADMIN_URL=http://3.107.78.154:3001
     command: yarn start:prod
     ports:
       - "8085"
@@ -49,7 +47,7 @@ services:
   server-fe-admin:
     build:
       context: ./admin
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     env_file:
       - ./admin/.env
     environment:

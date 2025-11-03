@@ -13,6 +13,7 @@ const ProductManagement: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [form] = Form.useForm();
   const [editSoldCount, setEditSoldCount] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -20,6 +21,7 @@ const ProductManagement: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
+      setLoading(true);
       const data = await productService.getAllProducts();
       const formattedProducts = Array.isArray(data) ? data.map(product => {
         return {
@@ -55,6 +57,8 @@ const ProductManagement: React.FC = () => {
     } catch (error) {
       console.error('Error fetching products:', error);
       setProducts([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -335,6 +339,7 @@ const ProductManagement: React.FC = () => {
         dataSource={products}
         rowKey="id"
         scroll={{ x: 1500 }}
+        loading={loading}
         pagination={{
           pageSize: 10,
           showSizeChanger: true,

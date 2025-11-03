@@ -18,6 +18,7 @@ const app = express();
 const allowedOrigins = new Set([
   'http://localhost:5173',
   'http://localhost:3001',
+  // 'https://domain',
 ]);
 
 app.use(cors({

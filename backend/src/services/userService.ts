@@ -59,8 +59,23 @@ export const getAllUsers = async () => {
   return userRepository.findUsersWithSelect(userSelectFields);
 };
 
-export const deleteUser = async (id: number) => {
-  await userRepository.delete(id);
+export const deleteUser = async (id: number, force: boolean = false, deletedBy?: number) => {
+  if (force && deletedBy) {
+   // Force delete: xóa dữ liệu không quan trọng nhưng giữ lại lệnh cho bảng điều khiển
+    await userRepository.forceDelete(id, deletedBy);
+  } else {
+    // Normal delete: kiểm tra các hồ sơ liên quan trước khi xóa
+    const { hasRelated, relatedTypes } = await userRepository.checkRelatedRecords(id);
+    
+    if (hasRelated) {
+      throw new Error(
+        `Không thể xóa người dùng này vì đang có dữ liệu liên quan: ${relatedTypes.join(', ')}. ` +
+        `Vui lòng xóa hoặc chuyển đổi các dữ liệu liên quan trước khi xóa người dùng.`
+      );
+    }
+    
+    await userRepository.delete(id);
+  }
 };
 
 export const getUserProfile = async (userId: number) => {
