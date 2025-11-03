@@ -22,11 +22,14 @@ export const NotificationService = {
         { headers: getHeaders() }
       );
 
-      const data = await handleResponse(response);
-      cache = data.data;
+      const raw = await handleResponse(response);
+      const items: Notification[] = Array.isArray(raw) ? raw : (raw?.data ?? []);
+      const total: number = Array.isArray(raw) ? raw.length : (raw?.total ?? items.length);
+
+      cache = items || [];
       lastFetched = now;
 
-      return data; // { data: Notification[], total: number }
+      return { data: items, total };
     } catch (error) {
       console.error('Error fetching notifications:', error);
       throw new Error('Không thể tải danh sách thông báo. Vui lòng thử lại sau.');

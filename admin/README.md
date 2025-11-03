@@ -17,6 +17,12 @@ yarn install
 Chạy ứng dụng:
 yarn dev
 
+# Cách xác nhận đơn hàng 
+tài khoản admin : admin@example.com
+mật khẩu : 'admin123
+vào admin tạo tải khoản shipper sau đó đăng nhập tài khoản shipper rồi mới xác nhận được giao hàng 
+cách xác nhận đơn hàng 
+
 # Dashboard
 
 Thống kê tổng quan (sản phẩm, đơn hàng, doanh thu, người dùng)
