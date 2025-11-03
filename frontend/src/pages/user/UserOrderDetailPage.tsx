@@ -6,6 +6,7 @@ import {
   Button,
   Modal,
   notification,
+  Spin,
   Timeline,
   Rate,
   Form,
@@ -210,7 +211,11 @@ const OrderDetailPage: React.FC = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center min-h-screen">
+      <Spin size="large" />
+    </div>
+  );
   if (error) return <div className="text-red-500">{error}</div>;
   if (!order) return <div>Không tìm thấy đơn hàng</div>;
 

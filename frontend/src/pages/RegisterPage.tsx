@@ -32,7 +32,7 @@ const RegisterPage = () => {
       form.resetFields();
 
       // Chuyển hướng đến trang đăng nhập
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       let errorMessage = 'Đăng ký thất bại';
       if (error instanceof Error) {

@@ -75,46 +75,45 @@ const HomePage = () => {
   const bannerItems = [
     {
       id: 1,
-      image: 'https://img.freepik.com/premium-photo/beautiful-bouquet-pink-white-flowers_136595-11174.jpg',
-      title: 'Hoa Xinh Xuống Phố',
-      description: 'GIẢM TỚI 25%'
+      image:
+        "https://img.freepik.com/premium-photo/.jpg",
+      title: "Xu Hướng Thời Trang 2025",
+      description: "GIẢM NGAY 25%",
     },
     {
       id: 2,
-      image: 'https://img.freepik.com/premium-photo/beautiful-spring-flowers_876883-496.jpg',
-      title: 'Bộ Sưu Tập Mới',
-      description: 'SALE OFF 30%'
+      image:
+        "https://img.freepik.com/premium-photo/.jpg",
+      title: "Bộ Sưu Tập Mùa Hè",
+      description: "SALE OFF 30%",
     },
     {
       id: 3,
-      image: 'https://img.freepik.com/premium-photo/bouquet-mixed-flowers-white-background_876883-5270.jpg',
-      title: 'Flash Sale',
-      description: 'Ưu đãi cực sốc'
-    }
+      image:
+        "https://img.freepik.com/premium-photo/6.jpg",
+      title: "Flash Sale Cuối Tuần",
+      description: "ƯU ĐÃI SỐC NHẤT THÁNG",
+    },
   ];
-
+  
   return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-2 sm:mt-4 lg:mt-6">
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          {/* Sidebar */}
-          <aside className="hidden lg:block lg:w-[18%]">
-            <Sidebar />
-          </aside>
-
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col gap-8 w-[82%]">
-            {/* Banner */}
-            <div className='bg-white p-6 rounded-lg'>
-              <div className="flex flex-col lg:flex-row gap-6">
-                {/* Main Large Banner */}
-                <div className="w-full lg:w-2/3">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-2 sm:mt-4 lg:mt-6">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        {/* Sidebar */}
+        <aside className="hidden lg:block lg:w-[18%]">
+          <Sidebar />
+        </aside>
+  
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col gap-8 w-[82%]">
+          {/* Banner */}
+          <div className="bg-white p-6 rounded-lg">
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* Main Large Banner */}
+              <div className="w-full lg:w-2/3">
                 <Link to="/">
                   <div className="carousel-container h-[20vh] sm:h-[30vh] lg:h-[30vh] rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
-                    <Carousel
-                      autoplay
-                      dots={true}
-                      autoplaySpeed={3000}
-                    >
+                    <Carousel autoplay dots={true} autoplaySpeed={3000}>
                       {bannerItems.map((item) => (
                         <div key={item.id} className="h-full relative">
                           <img
@@ -124,9 +123,19 @@ const HomePage = () => {
                           />
                           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50">
                             <div className="absolute bottom-4 sm:bottom-6 lg:bottom-8 left-4 sm:left-6 lg:left-8 right-4 sm:right-6 lg:right-8">
-                              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold" style={{ color: '#2ECC71' }}>{item.title}</h2>
-                              <div className="mt-2 inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-full" style={{ backgroundColor: '#FF69B4' }}>
-                                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">{item.description}</p>
+                              <h2
+                                className="text-2xl sm:text-3xl lg:text-4xl font-bold"
+                                style={{ color: "#2ECC71" }}
+                              >
+                                {item.title}
+                              </h2>
+                              <div
+                                className="mt-2 inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-full"
+                                style={{ backgroundColor: "#FF69B4" }}
+                              >
+                                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
+                                  {item.description}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -135,79 +144,93 @@ const HomePage = () => {
                     </Carousel>
                   </div>
                 </Link>
-                </div>
-
-                {/* Right Side Banner */}
-                <div className="w-full lg:w-1/3">
+              </div>
+  
+              {/* Right Side Banner */}
+              <div className="w-full lg:w-1/3">
                 <Link to="/">
                   <div className="h-[20vh] sm:h-[20vh] lg:h-[30vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
                     <img
-                      src="https://img.freepik.com/premium-photo/beautiful-bouquet-flowers_136595-4199.jpg"
-                      alt="Giảm giá khủng"
+                      src="https://img.freepik.com/premium-photo/colorful-fashion-clothes-hanging-hangers_93675-132374.jpg"
+                      alt="Siêu sale quần áo"
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50">
                       <div className="absolute bottom-4 sm:bottom-6 lg:bottom-8 left-4 sm:left-6 lg:left-8 right-4 sm:right-6 lg:right-8">
-                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">GIẢM GIÁ</h2>
-                        <p className="text-xl sm:text-2xl lg:text-3xl font-bold mt-2" style={{ color: '#FFD700' }}>KHỦNG</p>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-                </div>
-              </div>
-
-              {/* Bottom Banners */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-                {/* Banner 1 */}
-                <Link to="/">
-                  <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
-                    <img
-                      src="https://img.freepik.com/free-photo/pink-roses-bouquet-with-copy-space_23-2148860032.jpg"
-                      alt="Banner 1"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
-                      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
-                        <h3 className="text-lg sm:text-xl font-bold text-white">Hoa Tươi Mới</h3>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-
-                {/* Banner 2 */}
-                <Link to="/">
-                  <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
-                    <img
-                      src="https://img.freepik.com/premium-photo/beautiful-bouquet-pink-roses_136595-1591.jpg"
-                      alt="Banner 2"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
-                      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
-                        <h3 className="text-lg sm:text-xl font-bold text-white">Gifts that Keep Giving</h3>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-
-                {/* Banner 3 */}
-                <Link to="/">
-                  <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
-                    <img
-                      src="https://img.freepik.com/premium-photo/pink-english-roses-bouquet-white-background_176873-7325.jpg"
-                      alt="Banner 3"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
-                      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
-                        <h3 className="text-lg sm:text-xl font-bold text-white">Hoa Hồng Cao Cấp</h3>
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+                          SIÊU SALE
+                        </h2>
+                        <p
+                          className="text-xl sm:text-2xl lg:text-3xl font-bold mt-2"
+                          style={{ color: "#FFD700" }}
+                        >
+                          THỜI TRANG GIÁ SỐC
+                        </p>
                       </div>
                     </div>
                   </div>
                 </Link>
               </div>
             </div>
+  
+            {/* Bottom Banners */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+              {/* Banner 1 */}
+              <Link to="/">
+                <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
+                  <img
+                    src="https://img.freepik.com/free-photo/men-clothes-hanging-rack_23-2148748262.jpg"
+                    alt="Banner 1"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
+                    <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
+                      <h3 className="text-lg sm:text-xl font-bold text-white">
+                        Thời Trang Nam Cá Tính
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+  
+              {/* Banner 2 */}
+              <Link to="/">
+                <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
+                  <img
+                    src="https://img.freepik.com/free-photo/fashionable-female-clothes-white-background_93675-133021.jpg"
+                    alt="Banner 2"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
+                    <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
+                      <h3 className="text-lg sm:text-xl font-bold text-white">
+                        Thời Trang Nữ Thanh Lịch
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+  
+              {/* Banner 3 */}
+              <Link to="/">
+                <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
+                  <img
+                    src="https://img.freepik.com/premium-photo/fashionable-colorful-clothes-hanging-hangers_93675-132379.jpg"
+                    alt="Banner 3"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
+                    <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
+                      <h3 className="text-lg sm:text-xl font-bold text-white">
+                        BST Mới – Mix & Match
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </div>
+  
 
             {/* Flash Sale Section */}
             <FlashSale breadcrumb={flashSaleBreadcrumb} />
