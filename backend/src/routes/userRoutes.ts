@@ -17,11 +17,29 @@ router.get("/", authenticate, requireAdmin, async (req: Request, res: Response):
 
 router.delete("/:id", authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
-    await deleteUser(Number(req.params.id));
-    res.json({ message: "User đã bị xóa" });
+    const userId = Number(req.params.id);
+    const force = req.query.force === 'true';
+    const deletedBy = req.user?.id;
+
+    if (force && deletedBy) {
+      await deleteUser(userId, true, deletedBy);
+      res.json({ message: "User đã bị xóa (force delete)" });
+    } else {
+      await deleteUser(userId, false);
+      res.json({ message: "User đã bị xóa" });
+    }
     return;
   } catch (error) {
+    console.error(error);
+    if (error instanceof Error) {
+      // Nếu lỗi liên quan đến các hồ sơ liên quan, trả về 400 với thông báo
+      if (error.message.includes('Không thể xóa người dùng')) {
+        res.status(400).json({ error: error.message });
+        return;
+      }
+    }
     res.status(500).json({ error: "Lỗi khi xóa user" });
+    return;
   }
 });
 

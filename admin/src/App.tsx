@@ -10,12 +10,13 @@ import UserManagement from './components/UserManagement'
 import ShipperList from './components/ShipperList'
 import Promotions from './components/DiscountCode'
 import AdminRouter from './components/AdminRouter'
+import AdminWelcome from './components/AdminWelcome'
 
 function App() {
   return (
     <Routes>
       <Route path="/admin" element={<AdminRouter><AdminPage /></AdminRouter>}>
-        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route index element={<AdminWelcome />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="product-list" element={<ProductManagement />} />
         <Route path="product-categories" element={<ProductCategories />} />
@@ -26,7 +27,7 @@ function App() {
         <Route path="discount-codes" element={<Promotions />} />
         <Route path="reviews" element={<Reviews />} />
       </Route>
-      <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/admin" replace />} />
     </Routes>
   )
 }

@@ -156,9 +156,13 @@ const CheckoutPage: React.FC = () => {
         throw new Error('Không thể tạo đơn hàng');
       }
 
-      // Xóa mã giảm giá sau khi đặt hàng thành công
-      if (promotionCodeRef.current) {
+      // Refresh danh sách mã giảm giá sau khi đặt hàng thành công
+      // Backend đã xử lý xong (await processDiscountCodeUsage) trước khi trả response
+      // Nên có thể refresh ngay
+      if (promotionCodeRef.current && appliedPromotionCode) {
         promotionCodeRef.current.clearAppliedCode();
+        // Refresh lại danh sách mã để loại bỏ mã đã dùng
+        promotionCodeRef.current.refreshClaimedCodes();
       }
 
       // Xử lý theo phương thức thanh toán
