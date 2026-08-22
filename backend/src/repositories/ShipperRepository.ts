@@ -1,10 +1,11 @@
+import { prisma } from '../prisma';
 import { PrismaClient, OrderStatus } from '@prisma/client';
 import type { IShipperRepository } from './interfaces/IShipperRepository';
 
 export class ShipperRepository implements IShipperRepository {
   private prisma: PrismaClient;
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = prisma;
   }
   async getAllShippers(): Promise<any[]> {
     return this.prisma.user.findMany({

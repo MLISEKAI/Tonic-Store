@@ -1,10 +1,11 @@
+import { prisma } from '../prisma';
 import { PrismaClient, ShippingAddress } from '@prisma/client';
 import type { IShippingAddressRepository } from './interfaces/IShippingAddressRepository';
 
 export class ShippingAddressRepository implements IShippingAddressRepository {
   private prisma: PrismaClient;
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = prisma;
   }
   async getAllShippingAddresses(): Promise<any[]> {
     return this.prisma.shippingAddress.findMany({

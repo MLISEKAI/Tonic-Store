@@ -1,10 +1,11 @@
+import { prisma } from '../prisma';
 import { PrismaClient } from '@prisma/client';
 import type { IReviewRepository } from './interfaces/IReviewRepository';
 
 export class ReviewRepository implements IReviewRepository {
   private prisma: PrismaClient;
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = prisma;
   }
   async createReview(userId: number, productId: number, rating: number, comment?: string): Promise<any> {
     const review = await this.prisma.review.create({

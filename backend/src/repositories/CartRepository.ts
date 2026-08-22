@@ -1,10 +1,11 @@
+import { prisma } from '../prisma';
 import { PrismaClient, CartItem } from '@prisma/client';
 import type { ICartRepository } from './interfaces/ICartRepository';
 
 export class CartRepository implements ICartRepository {
   private prisma: PrismaClient;
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = prisma;
   }
   async getCart(userId: number): Promise<any> {
     let cart = await this.prisma.cart.findUnique({

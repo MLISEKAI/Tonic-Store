@@ -1,9 +1,8 @@
+import { prisma } from '../prisma';
 import type { Request, Response } from 'express';
 import { PrismaClient, PaymentMethod, PaymentStatus, OrderStatus } from '@prisma/client';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
 import { discountCodeService, processDiscountCodeUsage } from '../services/discountCodeService';
-
-const prisma = new PrismaClient();
 
 export const createPaymentController = async (req: Request, res: Response) => {
   try {
@@ -16,12 +15,14 @@ export const createPaymentController = async (req: Request, res: Response) => {
     });
 
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      res.status(404).json({ error: 'Order not found' });
+      return;
     }
 
     // Kiểm tra order chưa có payment
     if (order.payment) {
-      return res.status(400).json({ error: 'Order already has a payment' });
+      res.status(400).json({ error: 'Order already has a payment' });
+      return;
     }
 
     // Tạo payment record
@@ -38,7 +39,8 @@ export const createPaymentController = async (req: Request, res: Response) => {
     // Nếu là VNPay, tạo URL thanh toán
     if (method === PaymentMethod.VN_PAY) {
       const paymentUrl = await createPaymentUrl(order.id, order.totalPrice, req.body.bankCode);
-      return res.json({ payment, paymentUrl });
+      res.json({ payment, paymentUrl });
+      return;
     }
 
     // Nếu là COD, cập nhật trạng thái order thành PENDING
@@ -104,17 +106,21 @@ export const verifyPaymentController = async (req: Request, res: Response) => {
           });
         }
 
-        return res.redirect(`${process.env.FRONTEND_URL}/payment/success?orderId=${orderId}`);
+        res.redirect(`${process.env.FRONTEND_URL}/payment/success?orderId=${orderId}`);
+        return;
       }
     } else if (method === PaymentMethod.COD) {
       // Đối với COD, trạng thái thanh toán vẫn đang chờ xử lý cho đến khi Shipper xác nhận nhận khoản thanh toán
-      return res.redirect(`${process.env.FRONTEND_URL}/payment/pending?orderId=${orderId}`);
+      res.redirect(`${process.env.FRONTEND_URL}/payment/pending?orderId=${orderId}`);
+      return;
     }
 
-    return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?orderId=${orderId}`);
+    res.redirect(`${process.env.FRONTEND_URL}/payment/failed?orderId=${orderId}`);
+    return;
   } catch (error) {
     console.error('Verify payment error:', error);
-    return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?orderId=${req.query.orderId}`);
+    res.redirect(`${process.env.FRONTEND_URL}/payment/failed?orderId=${req.query.orderId}`);
+    return;
   }
 };
 
@@ -127,7 +133,8 @@ export const getPaymentController = async (req: Request, res: Response) => {
     });
 
     if (!payment) {
-      return res.status(404).json({ error: 'Payment not found' });
+      res.status(404).json({ error: 'Payment not found' });
+      return;
     }
 
     res.json(payment);
@@ -148,11 +155,13 @@ export const refundPaymentController = async (req: Request, res: Response) => {
     });
 
     if (!payment) {
-      return res.status(404).json({ error: 'Payment not found' });
+      res.status(404).json({ error: 'Payment not found' });
+      return;
     }
 
     if (payment.status !== PaymentStatus.COMPLETED) {
-      return res.status(400).json({ error: 'Payment is not completed' });
+      res.status(400).json({ error: 'Payment is not completed' });
+      return;
     }
 
     // Cập nhật trạng thái payment

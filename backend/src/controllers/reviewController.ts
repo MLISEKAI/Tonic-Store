@@ -29,7 +29,8 @@ export const createReviewController = async (req: Request, res: Response) => {
     
     // Validate rating
     if (rating < 1 || rating > 5) {
-      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+      res.status(400).json({ error: 'Rating must be between 1 and 5' });
+      return;
     }
 
     const review = await createReview(userId, productId, rating, comment);
@@ -50,7 +51,8 @@ export const updateReviewController = async (req: Request, res: Response) => {
     
     // Validate rating
     if (rating < 1 || rating > 5) {
-      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+      res.status(400).json({ error: 'Rating must be between 1 and 5' });
+      return;
     }
 
     const review = await updateReview(id, rating, comment);

@@ -48,7 +48,8 @@ router.get('/profile', authenticate, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
     }
     const user = await getUserProfile(userId);
     res.json(user);
@@ -62,7 +63,8 @@ router.put('/profile', authenticate, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
     }
     const updatedUser = await updateUserProfile(userId, req.body);
     res.json(updatedUser);
@@ -76,11 +78,13 @@ router.put("/:id/password", authenticate, requireAdmin, async (req: Request, res
   try {
     const { newPassword } = req.body;
     if (!newPassword) {
-      return res.status(400).json({ error: "Mật khẩu mới là bắt buộc" });
+      res.status(400).json({ error: "Mật khẩu mới là bắt buộc" });
+      return;
     }
 
     if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
 
     const updatedUser = await changeUserPassword(
@@ -99,19 +103,22 @@ router.put("/profile/password", authenticate, async (req: Request, res: Response
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
 
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: "Mật khẩu hiện tại và mật khẩu mới là bắt buộc" });
+      res.status(400).json({ error: "Mật khẩu hiện tại và mật khẩu mới là bắt buộc" });
+      return;
     }
 
     const updatedUser = await changeOwnPassword(userId, currentPassword, newPassword);
     res.json(updatedUser);
   } catch (error) {
     if (error instanceof Error && error.message === "Current password is incorrect") {
-      return res.status(400).json({ error: "Mật khẩu hiện tại không đúng" });
+      res.status(400).json({ error: "Mật khẩu hiện tại không đúng" });
+      return;
     }
     res.status(500).json({ error: "Lỗi khi thay đổi mật khẩu" });
   }

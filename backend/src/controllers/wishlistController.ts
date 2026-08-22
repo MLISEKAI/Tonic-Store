@@ -21,7 +21,8 @@ export const WishlistController = {
       const { productId } = req.body;
 
       if (!productId) {
-        return res.status(400).json({ error: 'Product ID is required' });
+        res.status(400).json({ error: 'Product ID is required' });
+        return;
       }
 
       const wishlistItem = await wishlistService.addToWishlist(userId, Number(productId));

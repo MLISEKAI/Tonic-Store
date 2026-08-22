@@ -1,7 +1,6 @@
+import { prisma } from '../prisma';
 import { PrismaClient } from "@prisma/client";
 import crypto from "crypto";
-
-const prisma = new PrismaClient();
 
 export const hashToken = (token: string) =>
   crypto.createHash("sha256").update(token).digest("hex");

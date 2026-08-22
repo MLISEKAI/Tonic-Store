@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../src/prisma';
 
 import bcrypt from 'bcryptjs';
 
@@ -803,7 +802,7 @@ async function main() {
             if (product.categoryId) {
                 try {
                     await prisma.product.upsert({
-                        where: { id: product.id || 0 },
+                        where: { seoUrl: product.seoUrl! },
                         update: {
                             name: product.name,
                             description: product.description,

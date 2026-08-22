@@ -1,3 +1,4 @@
+import { prisma } from '../prisma';
 import express from 'express';
 import type { Request, Response } from 'express';
 import { authenticate, authenticateSSE } from '../middleware/auth';
@@ -8,8 +9,6 @@ import { PaymentMethod, PaymentStatus, PrismaClient } from '@prisma/client';
 import { ShipperController } from '../controllers/shipperController';
 
 const router = express.Router();
-const prisma = new PrismaClient();
-
 // Store active SSE connections
 export const clients = new Map<number, Response>();
 
@@ -17,7 +16,8 @@ export const clients = new Map<number, Response>();
 router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
     if (req.user!.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Unauthorized' });
+      res.status(403).json({ error: 'Unauthorized' });
+      return;
     }
     const orders = await getAllOrders();
     res.json(orders);
@@ -31,7 +31,8 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
 router.patch('/:id/status', authenticate, async (req: Request, res: Response) => {
   try {
     if (req.user!.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Unauthorized' });
+      res.status(403).json({ error: 'Unauthorized' });
+      return;
     }
 
     const { status } = req.body;
@@ -47,7 +48,8 @@ router.patch('/:id/status', authenticate, async (req: Request, res: Response) =>
 router.patch('/:id/payment', authenticate, async (req: Request, res: Response) => {
   try {
     if (req.user!.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Unauthorized' });
+      res.status(403).json({ error: 'Unauthorized' });
+      return;
     }
 
     const { status, transactionId } = req.body;
@@ -63,7 +65,8 @@ router.patch('/:id/payment', authenticate, async (req: Request, res: Response) =
 router.post('/:id/confirm-cod', authenticate, async (req: Request, res: Response) => {
   try {
     if (req.user!.role !== 'DELIVERY') {
-      return res.status(403).json({ error: 'Permission denied' });
+      res.status(403).json({ error: 'Permission denied' });
+      return;
     }
     const orderId = Number(req.params.id);
     // Lấy order và payment
@@ -72,10 +75,12 @@ router.post('/:id/confirm-cod', authenticate, async (req: Request, res: Response
       include: { payment: true }
     });
     if (!order || !order.payment) {
-      return res.status(404).json({ error: 'Order or payment not found' });
+      res.status(404).json({ error: 'Order or payment not found' });
+      return;
     }
     if (order.payment.method !== 'COD' || order.status !== 'DELIVERED') {
-      return res.status(400).json({ error: 'Order is not eligible for COD confirmation' });
+      res.status(400).json({ error: 'Order is not eligible for COD confirmation' });
+      return;
     }
     // Cập nhật trạng thái thanh toán
     const payment = await prisma.payment.update({
@@ -100,7 +105,8 @@ router.patch('/:id/cancel', authenticate, async (req: Request, res: Response) =>
 
     const result = await cancelOrder(orderId, userId);
     if (!result.success) {
-      return res.status(result.status || 500).json({ error: result.message });
+      res.status(result.status || 500).json({ error: result.message });
+      return;
     }
 
     res.json({ success: true, order: result.order });
@@ -134,25 +140,30 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
 
     // Validate required fields
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'Items array is required and must not be empty' });
+      res.status(400).json({ error: 'Items array is required and must not be empty' });
+      return;
     }
 
     if (!totalPrice || typeof totalPrice !== 'number') {
-      return res.status(400).json({ error: 'Total price is required and must be a number' });
+      res.status(400).json({ error: 'Total price is required and must be a number' });
+      return;
     }
 
     if (!shippingAddress || !shippingPhone || !shippingName) {
-      return res.status(400).json({ error: 'Shipping information is required' });
+      res.status(400).json({ error: 'Shipping information is required' });
+      return;
     }
 
     if (!paymentMethod) {
-      return res.status(400).json({ error: 'Payment method is required' });
+      res.status(400).json({ error: 'Payment method is required' });
+      return;
     }
 
     // Validate items structure
     for (const item of items) {
       if (!item.productId || !item.quantity || !item.price) {
-        return res.status(400).json({ error: 'Each item must have productId, quantity, and price' });
+        res.status(400).json({ error: 'Each item must have productId, quantity, and price' });
+        return;
       }
     }
 
@@ -181,7 +192,8 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
     if (paymentMethod === 'VN_PAY') {
       const ipAddr = req.ip || '127.0.0.1';
       const paymentUrl = createPaymentUrl(order.id, totalPrice, ipAddr);
-      return res.json({ order, paymentUrl });
+      res.json({ order, paymentUrl });
+      return;
     }
 
     res.json({ order });
@@ -195,11 +207,13 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
 router.get('/delivery', authenticate, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     if (req.user.role !== 'DELIVERY') {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     const { page = 1, limit = 10, status, name, dateFrom, dateTo, paymentMethod } = req.query;
@@ -275,12 +289,14 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
   try {
     const order = await getOrder(Number(req.params.id));
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      res.status(404).json({ error: 'Order not found' });
+      return;
     }
 
     // Check if user is authorized to view this order
     if (order.userId !== req.user!.id && req.user!.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Unauthorized' });
+      res.status(403).json({ error: 'Unauthorized' });
+      return;
     }
 
     res.json(order);
@@ -299,7 +315,8 @@ router.get('/vnpay/callback', async (req: Request, res: Response) => {
     // Verify payment
     const isValid = verifyPayment(req.query as Record<string, string>);
     if (!isValid) {
-      return res.status(400).json({ error: 'Invalid payment signature' });
+      res.status(400).json({ error: 'Invalid payment signature' });
+      return;
     }
 
     // Update payment status based on response code

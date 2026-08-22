@@ -1,10 +1,11 @@
+import { prisma } from '../prisma';
 import { PrismaClient, Notification } from '@prisma/client';
 import type { INotificationRepository } from './interfaces/INotificationRepository';
 
 export class NotificationRepository implements INotificationRepository {
   private prisma: PrismaClient;
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = prisma;
   }
   async createNotification(userId: number, message: string): Promise<Notification> {
     return this.prisma.notification.create({ data: { userId, message, isRead: false } });

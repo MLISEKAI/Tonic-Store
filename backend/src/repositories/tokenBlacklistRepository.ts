@@ -1,8 +1,7 @@
+import { prisma } from '../prisma';
 import { PrismaClient } from "@prisma/client";
 import config from "../config";
 import crypto from "crypto";
-
-const prisma = new PrismaClient();
 
 // Hàm hash token để lưu trữ an toàn
 export const hashToken = (token: string) =>

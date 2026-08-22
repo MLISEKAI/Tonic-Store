@@ -140,6 +140,7 @@ export const updateOrderStatus = async (id: number, status: string) => {
   };
 
   // Get the clients Map from the orderRoutes
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { clients } = require('../routes/orderRoutes');
   
   // Send update to the specific user
