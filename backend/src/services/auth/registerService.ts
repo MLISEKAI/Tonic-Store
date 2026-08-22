@@ -1,10 +1,10 @@
+import { prisma } from '../../prisma';
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import config from "../../config";
 import { createRefreshToken } from '../../repositories/refreshTokenRepository';
 
-const prisma = new PrismaClient();
 const SECRET_KEY: jwt.Secret = config.jwt.secret || '';
 const REFRESH_SECRET_KEY: jwt.Secret = config.jwt.refreshSecret || '';
 

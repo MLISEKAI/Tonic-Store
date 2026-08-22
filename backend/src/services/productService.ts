@@ -1,9 +1,8 @@
+import { prisma } from '../prisma';
 import { PrismaClient, ProductStatus } from '@prisma/client';
 import { ProductRepository } from '../repositories';
 
 const productRepository = new ProductRepository();
-const prisma = new PrismaClient();
-
 // Cooldown mechanism to prevent spamming flash sale notifications
 let lastFlashSaleNotificationSent = 0;
 const NOTIFICATION_COOLDOWN = 60 * 60 * 1000; // 1 hour in milliseconds
@@ -30,7 +29,7 @@ export const getAllProducts = async (categoryName?: string, filters?: {
   minPrice?: number;
   maxPrice?: number;
 }) => {
-  let where: any = {};
+  const where: any = {};
 
   if (categoryName) {
     const category = await productRepository.findCategoryByName(categoryName);

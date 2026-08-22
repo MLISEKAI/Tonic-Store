@@ -1,10 +1,11 @@
+import { prisma } from '../prisma';
 import { PrismaClient } from '@prisma/client';
 import type { IStatsRepository } from './interfaces/IStatsRepository';
 
 export class StatsRepository implements IStatsRepository {
   private prisma: PrismaClient;
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = prisma;
   }
   async getStats(): Promise<any> {
     const [

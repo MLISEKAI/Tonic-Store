@@ -1,11 +1,11 @@
 // KIỂM TRA XÁC THỰC JWT TRONG BACKEND
+import { prisma } from '../prisma';
 import type { Request, Response, NextFunction } from "express";
 import jwt, { SignOptions, Secret } from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import config from "../config";
 import { findRefreshToken, hashToken, revokeRefreshToken } from '../repositories/refreshTokenRepository';
 
-const prisma = new PrismaClient();
 const SECRET_KEY: Secret = config.jwt.secret as Secret;
 const REFRESH_SECRET_KEY: Secret = config.jwt.refreshSecret as Secret;
 
@@ -81,7 +81,8 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
 // Middleware kiểm tra quyền admin
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user || req.user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Forbidden' });
+    res.status(403).json({ error: 'Forbidden' });
+    return;
   }
   next();
 };

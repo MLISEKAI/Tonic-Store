@@ -1,16 +1,16 @@
+import { prisma } from '../prisma';
 import type { Request, Response } from 'express';
 import * as shipperService from '../services/shipperService';
 import { OrderStatus } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
 
 export const ShipperController = {
   // Lấy danh sách shipper (admin only)
   async getAllShippers(req: Request, res: Response) {
     try {
       if (req.user?.role !== 'ADMIN') {
-        return res.status(403).json({ error: 'Unauthorized' });
+        res.status(403).json({ error: 'Unauthorized' });
+        return;
       }
 
       const shippers = await shipperService.getAllShippers();
@@ -28,7 +28,8 @@ export const ShipperController = {
       const shipper = await shipperService.getShipperById(Number(id));
 
       if (!shipper) {
-        return res.status(404).json({ error: 'Shipper not found' });
+        res.status(404).json({ error: 'Shipper not found' });
+        return;
       }
 
       res.json(shipper);
@@ -42,14 +43,16 @@ export const ShipperController = {
   async assignShipperToOrder(req: Request, res: Response) {
     try {
       if (req.user?.role !== 'ADMIN') {
-        return res.status(403).json({ error: 'Unauthorized' });
+        res.status(403).json({ error: 'Unauthorized' });
+        return;
       }
 
       const { orderId } = req.params;
       const { shipperId } = req.body;
 
       if (!shipperId) {
-        return res.status(400).json({ error: 'Shipper ID is required' });
+        res.status(400).json({ error: 'Shipper ID is required' });
+        return;
       }
 
       const order = await shipperService.assignShipperToOrder(Number(orderId), Number(shipperId));
@@ -64,7 +67,8 @@ export const ShipperController = {
   async updateDeliveryStatus(req: Request, res: Response) {
     try {
       if (req.user?.role !== 'DELIVERY') {
-        return res.status(403).json({ error: 'Unauthorized' });
+        res.status(403).json({ error: 'Unauthorized' });
+        return;
       }
 
       const { orderId } = req.params;
@@ -72,7 +76,8 @@ export const ShipperController = {
       const shipperId = req.user.id;
 
       if (!status || !Object.values(OrderStatus).includes(status)) {
-        return res.status(400).json({ error: 'Invalid status' });
+        res.status(400).json({ error: 'Invalid status' });
+        return;
       }
 
       const order = await shipperService.updateDeliveryStatus(
@@ -98,12 +103,14 @@ export const ShipperController = {
 
       if (!req.user) {
         console.log('No user attached to request');
-        return res.status(401).json({ error: 'Unauthorized' });
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
       }
 
       if (req.user.role !== 'DELIVERY') {
         console.log('User role is not DELIVERY:', req.user.role);
-        return res.status(403).json({ error: 'Forbidden' });
+        res.status(403).json({ error: 'Forbidden' });
+        return;
       }
 
       const { status } = req.query;
@@ -139,23 +146,28 @@ export const ShipperController = {
       const { id } = req.params;
       const orderId = Number(id);
       if (!orderId || isNaN(orderId)) {
-        return res.status(400).json({ error: 'Order ID không hợp lệ' });
+        res.status(400).json({ error: 'Order ID không hợp lệ' });
+        return;
       }
       const rating = await shipperService.getDeliveryRating(orderId);
       if (rating === null) {
-        return res.json(null);
+        res.json(null);
+        return;
       }
       res.json(rating);
     } catch (error: any) {
       console.error('Error getting delivery rating:', error);
       if (error.message === 'Invalid order ID') {
-        return res.status(400).json({ error: error.message });
+        res.status(400).json({ error: error.message });
+        return;
       }
       if (error.message === 'Order not found') {
-        return res.status(404).json({ error: error.message });
+        res.status(404).json({ error: error.message });
+        return;
       }
       if (error.message === 'Order is not delivered yet') {
-        return res.status(400).json({ error: error.message });
+        res.status(400).json({ error: error.message });
+        return;
       }
       res.status(500).json({ error: 'Failed to get delivery rating' });
     }
@@ -165,16 +177,19 @@ export const ShipperController = {
   async createDeliveryRating(req: Request, res: Response) {
     try {
       if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
       }
       const { id } = req.params;
       const orderId = Number(id);
       const { rating, comment } = req.body;
       if (!orderId || isNaN(orderId)) {
-        return res.status(400).json({ error: 'Order ID không hợp lệ' });
+        res.status(400).json({ error: 'Order ID không hợp lệ' });
+        return;
       }
       if (!rating || rating < 1 || rating > 5) {
-        return res.status(400).json({ error: 'Invalid rating value' });
+        res.status(400).json({ error: 'Invalid rating value' });
+        return;
       }
       const newRating = await shipperService.createDeliveryRating(
         orderId,
@@ -186,10 +201,12 @@ export const ShipperController = {
     } catch (error: any) {
       console.error('Error creating delivery rating:', error);
       if (error.message === 'Order is not delivered yet') {
-        return res.status(400).json({ error: error.message });
+        res.status(400).json({ error: error.message });
+        return;
       }
       if (error.message === 'Order has already been rated') {
-        return res.status(400).json({ error: error.message });
+        res.status(400).json({ error: error.message });
+        return;
       }
       res.status(500).json({ error: 'Failed to create delivery rating' });
     }

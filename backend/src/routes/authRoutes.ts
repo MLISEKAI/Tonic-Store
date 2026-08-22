@@ -27,7 +27,8 @@ router.post("/register", async (req, res) => {
     
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
-        return res.status(400).json({ error: "Email already exists" });
+        res.status(400).json({ error: "Email already exists" });
+        return;
       }
     }
     
@@ -42,7 +43,8 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
+      res.status(400).json({ error: "Email and password are required" });
+      return;
     }
 
     console.log("Attempting to login user:", { email });
@@ -59,10 +61,12 @@ router.post("/login", async (req, res) => {
     console.error("Login error:", error);
     if (error instanceof Error) {
       if (error.message === "User not found") {
-        return res.status(401).json({ error: "User not found" });
+        res.status(401).json({ error: "User not found" });
+        return;
       }
       if (error.message === "Invalid password") {
-        return res.status(401).json({ error: "Invalid password" });
+        res.status(401).json({ error: "Invalid password" });
+        return;
       }
     }
     res.status(500).json({ error: "Login failed", details: error instanceof Error ? error.message : "Unknown error" });

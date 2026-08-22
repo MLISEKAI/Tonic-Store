@@ -33,7 +33,8 @@ export const getDiscountCodeById = async (req: Request, res: Response) => {
     const discountCode = await discountCodeService.getById(Number(id));
     
     if (!discountCode) {
-      return res.status(404).json({ message: 'Discount code not found' });
+      res.status(404).json({ message: 'Discount code not found' });
+      return;
     }
     
     res.json(discountCode);
@@ -93,15 +94,17 @@ export const validateDiscountCode = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!code) {
-      return res.status(400).json({
+      res.status(400).json({
         message: 'Mã giảm giá là bắt buộc'
       });
+      return;
     }
 
     if (!userId) {
-      return res.status(401).json({
+      res.status(401).json({
         message: 'Vui lòng đăng nhập để sử dụng mã giảm giá'
       });
+      return;
     }
 
     const result = await discountCodeService.validateAndApply(code, userId);
@@ -122,9 +125,10 @@ export const saveDiscountCodeUsage = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId || !discountCodeId || !orderId) {
-      return res.status(400).json({
+      res.status(400).json({
         message: 'Thiếu thông tin cần thiết'
       });
+      return;
     }
 
     await discountCodeService.saveDiscountCodeUsage(userId, discountCodeId, orderId);
@@ -145,15 +149,17 @@ export const applyDiscountCode = async (req: Request, res: Response) => {
     const userId = req.user?.id;
     
     if (!code || !orderValue) {
-      return res.status(400).json({ 
+      res.status(400).json({ 
         message: 'Mã giảm giá và giá trị đơn hàng là bắt buộc' 
       });
+      return;
     }
 
     if (!userId) {
-      return res.status(401).json({
+      res.status(401).json({
         message: 'Vui lòng đăng nhập để sử dụng mã giảm giá'
       });
+      return;
     }
 
     const result = await discountCodeService.applyDiscountCode(code, orderValue, userId);
@@ -188,9 +194,10 @@ export const getClaimedDiscountCodes = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
+      res.status(401).json({
         message: 'Vui lòng đăng nhập để xem mã giảm giá đã nhận'
       });
+      return;
     }
 
     console.log('Getting claimed codes for user:', userId);
@@ -223,15 +230,17 @@ export const claimDiscountCode = async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
     if (!code) {
-      return res.status(400).json({
+      res.status(400).json({
         message: 'Mã giảm giá là bắt buộc'
       });
+      return;
     }
 
     if (!userId) {
-      return res.status(401).json({
+      res.status(401).json({
         message: 'Vui lòng đăng nhập để nhận mã giảm giá'
       });
+      return;
     }
 
     console.log('Claiming discount code:', { code, userId });

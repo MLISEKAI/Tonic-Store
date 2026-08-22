@@ -7,13 +7,15 @@ export const getShippingAddresses = async (req: Request, res: Response) => {
     const userRole = req.user?.role;
     
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Nếu là admin, lấy tất cả địa chỉ
     if (userRole === 'ADMIN') {
       const addresses = await shippingAddressService.getAllShippingAddresses();
-      return res.json(addresses);
+      res.json(addresses);
+      return;
     }
 
     // Nếu là user thường, chỉ lấy địa chỉ của họ
@@ -29,17 +31,20 @@ export const getShippingAddress = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid address ID' });
+      res.status(400).json({ error: 'Invalid address ID' });
+      return;
     }
 
     const address = await shippingAddressService.getShippingAddress(id, userId);
     if (!address) {
-      return res.status(404).json({ error: 'Address not found' });
+      res.status(404).json({ error: 'Address not found' });
+      return;
     }
 
     res.json(address);
@@ -53,12 +58,14 @@ export const createShippingAddress = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     const { name, phone, address, isDefault } = req.body;
     if (!name || !phone || !address) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      res.status(400).json({ error: 'Missing required fields' });
+      return;
     }
 
     const newAddress = await shippingAddressService.createShippingAddress(userId, {
@@ -79,12 +86,14 @@ export const updateShippingAddress = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid address ID' });
+      res.status(400).json({ error: 'Invalid address ID' });
+      return;
     }
 
     const { name, phone, address, isDefault } = req.body;
@@ -106,12 +115,14 @@ export const deleteShippingAddress = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid address ID' });
+      res.status(400).json({ error: 'Invalid address ID' });
+      return;
     }
 
     await shippingAddressService.deleteShippingAddress(id, userId);
@@ -126,12 +137,14 @@ export const setDefaultShippingAddress = async (req: Request, res: Response) => 
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid address ID' });
+      res.status(400).json({ error: 'Invalid address ID' });
+      return;
     }
 
     const updatedAddress = await shippingAddressService.setDefaultShippingAddress(id, userId);

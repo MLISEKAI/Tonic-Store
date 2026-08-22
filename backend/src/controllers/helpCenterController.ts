@@ -192,11 +192,12 @@ export const searchFAQs = async (req: Request, res: Response) => {
     const { q: query, limit = 20 } = req.query;
     
     if (!query || typeof query !== 'string') {
-      return res.json({
+      res.json({
         success: true,
         data: [],
         message: 'Vui lòng nhập từ khóa tìm kiếm'
       });
+      return;
     }
 
     const searchTerm = query.toLowerCase().trim();
@@ -241,11 +242,12 @@ export const getFAQSuggestions = async (req: Request, res: Response) => {
     const { q: query, limit = 5 } = req.query;
     
     if (!query || typeof query !== 'string' || query.length < 2) {
-      return res.json({
+      res.json({
         success: true,
         data: [],
         message: 'Nhập ít nhất 2 ký tự để tìm kiếm'
       });
+      return;
     }
 
     const searchTerm = query.toLowerCase().trim();
@@ -308,11 +310,12 @@ export const searchWalletFAQs = async (req: Request, res: Response) => {
     const { q: query, limit = 10 } = req.query;
     
     if (!query || typeof query !== 'string') {
-      return res.json({
+      res.json({
         success: true,
         data: [],
         message: 'Vui lòng nhập từ khóa tìm kiếm'
       });
+      return;
     }
 
     const searchTerm = query.toLowerCase().trim();
@@ -357,11 +360,12 @@ export const searchXuFAQs = async (req: Request, res: Response) => {
     const { q: query, limit = 10 } = req.query;
     
     if (!query || typeof query !== 'string') {
-      return res.json({
+      res.json({
         success: true,
         data: [],
         message: 'Vui lòng nhập từ khóa tìm kiếm'
       });
+      return;
     }
 
     const searchTerm = query.toLowerCase().trim();

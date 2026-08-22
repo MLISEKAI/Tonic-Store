@@ -176,7 +176,7 @@ export const discountCodeService = {
       throw new Error(`Đơn hàng phải có giá trị tối thiểu ${discountCode.minOrderValue.toLocaleString('vi-VN')}đ`);
     }
     // Tính toán số tiền được giảm
-    let discountAmount = 0;
+    let discountAmount: number;
     if (discountCode.discountType === 'PERCENTAGE') {
       discountAmount = (orderValue * discountCode.discountValue) / 100;
       if (discountCode.maxDiscount && discountAmount > discountCode.maxDiscount) {

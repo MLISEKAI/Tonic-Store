@@ -1,7 +1,6 @@
+import { prisma } from '../prisma';
 import type { Request, Response } from 'express';
 import { PrismaClient, OrderStatus } from '@prisma/client';
-const prisma = new PrismaClient();
-
 interface OrderItem {
   productId: number;
   _sum: {

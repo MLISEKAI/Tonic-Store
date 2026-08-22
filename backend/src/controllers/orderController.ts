@@ -1,11 +1,10 @@
+import { prisma } from '../prisma';
 import type { Request, Response } from "express";
 import { PrismaClient, OrderStatus } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import type { ParsedQs } from "qs";
 import { createPaymentUrl } from "../services/vnpayService";
 import { processDiscountCodeUsage } from "../services/discountCodeService";
-
-const prisma = new PrismaClient();
 
 type PaymentMethod = "COD" | "VN_PAY" | "BANK_TRANSFER";
 type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELED";
@@ -43,7 +42,8 @@ export const OrderController = {
         !shippingName ||
         !paymentMethod
       ) {
-        return res.status(400).json({ error: "Missing required fields" });
+        res.status(400).json({ error: "Missing required fields" });
+        return;
       }
 
       // Calculate total price
@@ -119,19 +119,23 @@ export const OrderController = {
 
       // Nếu phương thức thanh toán là COD, không cần tạo URL thanh toán
       if (paymentMethod === "COD") {
-        return res.json({ success: true, order });
+        res.json({ success: true, order });
+        return;
       }
 
       // Nếu là phương thức khác (ví dụ: VNPay), xử lý tiếp
       if (paymentMethod === "VN_PAY") {
         const paymentUrl = createPaymentUrl(order.id, totalPrice);
-        return res.json({ success: true, order, paymentUrl });
+        res.json({ success: true, order, paymentUrl });
+        return;
       }
 
-      return res.json({ success: true, order });
+      res.json({ success: true, order });
+      return;
     } catch (error) {
       console.error("Error creating order:", error);
-      return res.status(500).json({ error: "Failed to create order" });
+      res.status(500).json({ error: "Failed to create order" });
+      return;
     }
   },
 
@@ -154,7 +158,8 @@ export const OrderController = {
       });
 
       if (!order) {
-        return res.status(404).json({ error: "Order not found" });
+        res.status(404).json({ error: "Order not found" });
+        return;
       }
 
       res.json(order);
@@ -212,7 +217,8 @@ export const OrderController = {
         data: { status: "CANCELLED" },
       });
 
-      return res.json({ success: true, order: canceledOrder });
+      res.json({ success: true, order: canceledOrder });
+      return;
     } catch (error) {
       console.error("Error canceling order:", error);
       return res
@@ -275,14 +281,16 @@ export const OrderController = {
         include: { payment: true }
       });
       if (!order || !order.payment) {
-        return res.status(404).json({ error: 'Order or payment not found' });
+        res.status(404).json({ error: 'Order or payment not found' });
+        return;
       }
 
       // Kiểm tra quyền
       const isAdminOrUser = req.user?.role === 'ADMIN' || req.user?.role === 'USER';
       const isShipperCOD = req.user?.role === 'DELIVERY' && order.payment.method === 'COD' && order.status === 'DELIVERED';
       if (!isAdminOrUser && !isShipperCOD) {
-        return res.status(403).json({ error: 'Forbidden' });
+        res.status(403).json({ error: 'Forbidden' });
+        return;
       }
 
       const payment = await prisma.payment.update({
