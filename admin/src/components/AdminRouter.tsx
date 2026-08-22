@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type JSX } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Spin } from 'antd';
 
