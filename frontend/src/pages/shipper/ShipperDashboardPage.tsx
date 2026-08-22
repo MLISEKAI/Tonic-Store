@@ -6,10 +6,6 @@ import { Navigate } from 'react-router-dom';
 
 const ShipperDashboardPage: React.FC = () => {
   const { isAuthenticated, user, loading: authLoading } = useAuth();
-  // Nếu đang loading auth, show loading
-  if (authLoading) return <div>Đang kiểm tra đăng nhập...</div>;
-  // Nếu chưa đăng nhập hoặc không phải shipper, redirect về trang chủ
-  if (!isAuthenticated || user?.role !== 'DELIVERY') return <Navigate to="/" />;
 
   const [stats, setStats] = useState({
     total: 0,
@@ -54,6 +50,11 @@ const ShipperDashboardPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Nếu đang loading auth, show loading
+  if (authLoading) return <div>Đang kiểm tra đăng nhập...</div>;
+  // Nếu chưa đăng nhập hoặc không phải shipper, redirect về trang chủ
+  if (!isAuthenticated || user?.role !== 'DELIVERY') return <Navigate to="/" />;
 
   return (
     <div className="container">

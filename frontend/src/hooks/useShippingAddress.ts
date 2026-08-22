@@ -34,39 +34,23 @@ export function useShippingAddress(token: string) {
   };
 
   const addAddress = async (addressData: any) => {
-    try {
-      await addShippingAddress(token, addressData);
-      await fetchAddresses();
-    } catch (err) {
-      throw err;
-    }
+    await addShippingAddress(token, addressData);
+    await fetchAddresses();
   };
 
   const updateAddress = async (id: number, addressData: any) => {
-    try {
-      await updateShippingAddress(token, id, addressData);
-      await fetchAddresses();
-    } catch (err) {
-      throw err;
-    }
+    await updateShippingAddress(token, id, addressData);
+    await fetchAddresses();
   };
 
   const deleteAddress = async (id: number) => {
-    try {
-      await deleteShippingAddress(token, id);
-      await fetchAddresses();
-    } catch (err) {
-      throw err;
-    }
+    await deleteShippingAddress(token, id);
+    await fetchAddresses();
   };
 
   const setDefault = async (id: number) => {
-    try {
-      await setDefaultShippingAddress(token, id);
-      await fetchAddresses();
-    } catch (err) {
-      throw err;
-    }
+    await setDefaultShippingAddress(token, id);
+    await fetchAddresses();
   };
 
   useEffect(() => {

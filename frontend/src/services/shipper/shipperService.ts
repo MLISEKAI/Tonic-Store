@@ -16,7 +16,9 @@ export const ShipperService = {
         try {
           errorData = await response.json();
           errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch (e) {}
+        } catch {
+          // ignore JSON parse errors, use default message
+        }
         if (response.status === 401) {
           throw new Error('Session expired. Please login again.');
         }
