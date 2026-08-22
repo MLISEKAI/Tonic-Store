@@ -16,7 +16,11 @@ const { Option } = Select;
 
 const XuPage: React.FC = () => {
   const { user } = useAuth();
-  
+
+  const [isConvertModalVisible, setIsConvertModalVisible] = useState(false);
+  const [isRedeemModalVisible, setIsRedeemModalVisible] = useState(false);
+  const [form] = Form.useForm();
+
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -26,9 +30,6 @@ const XuPage: React.FC = () => {
       </div>
     );
   }
-  const [isConvertModalVisible, setIsConvertModalVisible] = useState(false);
-  const [isRedeemModalVisible, setIsRedeemModalVisible] = useState(false);
-  const [form] = Form.useForm();
 
   // Mock data
   const tonicXu = 15000;

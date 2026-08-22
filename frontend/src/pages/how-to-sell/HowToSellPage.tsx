@@ -243,7 +243,7 @@ const HowToSellPage: React.FC = () => {
             {steps.map((step, index) => (
               <div
                 key={index}
-                ref={(el) => (contentRefs.current[index] = el)}
+                ref={(el) => { contentRefs.current[index] = el; }}
                 className="mb-6 scroll-mt-[156px]"
               >
               <Card key={index} className="mb-6">
