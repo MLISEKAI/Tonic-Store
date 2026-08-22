@@ -25,12 +25,9 @@ docker/db/data/
 docker/nginx/logs/
 docker/nginx/certs/
 docker/nginx/html/
-docker/
-backend/logs/
 
 # Prisma
 backend/prisma/dev.db
-backend/prisma/migrations/
 
 # Editor / OS files
 .vscode/
