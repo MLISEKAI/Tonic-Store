@@ -1,0 +1,51 @@
+export enum ErrorCode {
+  MISSING_REQUIRED_PARAMETERS = 400105,
+  FORBIDDEN_REQUEST = 403403,
+  UNAUTHORIZED_REQUEST = 401108,
+  PARAMETER_VALUE_LENGTH_EXCEEDED = 400110,
+  INVALID_VALUE = 400111,
+  INVALID_URL_OF_RESOURCE = 400114,
+  NOT_ALLOWED_CHARACTER = 400151,
+  RESOURCE_NOT_FOUND = 400201,
+  RESOURCE_ALREADY_EXISTS = 400202,
+  TOO_MANY_ITEMS_IN_PARAMETER = 400203,
+  DEACTIVATED_USER_NOT_ACCESSIBLE = 400300,
+  USER_NOT_FOUND = 400301,
+  INVALID_ACCESS_TOKEN = 401302,
+  INVALID_SESSION_KEY_VALUE = 401303,
+  APPLICATION_NOT_FOUND = 400304,
+  PAID_QUOTA_EXCEEDED = 400306,
+  DOMAIN_NOT_ALLOWED = 400307,
+  INVALID_API_TOKEN = 400401,
+  INVALID_JSON_REQUEST_BODY = 400403,
+  RATE_LIMIT_EXCEEDED = 500910,
+  INTERNAL_ERROR = 500901,
+}
+
+export const ErrorMessage: Record<ErrorCode, string> = {
+  [ErrorCode.MISSING_REQUIRED_PARAMETERS]: 'The request is missing one or more required parameters.',
+  [ErrorCode.FORBIDDEN_REQUEST]: 'Insufficient permissions',
+  [ErrorCode.UNAUTHORIZED_REQUEST]: "The request isn't authorized and can't access the requested resource.",
+  [ErrorCode.PARAMETER_VALUE_LENGTH_EXCEEDED]: 'The length of the parameter value is too long.',
+  [ErrorCode.INVALID_VALUE]: 'The request specifies an invalid value.',
+  [ErrorCode.INVALID_URL_OF_RESOURCE]: "The resource identified with the URL in the request can't be found.",
+  [ErrorCode.NOT_ALLOWED_CHARACTER]: 'The request specifies an unacceptable value containing special character, empty string, or white space.',
+  [ErrorCode.RESOURCE_NOT_FOUND]: "The resource identified with the request's parameter can't be found.",
+  [ErrorCode.RESOURCE_ALREADY_EXISTS]: "The resource identified with the request's parameter already exists",
+  [ErrorCode.TOO_MANY_ITEMS_IN_PARAMETER]: 'The parameter specifies more items than allowed.',
+  [ErrorCode.DEACTIVATED_USER_NOT_ACCESSIBLE]: "The request can't retrieve the deactivated user data.",
+  [ErrorCode.USER_NOT_FOUND]: "The user identified with the request's parameter can't be found because either the user doesn't exist or has been deleted.",
+  [ErrorCode.INVALID_ACCESS_TOKEN]: 'The access token provided for the request specifies an invalid value.',
+  [ErrorCode.INVALID_SESSION_KEY_VALUE]: 'The session key provided for the request specifies an invalid value.',
+  [ErrorCode.APPLICATION_NOT_FOUND]: "The application identified with the request can't be found.",
+  [ErrorCode.PAID_QUOTA_EXCEEDED]: "The request can't be completed because you have exceeded your plan's paid quota.",
+  [ErrorCode.DOMAIN_NOT_ALLOWED]: "The request can't be completed because it came from a restricted domain.",
+  [ErrorCode.INVALID_API_TOKEN]: 'The API token provided for the request specifies an invalid value.',
+  [ErrorCode.INVALID_JSON_REQUEST_BODY]: 'The request body is an invalid JSON.',
+  [ErrorCode.RATE_LIMIT_EXCEEDED]: "The request can't be completed because you have exceeded your rate limits.",
+  [ErrorCode.INTERNAL_ERROR]: 'The server encounters an unexpected exception while trying to process the request. Please retry the request.',
+};
+
+export function getErrorMessage(code: number): string {
+  return ErrorMessage[code as ErrorCode] || 'Unknown error';
+}
