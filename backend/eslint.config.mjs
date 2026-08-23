@@ -21,4 +21,12 @@ export default tseslint.config(
       'preserve-caught-error': 'off',
     },
   },
+  {
+    // Express type augmentation (declare global + namespace) la pattern chuan
+    // cua @types/express, khong co alternative ES module
+    files: ['**/api-response.ts'],
+    rules: {
+      '@typescript-eslint/no-namespace': 'off',
+    },
+  },
 )
