@@ -8,12 +8,11 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
-import { register } from 'prom-client';
 import { swaggerSpec } from './config/swagger';
 import logger from './config/logger';
-import * as metrics from './config/metrics';
 
 import authRoutes from "./routes/authRoutes";
+import { connectRedis } from './services/cache.service';
 import userRoutes from "./routes/userRoutes";
 import productRoutes from "./routes/productRoutes";
 import orderRoutes from "./routes/orderRoutes";
@@ -74,36 +73,11 @@ app.use(morgan('combined', { stream: { write: (message: string) => logger.info(m
 // });
 // app.use(limiter);
 
-// Metrics middleware
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const start = Date.now();
-  res.on('finish', () => {
-    const duration = (Date.now() - start) / 1000;
-    metrics.httpRequestDuration.observe(
-      { method: req.method, route: req.route?.path || req.path, status_code: res.statusCode },
-      duration
-    );
-    metrics.httpRequestsTotal.inc({ method: req.method, route: req.route?.path || req.path, status_code: res.statusCode });
-  });
-  next();
-});
-
 // API Documentation
 app.use('/api/docs', 
   swaggerUi.serve as unknown as RequestHandler, 
   swaggerUi.setup(swaggerSpec) as unknown as RequestHandler
 );
-
-// Metrics endpoint
-app.get('/metrics', async (req: Request, res: Response) => {
-  try {
-    res.set('Content-Type', register.contentType);
-    res.end(await register.metrics());
-  } catch (error) {
-    logger.error('Error generating metrics:', error);
-    res.status(500).end();
-  }
-});
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -178,7 +152,9 @@ const server = app.listen(PORT, HOST, () => {
     console.log('Environment:', process.env.NODE_ENV);
     console.log('Database URL:', process.env.DATABASE_URL);
     console.log(`API documentation available at http://localhost:${PORT}/api/docs`);
-    console.log(`Metrics available at http://localhost:${PORT}/metrics`);
+
+    // Redis cache (tùy chọn - server vẫn chạy nếu Redis không khả dụng)
+    void connectRedis();
 });
 
 // Xử lý lỗi server

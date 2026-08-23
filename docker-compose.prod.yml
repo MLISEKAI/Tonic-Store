@@ -1,36 +1,27 @@
-version: '3.8'
-
 services:
   server-fe:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
     env_file:
-      - ./frontend/.env
+      - ./frontend/.env.production
     environment:
       - NODE_ENV=production
-    ports:
+    expose:
       - "80"
     restart: unless-stopped
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
   server-be:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
     env_file:
-      - ./backend/.env
+      - ./backend/.env.production
     environment:
       - NODE_ENV=production
-    command: yarn start:prod
-    ports:
+    expose:
       - "8085"
     restart: unless-stopped
     depends_on:
@@ -44,25 +35,20 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   server-fe-admin:
     build:
       context: ./admin
       dockerfile: Dockerfile.prod
     env_file:
-      - ./admin/.env
+      - ./admin/.env.production
     environment:
       - NODE_ENV=production
-    ports:
+    expose:
       - "80"
     restart: unless-stopped
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
   db:
     image: mysql:8.0
@@ -71,12 +57,12 @@ services:
     ports:
       - "3306:3306"
     env_file:
-      - ./backend/.env
+      - ./backend/.env.production
     environment:
       TZ: Asia/Vietnam
       MYSQL_INITDB_SKIP_TZINFO: 1
     volumes:
-      - ./docker/db/data:/var/lib/mysql
+      - db_data:/var/lib/mysql
       - ./docker/db/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -86,57 +72,28 @@ services:
       timeout: 10s
     networks:
       - app-network
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
-  # Prometheus
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
+  redis:
+    image: redis:7-alpine
+    container_name: tonic-redis
+    restart: unless-stopped
+    # Chi dung trong mang noi bo Docker, khong publish port ra host
+    expose:
+      - "6379"
+    command: ["redis-server", "--appendonly", "yes"]
     volumes:
-      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
+      - redis_data:/data
     networks:
       - app-network
-    restart: unless-stopped
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./docker/grafana/provisioning:/etc/grafana/provisioning
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    ports:
-      - "3000:3000"
-    networks:
-      - app-network
-    restart: unless-stopped
-    depends_on:
-      - prometheus
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    ports:
-      - "9100:9100"
-    networks:
-      - app-network
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   nginx-proxy:
-    image: nginx:latest
+    image: nginx:stable-alpine
     container_name: nginx-proxy
     restart: unless-stopped
     ports:
@@ -147,6 +104,7 @@ services:
       - ./docker/nginx/certs:/etc/letsencrypt
       - ./docker/nginx/html:/var/www/certbot
       - ./docker/nginx/logs:/var/log/nginx
+      - ./docker/nginx/vhost:/etc/nginx/vhost
     depends_on:
       - server-fe
       - server-fe-admin
@@ -168,6 +126,5 @@ networks:
     driver: bridge
 
 volumes:
-  prometheus_data:
-  grafana_data:
-
+  db_data:
+  redis_data:
