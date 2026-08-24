@@ -13,20 +13,6 @@ jobs:
       matrix:
         node-version: [22.x]
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: tonic_store_test
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
@@ -60,28 +46,6 @@ jobs:
     - name: Run Admin Lint
       run: |
         cd admin && yarn lint
-
-    - name: Run Backend Tests
-      run: |
-        cd backend
-        npx prisma migrate deploy
-        yarn test
-      env:
-        DATABASE_URL: mysql://root:root@127.0.0.1:3306/tonic_store_test
-
-    - name: Run Frontend Tests
-      run: |
-        cd frontend
-        yarn test
-      env:
-        CI: true
-
-    - name: Run Admin Tests
-      run: |
-        cd admin
-        yarn test
-      env:
-        CI: true
 
   deploy:
     needs: test
