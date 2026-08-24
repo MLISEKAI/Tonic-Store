@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
 
 model User {
@@ -108,8 +108,8 @@ model CartItem {
   cart      Cart     @relation(fields: [cartId], references: [id])
   product   Product  @relation("ProductToCartItem", fields: [productId], references: [id])
 
-  @@index([cartId], map: "CartItem_cartId_fkey")
-  @@index([productId], map: "CartItem_productId_fkey")
+  @@index([cartId])
+  @@index([productId])
 }
 
 model Order {
@@ -150,8 +150,8 @@ model OrderItem {
   order     Order    @relation(fields: [orderId], references: [id])
   product   Product  @relation("ProductToOrderItem", fields: [productId], references: [id])
 
-  @@index([orderId], map: "OrderItem_orderId_fkey")
-  @@index([productId], map: "OrderItem_productId_fkey")
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Payment {
@@ -205,7 +205,7 @@ model ShippingAddress {
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], map: "ShippingAddress_userId_fkey")
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
