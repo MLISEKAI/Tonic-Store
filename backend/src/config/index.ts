@@ -29,7 +29,7 @@ const config = {
     blacklistTTL: parseInt(process.env.JWT_BLACKLIST_TTL || '86400'), // 1 day in seconds
   },
   database: {
-     url: process.env.DATABASE_URL || 'mysql://root:root@db:3306/tonic_store',
+      url: process.env.DATABASE_URL,
   },
 };
 

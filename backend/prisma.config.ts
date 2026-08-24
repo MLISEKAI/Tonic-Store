@@ -8,6 +8,6 @@ export default defineConfig({
     seed: 'ts-node prisma/seed.ts',
   },
   datasource: {
-    url: process.env.DATABASE_URL ?? 'mysql://root:root@localhost:3306/tonic_store',
+    url: process.env.DATABASE_URL,
   },
 });
