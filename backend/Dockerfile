@@ -28,6 +28,7 @@ COPY --from=builder /app/prisma ./prisma
 ENV NODE_ENV=production
 ENV PORT=8085
 ENV HOST=0.0.0.0
+ENV LOG_DIR=/tmp/logs
 
 EXPOSE 8085
 
