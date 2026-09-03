@@ -34,7 +34,6 @@ services:
       - ./backend/.env
     environment:
       - NODE_ENV=development
-      # Trong mạng Docker phải kết nối qua tên service, không dùng localhost
       - REDIS_HOST=redis
     volumes:
       - ./backend:/app
@@ -106,28 +105,27 @@ services:
       - app-network
 
   db:
-    image: mysql:8.0
-    container_name: tonic-store
+    image: postgres:16-alpine
+    container_name: tonic-store-db
     restart: always
     ports:
-      - "3306:3306"
-    env_file:
-      - ./backend/.env
+      - "5432:5432"
     environment:
       TZ: Asia/Vietnam
-      MYSQL_INITDB_SKIP_TZINFO: 1
+      POSTGRES_DB: tonic_store
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
     volumes:
-      - ./docker/db/data:/var/lib/mysql
+      - ./docker/db/data:/var/lib/postgresql/data
       - ./docker/db/init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U root -d tonic_store"]
       interval: 30s
       retries: 3
       start_period: 10s
       timeout: 10s
     networks:
       - app-network
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
   redis:
     image: redis:7-alpine
@@ -146,19 +144,17 @@ services:
       retries: 3
       start_period: 10s
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
     restart: always
     depends_on:
       - db
     ports:
       - "9000:80"
-    env_file:
-      - ./backend/.env
     environment:
-      PMA_HOST: db
-      UPLOAD_LIMIT: 300M
+      PGADMIN_DEFAULT_EMAIL: admin@tonic-store.com
+      PGADMIN_DEFAULT_PASSWORD: root
     networks:
       - app-network
 
