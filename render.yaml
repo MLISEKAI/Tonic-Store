@@ -4,7 +4,7 @@ services:
     runtime: docker
     plan: free
     region: oregon
-    dockerfilePath: backend/Dockerfile.prod
+    dockerfilePath: Dockerfile
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -13,15 +13,34 @@ services:
         value: 8085
       - key: HOST
         value: 0.0.0.0
+      - key: LOG_DIR
+        value: /tmp/logs
       - key: DATABASE_URL
-        valueFromSecret: DATABASE_URL
+        fromSecret: DATABASE_URL
       - key: JWT_SECRET
-        valueFromSecret: JWT_SECRET
+        fromSecret: JWT_SECRET
       - key: JWT_REFRESH_SECRET
-        valueFromSecret: JWT_REFRESH_SECRET
+        fromSecret: JWT_REFRESH_SECRET
       - key: FRONTEND_URL
-        valueFromSecret: FRONTEND_URL
+        fromSecret: FRONTEND_URL
+      - key: VITE_ADMIN_URL
+        fromSecret: VITE_ADMIN_URL
       - key: EMAIL_USER
-        valueFromSecret: EMAIL_USER
+        fromSecret: EMAIL_USER
       - key: EMAIL_PASS
-        valueFromSecret: EMAIL_PASS
+        fromSecret: EMAIL_PASS
+      - key: VNPAY_TMN_CODE
+        fromSecret: VNPAY_TMN_CODE
+      - key: VNPAY_SECRET_KEY
+        fromSecret: VNPAY_SECRET_KEY
+      - key: VNPAY_HASH_SECRET
+        fromSecret: VNPAY_HASH_SECRET
+      - key: VNPAY_URL
+        value: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+      - key: VNPAY_RETURN_URL
+        fromSecret: VNPAY_RETURN_URL
+
+  - type: redis
+    name: tonic-store-redis
+    plan: free
+    region: oregon
