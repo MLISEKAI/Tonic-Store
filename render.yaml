@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: tonic-store-backend
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: backend/Dockerfile.prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8085
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        valueFromSecret: DATABASE_URL
+      - key: JWT_SECRET
+        valueFromSecret: JWT_SECRET
+      - key: JWT_REFRESH_SECRET
+        valueFromSecret: JWT_REFRESH_SECRET
+      - key: FRONTEND_URL
+        valueFromSecret: FRONTEND_URL
+      - key: EMAIL_USER
+        valueFromSecret: EMAIL_USER
+      - key: EMAIL_PASS
+        valueFromSecret: EMAIL_PASS
