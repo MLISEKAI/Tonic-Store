@@ -1,13 +1,13 @@
 import type { Request, Response } from "express";
 import * as productService from "../services/productService";
+import logger from "../config/logger";
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
     const category = req.query.category as string;
     const products = await productService.getAllProducts(category);
     res.json(products);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching products" });
+  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: "Error fetching products" });
   }
 };
 
@@ -19,8 +19,7 @@ export const getProductById = async (req: Request, res: Response) => {
       return;
     }
     res.json(product);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching product" });
+  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: "Error fetching product" });
   }
 };
 
@@ -72,8 +71,7 @@ export const createProduct = async (req: Request, res: Response) => {
       isBestSeller
     });
     res.status(201).json(product);
-  } catch (error) {
-    res.status(500).json({ message: "Error creating product" });
+  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: "Error creating product" });
   }
 };
 
@@ -128,8 +126,7 @@ export const updateProduct = async (req: Request, res: Response) => {
       isBestSeller
     });
     res.json(product);
-  } catch (error) {
-    res.status(500).json({ message: "Error updating product" });
+  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: "Error updating product" });
   }
 };
 
@@ -138,8 +135,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
     const { id } = req.params;
     await productService.deleteProduct(Number(id));
     res.json({ message: "Product deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting product" });
+  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: "Error deleting product" });
   }
 };
 
@@ -148,7 +144,6 @@ export const incrementProductView = async (req: Request, res: Response) => {
     const { id } = req.params;
     const product = await productService.incrementViewCount(Number(id));
     res.json(product);
-  } catch (error) {
-    res.status(500).json({ message: "Error updating product view count" });
+  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: "Error updating product view count" });
   }
 }; 

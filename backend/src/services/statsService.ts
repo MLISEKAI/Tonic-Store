@@ -1,5 +1,4 @@
 import { prisma } from '../prisma';
-import { PrismaClient } from '@prisma/client';
 export const getStats = async () => {
   const [
     totalProducts,

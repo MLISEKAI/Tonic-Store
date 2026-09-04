@@ -1,6 +1,5 @@
 import { prisma } from '../prisma';
 import type { Request, Response } from 'express';
-import { PrismaClient } from "@prisma/client";
 
 export class NotificationController {
   // Get all notifications for a user
@@ -23,7 +22,7 @@ export class NotificationController {
       });
 
       res.json(notifications);
-    } catch (error) {
+    } catch {
       console.error('Error fetching notifications:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
@@ -46,7 +45,7 @@ export class NotificationController {
       });
 
       res.json(notification);
-    } catch (error) {
+    } catch {
       console.error('Error marking notification as read:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
@@ -68,7 +67,7 @@ export class NotificationController {
       });
 
       res.json({ message: 'All notifications marked as read' });
-    } catch (error) {
+    } catch {
       console.error('Error marking all notifications as read:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
@@ -88,7 +87,7 @@ export class NotificationController {
       });
 
       res.json({ message: 'Notification deleted successfully' });
-    } catch (error) {
+    } catch {
       console.error('Error deleting notification:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
@@ -106,7 +105,7 @@ export class NotificationController {
       });
 
       res.json({ message: 'All notifications deleted successfully' });
-    } catch (error) {
+    } catch {
       console.error('Error deleting all notifications:', error);
       res.status(500).json({ message: 'Internal server error' });
     }

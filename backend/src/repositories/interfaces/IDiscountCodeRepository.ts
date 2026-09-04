@@ -1,4 +1,4 @@
-import { DiscountCode, DiscountCodeClaim, DiscountCodeUsage } from '@prisma/client';
+import { DiscountCode, DiscountCodeUsage } from '@prisma/client';
 
 export interface IDiscountCodeRepository {
   findAll(): Promise<DiscountCode[]>;

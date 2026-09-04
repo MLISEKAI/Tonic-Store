@@ -1,5 +1,4 @@
 import { prisma } from '../../prisma';
-import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';

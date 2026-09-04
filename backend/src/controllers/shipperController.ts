@@ -1,8 +1,6 @@
-import { prisma } from '../prisma';
 import type { Request, Response } from 'express';
 import * as shipperService from '../services/shipperService';
 import { OrderStatus } from '@prisma/client';
-import { PrismaClient } from '@prisma/client';
 
 export const ShipperController = {
   // Lấy danh sách shipper (admin only)
@@ -15,7 +13,7 @@ export const ShipperController = {
 
       const shippers = await shipperService.getAllShippers();
       res.json(shippers);
-    } catch (error) {
+    } catch {
       console.error('Error getting shippers:', error);
       res.status(500).json({ error: 'Failed to get shippers' });
     }
@@ -33,7 +31,7 @@ export const ShipperController = {
       }
 
       res.json(shipper);
-    } catch (error) {
+    } catch {
       console.error('Error getting shipper:', error);
       res.status(500).json({ error: 'Failed to get shipper' });
     }
@@ -57,7 +55,7 @@ export const ShipperController = {
 
       const order = await shipperService.assignShipperToOrder(Number(orderId), Number(shipperId));
       res.json(order);
-    } catch (error) {
+    } catch {
       console.error('Error assigning shipper:', error);
       res.status(500).json({ error: 'Failed to assign shipper' });
     }
@@ -88,7 +86,7 @@ export const ShipperController = {
       );
 
       res.json(order);
-    } catch (error) {
+    } catch {
       console.error('Error updating delivery status:', error);
       res.status(500).json({ error: 'Failed to update delivery status' });
     }
@@ -122,7 +120,7 @@ export const ShipperController = {
       );
 
       res.json(orders);
-    } catch (error) {
+    } catch {
       console.error('Error getting shipper orders:', error);
       res.status(500).json({ error: 'Failed to get shipper orders' });
     }
@@ -134,7 +132,7 @@ export const ShipperController = {
       const { orderId } = req.params;
       const logs = await shipperService.getOrderDeliveryLogs(Number(orderId));
       res.json(logs);
-    } catch (error) {
+    } catch {
       console.error('Error getting delivery logs:', error);
       res.status(500).json({ error: 'Failed to get delivery logs' });
     }

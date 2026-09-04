@@ -1,4 +1,4 @@
-import { ErrorCode, ErrorMessage, getErrorMessage } from './error-codes';
+import { ErrorCode, ErrorMessage } from './error-codes';
 
 export class SystemException extends Error {
   public readonly code: ErrorCode;

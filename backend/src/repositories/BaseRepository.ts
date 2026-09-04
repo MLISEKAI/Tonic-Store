@@ -1,4 +1,3 @@
-import { prisma } from '../prisma';
 import type { IBaseRepository } from './interfaces/IBaseRepository';
 
 export class BaseRepository<T> implements IBaseRepository<T> {

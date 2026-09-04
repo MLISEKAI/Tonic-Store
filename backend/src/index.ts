@@ -6,7 +6,6 @@ import dotenv from "dotenv";
 import morgan from 'morgan';
 import helmet from 'helmet';
 import compression from 'compression';
-import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import logger from './config/logger';
@@ -120,7 +119,7 @@ app.use('/api/help-center', helpCenterRoutes);
 
 
 // Middleware để bắt lỗi
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     console.error("Error:", err);
     if (err instanceof Error) {
         res.status(500).json({ 

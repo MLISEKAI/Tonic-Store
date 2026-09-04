@@ -96,7 +96,7 @@ export const processDiscountCodeUsage = async (
     });
 
     console.log(`[processDiscountCodeUsage] Successfully processed discount code usage for ${promotionCode}`);
-  } catch (error) {
+  } catch {
     // Log error nhưng không throw để không làm fail order creation
     console.error('[processDiscountCodeUsage] Error processing discount code usage:', error);
   }
@@ -137,7 +137,7 @@ export const discountCodeService = {
   resetUsage: async (id: number) => {
     return discountCodeRepository.resetUsage(id);
   },
-  validateAndApply: async (code: string, userId: number) => {
+  validateAndApply: async (code: string, _userId: number) => {
     const discountCode = await discountCodeRepository.findByCode(code);
     if (!discountCode) throw new Error('Mã giảm giá không hợp lệ hoặc đã hết hạn');
     // Có thể bổ sung thêm các điều kiện kiểm tra khác ở đây

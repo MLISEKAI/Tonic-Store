@@ -1,5 +1,4 @@
 import { prisma } from '../../prisma';
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import config from "../../config";
@@ -62,7 +61,7 @@ export const loginUser = async (email: string, password: string, deviceInfo: str
       refreshToken,
       user: userWithoutPassword
     };
-  } catch (error) {
+  } catch {
     console.error("Login error:", error);
     throw error;
   }

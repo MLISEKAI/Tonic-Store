@@ -21,7 +21,7 @@ export const getShippingAddresses = async (req: Request, res: Response) => {
     // Nếu là user thường, chỉ lấy địa chỉ của họ
     const addresses = await shippingAddressService.getShippingAddresses(userId);
     res.json(addresses);
-  } catch (error) {
+  } catch {
     console.error('Error getting shipping addresses:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -48,7 +48,7 @@ export const getShippingAddress = async (req: Request, res: Response) => {
     }
 
     res.json(address);
-  } catch (error) {
+  } catch {
     console.error('Error getting shipping address:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -76,7 +76,7 @@ export const createShippingAddress = async (req: Request, res: Response) => {
     });
 
     res.status(201).json(newAddress);
-  } catch (error) {
+  } catch {
     console.error('Error creating shipping address:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -105,7 +105,7 @@ export const updateShippingAddress = async (req: Request, res: Response) => {
     });
 
     res.json(updatedAddress);
-  } catch (error) {
+  } catch {
     console.error('Error updating shipping address:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -127,7 +127,7 @@ export const deleteShippingAddress = async (req: Request, res: Response) => {
 
     await shippingAddressService.deleteShippingAddress(id, userId);
     res.status(204).send();
-  } catch (error) {
+  } catch {
     console.error('Error deleting shipping address:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -149,7 +149,7 @@ export const setDefaultShippingAddress = async (req: Request, res: Response) => 
 
     const updatedAddress = await shippingAddressService.setDefaultShippingAddress(id, userId);
     res.json(updatedAddress);
-  } catch (error) {
+  } catch {
     console.error('Error setting default shipping address:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

@@ -1,4 +1,4 @@
-import { Cart, CartItem } from '@prisma/client';
+import { CartItem } from '@prisma/client';
 
 export interface ICartRepository {
   getCart(userId: number): Promise<any>;

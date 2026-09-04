@@ -2,10 +2,9 @@ import type { Request, Response } from 'express';
 import { discountCodeService } from '../services/discountCodeService';
 
 // Lấy tất cả mã giảm giá
-export const getAllDiscountCodes = async (req: Request, res: Response) => {
+export const getAllDiscountCodes = async (_req: Request, res: Response) => {
   try {
     const discountCodes = await discountCodeService.getAll();
-    // Map lại trường cho đúng format frontend mong đợi
     const formattedCodes = discountCodes.map((code: any) => ({
       id: code.id,
       code: code.code,
@@ -21,34 +20,30 @@ export const getAllDiscountCodes = async (req: Request, res: Response) => {
       isActive: code.isActive
     }));
     res.json(formattedCodes);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to get discount codes' });
+  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: 'Failed to get discount codes' });
   }
 };
 
-// Lấy mã giảm giá theo ID
 export const getDiscountCodeById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const discountCode = await discountCodeService.getById(Number(id));
-    
+
     if (!discountCode) {
       res.status(404).json({ message: 'Discount code not found' });
       return;
     }
-    
+
     res.json(discountCode);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to get discount code' });
+  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: 'Failed to get discount code' });
   }
 };
 
-// Tạo mã giảm giá
 export const createDiscountCode = async (req: Request, res: Response) => {
   try {
     const discountCode = await discountCodeService.create(req.body);
     res.status(201).json(discountCode);
-  } catch (error) {
+  } catch {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -57,13 +52,12 @@ export const createDiscountCode = async (req: Request, res: Response) => {
   }
 };
 
-// Cập nhật mã giảm giá
 export const updateDiscountCode = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const discountCode = await discountCodeService.update(Number(id), req.body);
     res.json(discountCode);
-  } catch (error) {
+  } catch {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -72,13 +66,12 @@ export const updateDiscountCode = async (req: Request, res: Response) => {
   }
 };
 
-// Xóa mã giảm giá
 export const deleteDiscountCode = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     await discountCodeService.delete(Number(id));
     res.status(204).send();
-  } catch (error) {
+  } catch {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -87,29 +80,24 @@ export const deleteDiscountCode = async (req: Request, res: Response) => {
   }
 };
 
-// Kiểm tra và áp dụng mã giảm giá
 export const validateDiscountCode = async (req: Request, res: Response) => {
   try {
     const { code } = req.body;
     const userId = req.user?.id;
 
     if (!code) {
-      res.status(400).json({
-        message: 'Mã giảm giá là bắt buộc'
-      });
+      res.status(400).json({ message: 'Mã giảm giá là bắt buộc' });
       return;
     }
 
     if (!userId) {
-      res.status(401).json({
-        message: 'Vui lòng đăng nhập để sử dụng mã giảm giá'
-      });
+      res.status(401).json({ message: 'Vui lòng đăng nhập để sử dụng mã giảm giá' });
       return;
     }
 
     const result = await discountCodeService.validateAndApply(code, userId);
     res.json(result);
-  } catch (error) {
+  } catch {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -118,22 +106,19 @@ export const validateDiscountCode = async (req: Request, res: Response) => {
   }
 };
 
-// Lưu thông tin sử dụng mã
 export const saveDiscountCodeUsage = async (req: Request, res: Response) => {
   try {
     const { discountCodeId, orderId } = req.body;
     const userId = req.user?.id;
 
     if (!userId || !discountCodeId || !orderId) {
-      res.status(400).json({
-        message: 'Thiếu thông tin cần thiết'
-      });
+      res.status(400).json({ message: 'Thiếu thông tin cần thiết' });
       return;
     }
 
     await discountCodeService.saveDiscountCodeUsage(userId, discountCodeId, orderId);
     res.status(200).json({ message: 'Đã lưu thông tin sử dụng mã giảm giá' });
-  } catch (error) {
+  } catch {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -142,29 +127,24 @@ export const saveDiscountCodeUsage = async (req: Request, res: Response) => {
   }
 };
 
-// Áp dụng mã giảm giá trong checkout
 export const applyDiscountCode = async (req: Request, res: Response) => {
   try {
     const { code, orderValue } = req.body;
     const userId = req.user?.id;
-    
+
     if (!code || !orderValue) {
-      res.status(400).json({ 
-        message: 'Mã giảm giá và giá trị đơn hàng là bắt buộc' 
-      });
+      res.status(400).json({ message: 'Mã giảm giá và giá trị đơn hàng là bắt buộc' });
       return;
     }
 
     if (!userId) {
-      res.status(401).json({
-        message: 'Vui lòng đăng nhập để sử dụng mã giảm giá'
-      });
+      res.status(401).json({ message: 'Vui lòng đăng nhập để sử dụng mã giảm giá' });
       return;
     }
 
     const result = await discountCodeService.applyDiscountCode(code, orderValue, userId);
     res.json(result);
-  } catch (error) {
+  } catch {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -173,13 +153,12 @@ export const applyDiscountCode = async (req: Request, res: Response) => {
   }
 };
 
-// Reset số lần sử dụng
 export const resetDiscountCodeUsage = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const result = await discountCodeService.resetUsage(Number(id));
     res.json(result);
-  } catch (error) {
+  } catch {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -188,33 +167,25 @@ export const resetDiscountCodeUsage = async (req: Request, res: Response) => {
   }
 };
 
-// Lấy danh sách mã giảm giá đã nhận của user
 export const getClaimedDiscountCodes = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
 
     if (!userId) {
-      res.status(401).json({
-        message: 'Vui lòng đăng nhập để xem mã giảm giá đã nhận'
-      });
+      res.status(401).json({ message: 'Vui lòng đăng nhập để xem mã giảm giá đã nhận' });
       return;
     }
 
-    console.log('Getting claimed codes for user:', userId);
     const claimedCodes = await discountCodeService.getClaimedCodes(userId);
-    console.log('Claimed codes:', claimedCodes);
-    
-    // Format lại dữ liệu trả về
+
     const formattedCodes = claimedCodes.map(claim => ({
       ...claim.discountCode,
       claimedAt: claim.claimedAt,
       isUsed: claim.isUsed
     }));
 
-    console.log('Formatted codes:', formattedCodes);
     res.json(formattedCodes);
-  } catch (error) {
-    console.error('Error getting claimed codes:', error);
+  } catch {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -223,31 +194,23 @@ export const getClaimedDiscountCodes = async (req: Request, res: Response) => {
   }
 };
 
-// Nhận mã giảm giá
 export const claimDiscountCode = async (req: Request, res: Response) => {
   try {
     const { code } = req.body;
     const userId = req.user?.id;
 
     if (!code) {
-      res.status(400).json({
-        message: 'Mã giảm giá là bắt buộc'
-      });
+      res.status(400).json({ message: 'Mã giảm giá là bắt buộc' });
       return;
     }
 
     if (!userId) {
-      res.status(401).json({
-        message: 'Vui lòng đăng nhập để nhận mã giảm giá'
-      });
+      res.status(401).json({ message: 'Vui lòng đăng nhập để nhận mã giảm giá' });
       return;
     }
 
-    console.log('Claiming discount code:', { code, userId });
     const result = await discountCodeService.claimDiscountCode(code, userId);
-    console.log('Claim result:', result);
 
-    // Format lại dữ liệu trả về theo đúng format frontend mong đợi
     const formattedResult = {
       isValid: true,
       discountCode: {
@@ -267,12 +230,11 @@ export const claimDiscountCode = async (req: Request, res: Response) => {
     };
 
     res.json(formattedResult);
-  } catch (error) {
-    console.error('Error claiming discount code:', error);
+  } catch {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
       res.status(500).json({ message: 'Không thể nhận mã giảm giá' });
     }
   }
-}; 
+};

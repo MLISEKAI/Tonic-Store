@@ -1,5 +1,4 @@
 import { prisma } from '../prisma';
-import { PrismaClient } from "@prisma/client";
 import crypto from "crypto";
 
 export const hashToken = (token: string) =>

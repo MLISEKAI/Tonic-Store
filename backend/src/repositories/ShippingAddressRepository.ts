@@ -1,4 +1,3 @@
-import { prisma } from '../prisma';
 import { PrismaClient, ShippingAddress } from '@prisma/client';
 import type { IShippingAddressRepository } from './interfaces/IShippingAddressRepository';
 
@@ -33,7 +32,7 @@ export class ShippingAddressRepository implements IShippingAddressRepository {
     }
     return this.prisma.shippingAddress.update({ where: { id }, data });
   }
-  async deleteShippingAddress(id: number, userId: number): Promise<ShippingAddress> {
+  async deleteShippingAddress(id: number, _userId: number): Promise<ShippingAddress> {
     return this.prisma.shippingAddress.delete({ where: { id } });
   }
   async setDefaultShippingAddress(id: number, userId: number): Promise<ShippingAddress> {

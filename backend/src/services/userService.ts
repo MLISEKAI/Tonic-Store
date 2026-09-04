@@ -40,7 +40,7 @@ async function sendPasswordChangeNotification(userEmail: string, userName: strin
         <p>Đội ngũ Tonic Store</p>
       `
     });
-  } catch (error) {
+  } catch {
     console.error(`Không thể gửi email thông báo đổi mật khẩu tới ${userEmail}:`, error);
   }
 }

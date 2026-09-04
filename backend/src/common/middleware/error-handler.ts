@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction, RequestHandler, ErrorRequestHandler } from 'express';
-import { SystemException, ValidationException, isSystemException, isValidationException } from '../exceptions/system-exception';
+import { SystemException, ValidationException } from '../exceptions/system-exception';
 import logger from '../../config/logger';
 
-export const errorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+export const errorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, _next: NextFunction) => {
   const traceId = (req as any).id || req.headers['x-trace-id'] || '';
 
   if (err instanceof ValidationException) {

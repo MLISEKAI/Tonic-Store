@@ -2,9 +2,8 @@
 import { prisma } from '../prisma';
 import type { Request, Response, NextFunction } from "express";
 import jwt, { SignOptions, Secret } from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
 import config from "../config";
-import { findRefreshToken, hashToken, revokeRefreshToken } from '../repositories/refreshTokenRepository';
+import { findRefreshToken, hashToken } from '../repositories/refreshTokenRepository';
 
 const SECRET_KEY: Secret = config.jwt.secret as Secret;
 const REFRESH_SECRET_KEY: Secret = config.jwt.refreshSecret as Secret;
@@ -40,14 +39,14 @@ const isTokenBlacklisted = async (token: string): Promise<boolean> => {
       where: { token: hashed }
     });
     return !!blacklistedToken;
-  } catch (error) {
+  } catch {
     console.error('Error checking blacklisted token:', error);
     // Trả về true để đảm bảo an toàn khi có lỗi kiểm tra blacklist
     return true;
   }
 };
 
-const verifyToken = async (req: Request, res: Response, next: NextFunction, allowQuery: boolean = false): Promise<void> => {
+const verifyToken = async (req: Request, res: Response, next: NextFunction, _allowQuery: boolean = false): Promise<void> => {
   const token = extractToken(req);
 
   if (!token) {
@@ -68,7 +67,7 @@ const verifyToken = async (req: Request, res: Response, next: NextFunction, allo
 
     req.user = decoded;
     next();
-  } catch (error) {
+  } catch {
     console.error("Token verification failed:", error);
     res.status(401).json({ error: "Token không hợp lệ hoặc đã hết hạn" });
   }
@@ -130,7 +129,7 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
     res.cookie("access_token", newAccessToken, config.jwt.cookieOptions);
     req.user = decoded;
     next();
-  } catch (error) {
+  } catch {
     res.clearCookie("access_token");
     res.clearCookie("refresh_token");
     res.status(401).json({ error: "Refresh token không hợp lệ hoặc đã hết hạn" });
