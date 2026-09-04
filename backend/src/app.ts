@@ -15,17 +15,22 @@ import helpCenterRoutes from './routes/helpCenterRoutes';
 
 const app = express();
 
-const allowedOrigins = new Set([
+const defaultOrigins = [
   'http://localhost:5173',
   'http://localhost:3001',
-  // 'https://domain',
-]);
+];
+
+const envOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_URL,
+].filter(Boolean) as string[];
+
+const allowedOrigins = new Set([...defaultOrigins, ...envOrigins]);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.has(origin)) {
-      return callback(null, true);
-    }
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.has(origin)) return callback(null, true);
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,

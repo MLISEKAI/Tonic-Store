@@ -63,7 +63,9 @@ export async function disconnectRedis() {
   if (connected) {
     try {
       await redis.quit();
-    } catch {}
+    } catch (err: any) {
+      logger.warn('Redis disconnect error', { err: err?.message });
+    }
     connected = false;
     redisAvailable = false;
   }

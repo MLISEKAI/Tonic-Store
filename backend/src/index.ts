@@ -34,27 +34,27 @@ const app = express();
 // Middleware
 app.use(helmet());
 
-const allowedOrigins = new Set([
+const defaultOrigins = [
   'http://localhost:5173',
   'http://localhost:3001',
-  // 'https://domain',
+];
 
-]);
+const envOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_URL,
+].filter(Boolean) as string[];
+
+const allowedOrigins = new Set([...defaultOrigins, ...envOrigins]);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Cho phép khi không có origin (Postman, curl)
     if (!origin) return callback(null, true);
 
-    // Nếu là local thì chỉ cho localhost
     if (process.env.NODE_ENV === 'development') {
       if (origin.includes('localhost')) return callback(null, true);
     }
 
-    // Nếu là production thì kiểm tra domain thực tế
-    if (process.env.NODE_ENV === 'production') {
-      if (allowedOrigins.has(origin)) return callback(null, true);
-    }
+    if (allowedOrigins.has(origin)) return callback(null, true);
 
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },

@@ -10,6 +10,7 @@ import {
   ShoppingOutlined,
   CrownOutlined
 } from '@ant-design/icons';
+import { API_URL } from '../../services/api';
 
 const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
@@ -48,7 +49,7 @@ const XuHelpPage: React.FC = () => {
       if (query.length >= 2) {
         setSuggestionsLoading(true);
         try {
-          const response = await fetch(`http://localhost:8085/api/help-center/xu/search?q=${encodeURIComponent(query)}&limit=5`);
+          const response = await fetch(`${API_URL}/api/help-center/xu/search?q=${encodeURIComponent(query)}&limit=5`);
           const data = await response.json();
           if (data.success) {
             setSuggestions(data.data || []);
@@ -89,7 +90,7 @@ const XuHelpPage: React.FC = () => {
     setLoading(true);
     setShowSuggestions(false);
     try {
-      const response = await fetch(`http://localhost:8085/api/help-center/xu/search?q=${encodeURIComponent(value)}&limit=10`);
+      const response = await fetch(`${API_URL}/api/help-center/xu/search?q=${encodeURIComponent(value)}&limit=10`);
       const data = await response.json();
       if (data.success) {
         setSearchResults(data.data || []);

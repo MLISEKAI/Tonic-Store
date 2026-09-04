@@ -16,13 +16,13 @@ const config = {
     cookieOptions: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? ('strict' as const) : ('lax' as const),
+      sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
       maxAge: 24 * 60 * 60 * 1000,
     },
     refreshCookieOptions: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? ('strict' as const) : ('lax' as const),
+      sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
       maxAge: 7 * 24 * 60 * 60 * 1000,
     },
     blacklistEnabled: process.env.JWT_BLACKLIST_ENABLED === 'true',
