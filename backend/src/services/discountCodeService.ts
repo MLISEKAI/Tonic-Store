@@ -96,7 +96,7 @@ export const processDiscountCodeUsage = async (
     });
 
     console.log(`[processDiscountCodeUsage] Successfully processed discount code usage for ${promotionCode}`);
-  } catch {
+  } catch (error) {
     // Log error nhưng không throw để không làm fail order creation
     console.error('[processDiscountCodeUsage] Error processing discount code usage:', error);
   }

@@ -39,7 +39,7 @@ const isTokenBlacklisted = async (token: string): Promise<boolean> => {
       where: { token: hashed }
     });
     return !!blacklistedToken;
-  } catch {
+  } catch (error) {
     console.error('Error checking blacklisted token:', error);
     // Trả về true để đảm bảo an toàn khi có lỗi kiểm tra blacklist
     return true;
@@ -67,7 +67,7 @@ const verifyToken = async (req: Request, res: Response, next: NextFunction, _all
 
     req.user = decoded;
     next();
-  } catch {
+  } catch (error) {
     console.error("Token verification failed:", error);
     res.status(401).json({ error: "Token không hợp lệ hoặc đã hết hạn" });
   }

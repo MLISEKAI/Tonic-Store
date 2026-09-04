@@ -13,7 +13,7 @@ export const ShipperController = {
 
       const shippers = await shipperService.getAllShippers();
       res.json(shippers);
-    } catch {
+    } catch (error) {
       console.error('Error getting shippers:', error);
       res.status(500).json({ error: 'Failed to get shippers' });
     }
@@ -31,7 +31,7 @@ export const ShipperController = {
       }
 
       res.json(shipper);
-    } catch {
+    } catch (error) {
       console.error('Error getting shipper:', error);
       res.status(500).json({ error: 'Failed to get shipper' });
     }
@@ -55,7 +55,7 @@ export const ShipperController = {
 
       const order = await shipperService.assignShipperToOrder(Number(orderId), Number(shipperId));
       res.json(order);
-    } catch {
+    } catch (error) {
       console.error('Error assigning shipper:', error);
       res.status(500).json({ error: 'Failed to assign shipper' });
     }
@@ -86,7 +86,7 @@ export const ShipperController = {
       );
 
       res.json(order);
-    } catch {
+    } catch (error) {
       console.error('Error updating delivery status:', error);
       res.status(500).json({ error: 'Failed to update delivery status' });
     }
@@ -120,7 +120,7 @@ export const ShipperController = {
       );
 
       res.json(orders);
-    } catch {
+    } catch (error) {
       console.error('Error getting shipper orders:', error);
       res.status(500).json({ error: 'Failed to get shipper orders' });
     }
@@ -132,7 +132,7 @@ export const ShipperController = {
       const { orderId } = req.params;
       const logs = await shipperService.getOrderDeliveryLogs(Number(orderId));
       res.json(logs);
-    } catch {
+    } catch (error) {
       console.error('Error getting delivery logs:', error);
       res.status(500).json({ error: 'Failed to get delivery logs' });
     }

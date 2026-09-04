@@ -1,3 +1,4 @@
+import { prisma } from '../prisma';
 import { PrismaClient, ShippingAddress } from '@prisma/client';
 import type { IShippingAddressRepository } from './interfaces/IShippingAddressRepository';
 

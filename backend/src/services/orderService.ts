@@ -86,7 +86,7 @@ export const createOrder = async (
     );
 
     return order;
-  } catch {
+  } catch (error) {
     console.error('Error in createOrder:', error);
     throw error;
   }
@@ -179,7 +179,7 @@ export const cancelOrder = async (orderId: number, userId: number) => {
     );
 
     return { success: true, order: canceledOrder };
-  } catch {
+  } catch (error) {
     console.error('Error canceling order:', error);
     return { success: false, status: 500, message: 'Không thể hủy đơn hàng' };
   }

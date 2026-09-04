@@ -21,7 +21,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     }
     const orders = await getAllOrders();
     res.json(orders);
-  } catch {
+  } catch (error) {
     console.error('Error getting orders:', error);
     res.status(500).json({ error: 'Failed to get orders' });
   }
@@ -38,7 +38,7 @@ router.patch('/:id/status', authenticate, async (req: Request, res: Response) =>
     const { status } = req.body;
     const order = await updateOrderStatus(Number(req.params.id), status);
     res.json(order);
-  } catch {
+  } catch (error) {
     console.error('Error updating order status:', error);
     res.status(500).json({ error: 'Failed to update order status' });
   }
@@ -55,7 +55,7 @@ router.patch('/:id/payment', authenticate, async (req: Request, res: Response) =
     const { status, transactionId } = req.body;
     const payment = await updatePaymentStatus(Number(req.params.id), status, transactionId);
     res.json(payment);
-  } catch {
+  } catch (error) {
     console.error('Error updating payment status:', error);
     res.status(500).json({ error: 'Failed to update payment status' });
   }
@@ -91,7 +91,7 @@ router.post('/:id/confirm-cod', authenticate, async (req: Request, res: Response
       }
     });
     res.json(payment);
-  } catch {
+  } catch (error) {
     console.error('Error confirming COD payment:', error);
     res.status(500).json({ error: 'Failed to confirm COD payment' });
   }
@@ -110,7 +110,7 @@ router.patch('/:id/cancel', authenticate, async (req: Request, res: Response) =>
     }
 
     res.json({ success: true, order: result.order });
-  } catch {
+  } catch (error) {
     console.error('Error canceling order:', error);
     res.status(500).json({ error: 'Failed to cancel order' });
   }
@@ -126,7 +126,7 @@ router.get('/user', authenticate, async (req: Request, res: Response) => {
       orderBy: { createdAt: 'desc' }
     });
     res.json(orders);
-  } catch {
+  } catch (error) {
     console.error('Error getting user orders:', error);
     res.status(500).json({ error: 'Failed to get user orders' });
   }
@@ -197,7 +197,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
     }
 
     res.json({ order });
-  } catch {
+  } catch (error) {
     console.error('Error creating order:', error);
     res.status(500).json({ error: 'Failed to create order' });
   }
@@ -278,7 +278,7 @@ router.get('/delivery', authenticate, async (req: Request, res: Response) => {
       limit: Number(limit),
       totalPages: Math.ceil(total / Number(limit))
     });
-  } catch {
+  } catch (error) {
     console.error('Error getting delivery orders:', error);
     res.status(500).json({ error: 'Failed to get order' });
   }
@@ -300,7 +300,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
     }
 
     res.json(order);
-  } catch {
+  } catch (error) {
     console.error('Error getting order:', error);
     res.status(500).json({ error: 'Failed to get order' });
   }
@@ -332,7 +332,7 @@ router.get('/vnpay/callback', async (req: Request, res: Response) => {
     // Redirect to frontend success/failure page
     const redirectUrl = `${process.env.FRONTEND_URL}/orders/${orderId}?payment_status=${paymentStatus}`;
     res.redirect(redirectUrl);
-  } catch {
+  } catch (error) {
     console.error('Error processing VNPay callback:', error);
     res.status(500).json({ error: 'Failed to process payment callback' });
   }
@@ -379,7 +379,7 @@ router.get('/:id/delivery/logs', authenticate, async (req: Request, res: Respons
       }
     });
     res.json(logs);
-  } catch {
+  } catch (error) {
     console.error('Error getting delivery logs:', error);
     res.status(500).json({ error: 'Failed to get delivery logs' });
   }

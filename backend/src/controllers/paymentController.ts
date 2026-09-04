@@ -1,6 +1,6 @@
 import { prisma } from '../prisma';
 import type { Request, Response } from 'express';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, PaymentMethod, PaymentStatus } from '@prisma/client';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
 import { processDiscountCodeUsage } from '../services/discountCodeService';
 
@@ -52,7 +52,7 @@ export const createPaymentController = async (req: Request, res: Response) => {
     }
 
     res.json({ payment });
-  } catch {
+  } catch (error) {
     console.error('Create payment error:', error);
     res.status(500).json({ error: 'Failed to create payment' });
   }
@@ -117,7 +117,7 @@ export const verifyPaymentController = async (req: Request, res: Response) => {
 
     res.redirect(`${process.env.FRONTEND_URL}/payment/failed?orderId=${orderId}`);
     return;
-  } catch {
+  } catch (error) {
     console.error('Verify payment error:', error);
     res.redirect(`${process.env.FRONTEND_URL}/payment/failed?orderId=${req.query.orderId}`);
     return;
@@ -138,7 +138,7 @@ export const getPaymentController = async (req: Request, res: Response) => {
     }
 
     res.json(payment);
-  } catch {
+  } catch (error) {
     console.error('Get payment error:', error);
     res.status(500).json({ error: 'Failed to get payment' });
   }
@@ -179,7 +179,7 @@ export const refundPaymentController = async (req: Request, res: Response) => {
     });
 
     res.json(updatedPayment);
-  } catch {
+  } catch (error) {
     console.error('Refund payment error:', error);
     res.status(500).json({ error: 'Failed to refund payment' });
   }

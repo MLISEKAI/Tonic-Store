@@ -228,7 +228,7 @@ export const searchFAQs = async (req: Request, res: Response) => {
       total: results.length,
       query: searchTerm
     });
-  } catch {
+  } catch (error) {
     console.error('Error searching FAQs:', error);
     res.status(500).json({
       success: false,
@@ -270,7 +270,7 @@ export const getFAQSuggestions = async (req: Request, res: Response) => {
       data: suggestions,
       query: searchTerm
     });
-  } catch {
+  } catch (error) {
     console.error('Error getting FAQ suggestions:', error);
     res.status(500).json({
       success: false,
@@ -345,7 +345,7 @@ export const searchWalletFAQs = async (req: Request, res: Response) => {
       total: results.length,
       query: searchTerm
     });
-  } catch {
+  } catch (error) {
     console.error('Error searching wallet FAQs:', error);
     res.status(500).json({
       success: false,
@@ -395,7 +395,7 @@ export const searchXuFAQs = async (req: Request, res: Response) => {
       total: results.length,
       query: searchTerm
     });
-  } catch {
+  } catch (error) {
     console.error('Error searching xu FAQs:', error);
     res.status(500).json({
       success: false,

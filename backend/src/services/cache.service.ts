@@ -182,10 +182,3 @@ export const CacheKeys = {
   PRODUCT_LIST: (page: number, limit: number) => `products:list:${page}:${limit}`,
   CATEGORY_TREE: () => 'categories:tree',
 };
-
-export const CacheKeys = {
-  USER_SESSION: (userId: number) => `user:session:${userId}`,
-  USER_PROFILE: (userId: number) => `user:profile:${userId}`,
-  PRODUCT_LIST: (page: number, limit: number) => `products:list:${page}:${limit}`,
-  CATEGORY_TREE: () => 'categories:tree',
-};

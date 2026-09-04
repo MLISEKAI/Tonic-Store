@@ -1,5 +1,6 @@
 import { prisma } from '../prisma';
 import type { Request, Response } from 'express';
+import { OrderStatus } from '@prisma/client';
 interface OrderItem {
   productId: number;
   _sum: {
@@ -73,7 +74,7 @@ export const getStats = async (req: Request, res: Response) => {
       ordersByStatus,
       topProducts: productsWithDetails
     });
-  } catch {
+  } catch (error) {
     console.error('Error fetching stats:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

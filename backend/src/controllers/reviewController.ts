@@ -8,7 +8,7 @@ export const getProductReviewsController = async (req: Request, res: Response) =
     const productId = parseInt(req.params.productId);
     const reviews = await getProductReviews(productId);
     res.json(reviews);
-  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to get product reviews' });
+  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to get product reviews' });
   }
 };
 
@@ -17,7 +17,7 @@ export const getUserReviewsController = async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId);
     const reviews = await getUserReviews(userId);
     res.json(reviews);
-  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to get user reviews' });
+  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to get user reviews' });
   }
 };
 
@@ -38,7 +38,7 @@ export const createReviewController = async (req: Request, res: Response) => {
     await updateProductRating(productId);
     
     res.status(201).json(review);
-  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to create review' });
+  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to create review' });
   }
 };
 
@@ -59,7 +59,7 @@ export const updateReviewController = async (req: Request, res: Response) => {
     await updateProductRating(review.productId);
     
     res.json(review);
-  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to update review' });
+  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to update review' });
   }
 };
 
@@ -72,7 +72,7 @@ export const deleteReviewController = async (req: Request, res: Response) => {
     await updateProductRating(review.productId);
     
     res.json({ message: 'Review deleted successfully' });
-  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to delete review' });
+  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to delete review' });
   }
 };
 
@@ -80,6 +80,6 @@ export const getAllReviewsController = async (req: Request, res: Response) => {
   try {
     const reviews = await getAllReviews();
     res.json(reviews);
-  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to get all reviews' });
+  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to get all reviews' });
   }
 };

@@ -8,7 +8,7 @@ export const WishlistController = {
       const userId = req.user!.id;
       const wishlist = await wishlistService.getUserWishlist(userId);
       res.json(wishlist);
-    } catch {
+    } catch (error) {
       console.error('Error getting wishlist:', error);
       res.status(500).json({ error: 'Failed to get wishlist' });
     }
@@ -27,7 +27,7 @@ export const WishlistController = {
 
       const wishlistItem = await wishlistService.addToWishlist(userId, Number(productId));
       res.json(wishlistItem);
-    } catch {
+    } catch (error) {
       console.error('Error adding to wishlist:', error);
       res.status(500).json({ error: 'Failed to add to wishlist' });
     }
@@ -41,7 +41,7 @@ export const WishlistController = {
 
       await wishlistService.removeFromWishlist(userId, Number(productId));
       res.json({ message: 'Product removed from wishlist' });
-    } catch {
+    } catch (error) {
       console.error('Error removing from wishlist:', error);
       res.status(500).json({ error: 'Failed to remove from wishlist' });
     }
@@ -55,7 +55,7 @@ export const WishlistController = {
 
       const isInWishlist = await wishlistService.isInWishlist(userId, Number(productId));
       res.json({ isInWishlist });
-    } catch {
+    } catch (error) {
       console.error('Error checking wishlist status:', error);
       res.status(500).json({ error: 'Failed to check wishlist status' });
     }

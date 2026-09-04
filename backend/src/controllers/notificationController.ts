@@ -22,7 +22,7 @@ export class NotificationController {
       });
 
       res.json(notifications);
-    } catch {
+    } catch (error) {
       console.error('Error fetching notifications:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
@@ -45,7 +45,7 @@ export class NotificationController {
       });
 
       res.json(notification);
-    } catch {
+    } catch (error) {
       console.error('Error marking notification as read:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
@@ -67,7 +67,7 @@ export class NotificationController {
       });
 
       res.json({ message: 'All notifications marked as read' });
-    } catch {
+    } catch (error) {
       console.error('Error marking all notifications as read:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
@@ -87,7 +87,7 @@ export class NotificationController {
       });
 
       res.json({ message: 'Notification deleted successfully' });
-    } catch {
+    } catch (error) {
       console.error('Error deleting notification:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
@@ -105,7 +105,7 @@ export class NotificationController {
       });
 
       res.json({ message: 'All notifications deleted successfully' });
-    } catch {
+    } catch (error) {
       console.error('Error deleting all notifications:', error);
       res.status(500).json({ message: 'Internal server error' });
     }

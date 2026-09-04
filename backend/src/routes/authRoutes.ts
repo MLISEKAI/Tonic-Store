@@ -22,7 +22,7 @@ router.post("/register", async (req, res) => {
     
     // Trả về thông tin user (không bao gồm tokens trong response body)
     res.json({ user: result.user });
-  } catch {
+  } catch (error) {
     console.error("Registration error details:", error);
     
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -57,7 +57,7 @@ router.post("/login", async (req, res) => {
     
     // Trả về thông tin user (không bao gồm tokens trong response body)
     res.json({ user: result.user });
-  } catch {
+  } catch (error) {
     console.error("Login error:", error);
     if (error instanceof Error) {
       if (error.message === "User not found") {
@@ -109,7 +109,7 @@ router.post('/logout', authenticate, async (req, res) => {
     res.clearCookie('refresh_token');
     
     res.json({ message: 'Đăng xuất thành công' });
-  } catch {
+  } catch (error) {
     console.error("Logout error:", error);
     res.status(500).json({ error: "Đăng xuất thất bại" });
   }
@@ -125,7 +125,7 @@ router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
     await sendResetPasswordEmail(email);
     res.json({ message: 'Đã gửi email khôi phục mật khẩu, vui lòng kiểm tra hộp thư.' });
-  } catch {
+  } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Có lỗi xảy ra!' });
   }
 });
@@ -135,7 +135,7 @@ router.post('/reset-password', async (req, res) => {
     const { token, password } = req.body;
     await resetPasswordByToken(token, password);
     res.json({ message: 'Đặt lại mật khẩu thành công!' });
-  } catch {
+  } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Có lỗi xảy ra!' });
   }
 });

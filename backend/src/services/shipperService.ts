@@ -66,7 +66,7 @@ export const getDeliveryRating = async (orderId: number) => {
 
     console.log('Found rating:', rating);
     return rating;
-  } catch {
+  } catch (error) {
     console.error('Error in getDeliveryRating:', error);
     throw error;
   }

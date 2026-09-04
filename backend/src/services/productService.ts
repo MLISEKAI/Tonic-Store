@@ -1,4 +1,3 @@
-import { prisma } from '../prisma';
 import { ProductStatus } from '@prisma/client';
 import { ProductRepository } from '../repositories';
 
@@ -113,7 +112,7 @@ export const updateProduct = async (id: number, data: {
 export const deleteProduct = async (id: number) => {
   try {
     return await productRepository.deleteProductWithRelations(id);
-  } catch {
+  } catch (error) {
     console.error('Error deleting product:', error);
     if (error instanceof Error) {
       throw error;

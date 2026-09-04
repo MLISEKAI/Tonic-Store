@@ -1,7 +1,9 @@
+import { prisma } from '../prisma';
 import type { Request, Response } from "express";
 import { OrderStatus } from "@prisma/client";
 import { createPaymentUrl } from "../services/vnpayService";
 import { processDiscountCodeUsage } from "../services/discountCodeService";
+import logger from '../config/logger';
 
 interface OrderItem {
   productId: number;
@@ -103,7 +105,7 @@ export const OrderController = {
         try {
           await processDiscountCodeUsage(promotionCode, userId, order.id);
           console.log(`[OrderController] ✓ Finished processing discount code usage for order ${order.id}`);
-        } catch {
+        } catch (error) {
           console.error(`[OrderController] ✗ Error processing discount code usage:`, error);
         }
       } else {
@@ -125,7 +127,7 @@ export const OrderController = {
 
       res.json({ success: true, order });
       return;
-    } catch {
+    } catch (error) {
       console.error("Error creating order:", error);
       res.status(500).json({ error: "Failed to create order" });
       return;
@@ -156,7 +158,7 @@ export const OrderController = {
       }
 
       res.json(order);
-    } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: "Failed to get order" });
+    } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: "Failed to get order" });
     }
   },
 
@@ -211,7 +213,7 @@ export const OrderController = {
 
       res.json({ success: true, order: canceledOrder });
       return;
-    } catch {
+    } catch (error) {
       console.error("Error canceling order:", error);
       return res
         .status(500)
@@ -239,7 +241,7 @@ export const OrderController = {
       });
 
       res.json(orders);
-    } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: "Failed to get user orders" });
+    } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: "Failed to get user orders" });
     }
   },
 
@@ -255,7 +257,7 @@ export const OrderController = {
       });
 
       res.json(order);
-    } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: "Failed to update order status" });
+    } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: "Failed to update order status" });
     }
   },
 
@@ -293,7 +295,7 @@ export const OrderController = {
       });
 
       res.json(payment);
-    } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to update payment status' });
+    } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to update payment status' });
     }
   },
 
@@ -332,7 +334,7 @@ export const OrderController = {
         limit: Number(limit),
         totalPages: Math.ceil(total / Number(limit)),
       });
-    } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: "Failed to get orders" });
+    } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: "Failed to get orders" });
     }
   },
 };

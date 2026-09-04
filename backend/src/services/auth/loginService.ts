@@ -61,7 +61,7 @@ export const loginUser = async (email: string, password: string, deviceInfo: str
       refreshToken,
       user: userWithoutPassword
     };
-  } catch {
+  } catch (error) {
     console.error("Login error:", error);
     throw error;
   }

@@ -21,7 +21,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 
     const products = await getAllProducts(category as string, filters);
     res.json(products);
-  } catch {
+  } catch (error) {
     logger.error('Failed to get products', { err: (error as Error).message });
     res.status(500).json({ error: 'Failed to get products' });
   }
@@ -36,7 +36,7 @@ router.get("/search", async (req: Request, res: Response): Promise<void> => {
     }
     const products = await searchProducts(query);
     res.json(products);
-  } catch {
+  } catch (error) {
     logger.error('Error searching products', { err: (error as Error).message });
     res.status(500).json({ error: "Lỗi khi tìm kiếm sản phẩm" });
   }
@@ -46,7 +46,7 @@ router.get("/flash-sale", async (req: Request, res: Response): Promise<void> => 
   try {
     const products = await getFlashSaleProducts();
     res.json(products);
-  } catch {
+  } catch (error) {
     logger.error('Error in flash sale route', { err: (error as Error).message });
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to get flash sale products',
@@ -61,7 +61,7 @@ router.get("/featured", async (req: Request, res: Response): Promise<void> => {
     const products = await getAllProducts(undefined, { isFeatured: true });
     const limitedProducts = products.slice(0, limit);
     res.json(limitedProducts);
-  } catch {
+  } catch (error) {
     logger.error('Error in featured products route', { err: (error as Error).message });
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to get featured products',
@@ -75,7 +75,7 @@ router.get("/newest", async (req: Request, res: Response): Promise<void> => {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
     const products = await getNewestProducts(limit);
     res.json(products);
-  } catch {
+  } catch (error) {
     logger.error('Error in newest products route', { err: (error as Error).message });
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to get newest products',
@@ -89,7 +89,7 @@ router.get("/best-selling", async (req: Request, res: Response): Promise<void> =
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
     const products = await getBestSellingProducts(limit);
     res.json(products);
-  } catch {
+  } catch (error) {
     logger.error('Error in best selling products route', { err: (error as Error).message });
     res.status(500).json({
       error: error instanceof Error ? error.message : 'Failed to get best selling products',
@@ -107,7 +107,7 @@ router.get("/seo/:seoUrl", async (req: Request, res: Response): Promise<void> =>
       return;
     }
     res.json(product);
-  } catch {
+  } catch (error) {
     logger.error('Failed to get product by seoUrl', { err: (error as Error).message });
     res.status(500).json({ error: 'Failed to get product' });
   }
@@ -122,7 +122,7 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
       return;
     }
     res.json(product);
-  } catch {
+  } catch (error) {
     logger.error('Failed to get product', { err: (error as Error).message });
     res.status(500).json({ error: 'Failed to get product' });
   }
@@ -136,7 +136,7 @@ router.post("/", authenticate, async (req: Request, res: Response): Promise<void
     }
     const product = await createProduct(req.body);
     res.json(product);
-  } catch {
+  } catch (error) {
     logger.error('Failed to create product', { err: (error as Error).message });
     res.status(500).json({ error: 'Failed to create product' });
   }
@@ -151,7 +151,7 @@ router.put("/:id", authenticate, async (req: Request, res: Response): Promise<vo
     const id = parseInt(req.params.id);
     const product = await updateProduct(id, req.body);
     res.json(product);
-  } catch {
+  } catch (error) {
     logger.error('Failed to update product', { err: (error as Error).message });
     res.status(500).json({ error: 'Failed to update product' });
   }
@@ -166,7 +166,7 @@ router.delete("/:id", authenticate, async (req: Request, res: Response): Promise
     const id = parseInt(req.params.id);
     await deleteProduct(id);
     res.json({ message: 'Product deleted successfully' });
-  } catch {
+  } catch (error) {
     logger.error('Failed to delete product', { err: (error as Error).message });
     res.status(500).json({ error: 'Failed to delete product' });
   }
@@ -182,7 +182,7 @@ router.patch("/:id/status", authenticate, async (req: Request, res: Response): P
     const { status } = req.body;
     const product = await updateProductStatus(id, status);
     res.json(product);
-  } catch {
+  } catch (error) {
     logger.error('Failed to update product status', { err: (error as Error).message });
     res.status(500).json({ error: 'Failed to update product status' });
   }
@@ -193,7 +193,7 @@ router.patch("/:id/rating", async (req: Request, res: Response): Promise<void> =
     const id = parseInt(req.params.id);
     const product = await updateProductRating(id);
     res.json(product);
-  } catch {
+  } catch (error) {
     logger.error('Failed to update product rating', { err: (error as Error).message });
     res.status(500).json({ error: 'Failed to update product rating' });
   }
@@ -204,7 +204,7 @@ router.patch("/:id/view", async (req: Request, res: Response): Promise<void> => 
     const id = parseInt(req.params.id);
     const product = await incrementViewCount(id);
     res.json(product);
-  } catch {
+  } catch (error) {
     logger.error('Failed to update product view count', { err: (error as Error).message });
     res.status(500).json({ error: 'Failed to update product view count' });
   }

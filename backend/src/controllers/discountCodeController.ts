@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { discountCodeService } from '../services/discountCodeService';
+import logger from '../config/logger';
 
 // Lấy tất cả mã giảm giá
 export const getAllDiscountCodes = async (_req: Request, res: Response) => {
@@ -20,7 +21,7 @@ export const getAllDiscountCodes = async (_req: Request, res: Response) => {
       isActive: code.isActive
     }));
     res.json(formattedCodes);
-  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: 'Failed to get discount codes' });
+  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: 'Failed to get discount codes' });
   }
 };
 
@@ -35,7 +36,7 @@ export const getDiscountCodeById = async (req: Request, res: Response) => {
     }
 
     res.json(discountCode);
-  } catch { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: 'Failed to get discount code' });
+  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: 'Failed to get discount code' });
   }
 };
 
@@ -43,7 +44,7 @@ export const createDiscountCode = async (req: Request, res: Response) => {
   try {
     const discountCode = await discountCodeService.create(req.body);
     res.status(201).json(discountCode);
-  } catch {
+  } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -57,7 +58,7 @@ export const updateDiscountCode = async (req: Request, res: Response) => {
     const { id } = req.params;
     const discountCode = await discountCodeService.update(Number(id), req.body);
     res.json(discountCode);
-  } catch {
+  } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -71,7 +72,7 @@ export const deleteDiscountCode = async (req: Request, res: Response) => {
     const { id } = req.params;
     await discountCodeService.delete(Number(id));
     res.status(204).send();
-  } catch {
+  } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -97,7 +98,7 @@ export const validateDiscountCode = async (req: Request, res: Response) => {
 
     const result = await discountCodeService.validateAndApply(code, userId);
     res.json(result);
-  } catch {
+  } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -118,7 +119,7 @@ export const saveDiscountCodeUsage = async (req: Request, res: Response) => {
 
     await discountCodeService.saveDiscountCodeUsage(userId, discountCodeId, orderId);
     res.status(200).json({ message: 'Đã lưu thông tin sử dụng mã giảm giá' });
-  } catch {
+  } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -144,7 +145,7 @@ export const applyDiscountCode = async (req: Request, res: Response) => {
 
     const result = await discountCodeService.applyDiscountCode(code, orderValue, userId);
     res.json(result);
-  } catch {
+  } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -158,7 +159,7 @@ export const resetDiscountCodeUsage = async (req: Request, res: Response) => {
     const { id } = req.params;
     const result = await discountCodeService.resetUsage(Number(id));
     res.json(result);
-  } catch {
+  } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -185,7 +186,7 @@ export const getClaimedDiscountCodes = async (req: Request, res: Response) => {
     }));
 
     res.json(formattedCodes);
-  } catch {
+  } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
@@ -230,7 +231,7 @@ export const claimDiscountCode = async (req: Request, res: Response) => {
     };
 
     res.json(formattedResult);
-  } catch {
+  } catch (error) {
     if (error instanceof Error) {
       res.status(400).json({ message: error.message });
     } else {
