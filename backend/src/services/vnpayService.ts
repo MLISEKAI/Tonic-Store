@@ -57,7 +57,7 @@ export const createPaymentUrl = (orderId: number, amount: number, bankCode?: str
 
 const sortObject = (obj: any) => {
   const sorted: any = {};
-  const str = [];
+  const str: string[] = [];
   let key;
   for (key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -66,7 +66,7 @@ const sortObject = (obj: any) => {
   }
   str.sort();
   for (key = 0; key < str.length; key++) {
-    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, '+');
+    sorted[str[key]] = encodeURIComponent(String(obj[str[key]])).replace(/%20/g, '+');
   }
   return sorted;
 };
