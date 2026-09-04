@@ -28,7 +28,7 @@ jobs:
             admin/yarn.lock
 
       - name: Install Backend
-        run: cd backend && yarn install --frozen-lockfile
+        run: cd backend && yarn install --frozen-lockfile && npx prisma generate
 
       - name: Install Frontend
         run: cd frontend && yarn install --frozen-lockfile
