@@ -9,17 +9,40 @@ export interface CacheOptions {
 }
 
 const DEFAULT_PREFIX = process.env.NODE_ENV || 'development';
-const redis = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD || undefined,
-  maxRetriesPerRequest: 3,
-  retryStrategy: (times) => Math.min(times * 50, 2000),
-  lazyConnect: true,
-});
 
-redis.on('error', (err) => logger.error('Redis connection error', { err: err.message }));
-redis.on('connect', () => logger.info('Redis connected'));
+const redisConfig: any = {
+  maxRetriesPerRequest: 3,
+  retryStrategy: (times: number) => Math.min(times * 50, 2000),
+  lazyConnect: true,
+};
+
+if (process.env.REDIS_URL) {
+  redisConfig.url = process.env.REDIS_URL;
+} else {
+  redisConfig.host = process.env.REDIS_HOST || 'localhost';
+  redisConfig.port = parseInt(process.env.REDIS_PORT || '6379');
+  if (process.env.REDIS_PASSWORD) {
+    redisConfig.password = process.env.REDIS_PASSWORD;
+  }
+}
+
+if (process.env.REDIS_TLS === 'true') {
+  redisConfig.tls = {};
+}
+
+const redis = new Redis(redisConfig);
+
+let lastErrMsg = '';
+redis.on('error', (err: any) => {
+  const msg = err?.message || String(err);
+  if (msg === lastErrMsg) return;
+  lastErrMsg = msg;
+  logger.warn('Redis connection error', { err: msg });
+});
+redis.on('connect', () => {
+  lastErrMsg = '';
+  logger.info('Redis connected');
+});
 
 let connected = false;
 let redisAvailable = false;
@@ -31,14 +54,16 @@ export async function connectRedis() {
     connected = true;
     redisAvailable = true;
   } catch (err: any) {
-    logger.warn('Redis not available, running without cache', { err: err.message });
+    logger.warn('Redis not available, running without cache', { err: err?.message || String(err) });
     redisAvailable = false;
   }
 }
 
 export async function disconnectRedis() {
   if (connected) {
-    await redis.quit();
+    try {
+      await redis.quit();
+    } catch {}
     connected = false;
     redisAvailable = false;
   }
@@ -64,8 +89,7 @@ export const CacheService = {
         await redis.set(fullKey, serialized);
       }
     } catch (err: any) {
-      logger.error('Cache set error', { err: err.message, key });
-      throw err;
+      logger.warn('Cache set error', { err: err?.message, key });
     }
   },
 
@@ -81,7 +105,7 @@ export const CacheService = {
         return data as T;
       }
     } catch (err: any) {
-      logger.error('Cache get error', { err: err.message, key });
+      logger.warn('Cache get error', { err: err?.message, key });
       return null;
     }
   },
@@ -92,7 +116,7 @@ export const CacheService = {
       const fullKey = buildKey(key, prefix);
       await redis.del(fullKey);
     } catch (err: any) {
-      logger.error('Cache delete error', { err: err.message, key });
+      logger.warn('Cache delete error', { err: err?.message });
     }
   },
 
@@ -114,8 +138,8 @@ export const CacheService = {
       if (ttl) await redis.expire(fullKey, ttl);
       return val;
     } catch (err: any) {
-      logger.error('Cache increment error', { err: err.message, key });
-      throw err;
+      logger.warn('Cache increment error', { err: err?.message, key });
+      return 0;
     }
   },
 
@@ -128,8 +152,7 @@ export const CacheService = {
       if (ttl) pipeline.expire(fullKey, ttl);
       await pipeline.exec();
     } catch (err: any) {
-      logger.error('Cache hset error', { err: err.message, key });
-      throw err;
+      logger.warn('Cache hset error', { err: err?.message });
     }
   },
 
@@ -141,7 +164,7 @@ export const CacheService = {
       if (!data || Object.keys(data).length === 0) return null;
       return data as T;
     } catch (err: any) {
-      logger.error('Cache hgetall error', { err: err.message, key });
+      logger.warn('Cache hgetall error', { err: err?.message });
       return null;
     }
   },
@@ -149,6 +172,13 @@ export const CacheService = {
   getClient(): Redis {
     return redis;
   },
+};
+
+export const CacheKeys = {
+  USER_SESSION: (userId: number) => `user:session:${userId}`,
+  USER_PROFILE: (userId: number) => `user:profile:${userId}`,
+  PRODUCT_LIST: (page: number, limit: number) => `products:list:${page}:${limit}`,
+  CATEGORY_TREE: () => 'categories:tree',
 };
 
 export const CacheKeys = {
