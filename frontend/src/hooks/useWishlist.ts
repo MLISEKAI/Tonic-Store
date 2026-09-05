@@ -1,23 +1,21 @@
 import { useState, useEffect } from 'react';
 import { WishlistService } from '../services/wishlist/wishlistService';
 import { useWishlist as useWishlistContext } from '../contexts/WishlistContext';
+import { useAuth } from '../contexts/AuthContext';
 
-/**
- * Custom hook to manage wishlist functionality for a product
- * @param productId - The ID of the product to check/manage in wishlist
- * @returns Object containing wishlist state and functions
- */
 export function useWishlist(productId: number) {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [loading, setLoading] = useState(false);
   const { reloadWishlist } = useWishlistContext();
+  const { isAuthenticated } = useAuth();
 
   const checkWishlistStatus = async () => {
+    if (!isAuthenticated) return;
     try {
       const { isInWishlist } = await WishlistService.checkWishlistStatus(productId);
       setIsInWishlist(isInWishlist);
     } catch (error) {
-      console.error('Error checking wishlist status:', error);
+      // silent fail
     }
   };
 
@@ -33,7 +31,6 @@ export function useWishlist(productId: number) {
       await reloadWishlist();
       return true;
     } catch (error) {
-      console.error('Error updating wishlist:', error);
       throw new Error('Failed to update wishlist');
     } finally {
       setLoading(false);
@@ -42,7 +39,7 @@ export function useWishlist(productId: number) {
 
   useEffect(() => {
     checkWishlistStatus();
-  }, [productId]);
+  }, [productId, isAuthenticated]);
 
   return {
     isInWishlist,

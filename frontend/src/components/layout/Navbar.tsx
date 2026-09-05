@@ -276,7 +276,7 @@ const Navbar = () => {
     <div className="bg-white sticky top-0 z-50 shadow-md">
       {/* Main header */}
       <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-2">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group shrink-0">
             <span className="text-2xl md:text-3xl font-bold tracking-wide bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent group-hover:from-pink-600 group-hover:to-blue-600 transition-all duration-500">
@@ -295,24 +295,26 @@ const Navbar = () => {
               onKeyPress={handleSearch}
               disabled={isSearching}
             />
-            {/* Suggestions row */}
-            <div className="flex flex-wrap items-center gap-3 mt-2">
-              {categories.slice(0, 6).map((cat) => (
-                <Link
-                  key={cat.id}
-                  to={`/categories?category=${encodeURIComponent(cat.name)}`}
-                  className="text-xs text-gray-500 cursor-pointer hover:text-blue-600 transition-colors"
-                >
-                  {cat.name}
-                </Link>
-              ))}
-            </div>
+            {/* Suggestions row - only when logged in */}
+            {isAuthenticated && (
+              <div className="flex flex-wrap items-center gap-3 mt-2">
+                {categories.slice(0, 6).map((cat) => (
+                  <Link
+                    key={cat.id}
+                    to={`/categories?category=${encodeURIComponent(cat.name)}`}
+                    className="text-xs text-gray-500 cursor-pointer hover:text-blue-600 transition-colors"
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Right buttons */}
-          <div className="flex items-center gap-2 md:gap-4 shrink-0">
+          <div className="flex items-center gap-4 md:gap-6 px-3 py-2 shrink-0">
             {/* Icons visible on desktop */}
-            <div className="hidden md:flex items-center gap-2 lg:gap-4">
+            <div className="hidden md:flex items-center gap-2 lg:gap-6">
 
               <Link to="/user/orders" className="flex items-center text-gray-600 hover:text-blue-500">
                 <CarOutlined className="text-xl" />
@@ -364,12 +366,13 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Menu Trigger */}
-            <Button 
-              className="md:hidden" 
-              type="text" 
-              icon={isMobileMenuOpen ? <CloseOutlined /> : <MenuOutlined />} 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            />
+            <div className="md:hidden">
+              <Button
+                type="text"
+                icon={isMobileMenuOpen ? <CloseOutlined /> : <MenuOutlined />}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              />
+            </div>
           </div>
         </div>
         

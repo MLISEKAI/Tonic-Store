@@ -11,7 +11,8 @@ import { swaggerSpec } from './config/swagger';
 import logger from './config/logger';
 
 import authRoutes from "./routes/authRoutes";
-import { connectRedis } from './services/cache.service';
+import { connectRedis, disconnectRedis } from './services/cache.service';
+import { setupQueues, closeQueues } from './services/queue.service';
 import userRoutes from "./routes/userRoutes";
 import productRoutes from "./routes/productRoutes";
 import orderRoutes from "./routes/orderRoutes";
@@ -29,6 +30,8 @@ import helpCenterRoutes from './routes/helpCenterRoutes';
 
 dotenv.config();
 const app = express();
+
+import rateLimit from 'express-rate-limit';
 
 // Middleware
 app.use(helmet());
@@ -66,11 +69,14 @@ app.use(cookieParser());
 app.use(morgan('combined', { stream: { write: (message: string) => logger.info(message.trim()) } }));
 
 // Rate limiting
-// const limiter = rateLimit({
-//   windowMs: 60 * 60 * 1000, // 1 hour
-//   max: 1000 // limit each IP to 1000 requests per windowMs
-// });
-// app.use(limiter);
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 1000,
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
 
 // API Documentation
 app.use('/api/docs', 
@@ -83,11 +89,9 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Middleware để xử lý request
+// Middleware untuk xử lý request
 app.use((req: Request, res: Response, next: NextFunction) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    console.log('Headers:', req.headers);
-    console.log('Body:', req.body);
+    logger.debug('Request', { method: req.method, url: req.url });
     next();
 });
 
@@ -152,9 +156,27 @@ const server = app.listen(PORT, HOST, () => {
     console.log('Database URL:', process.env.DATABASE_URL);
     console.log(`API documentation available at http://localhost:${PORT}/api/docs`);
 
-    // Redis cache (tùy chọn - server vẫn chạy nếu Redis không khả dụng)
-    void connectRedis();
+     // Redis cache (tùy chọn - server vẫn chạy nếu Redis không khả dụng)
+    void connectRedis().then(() => setupQueues());
 });
+
+// Graceful shutdown
+const gracefulShutdown = async (signal: string) => {
+    console.log(`\nReceived ${signal}. Shutting down gracefully...`);
+    await closeQueues();
+    await disconnectRedis();
+    server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
+    setTimeout(() => {
+        console.error('Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+    }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Xử lý lỗi server
 server.on('error', (error: Error) => {

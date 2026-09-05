@@ -1,8 +1,9 @@
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import { UserRepository } from '../repositories';
-
-type UserRole = 'ADMIN' | 'CUSTOMER';
+import { CacheService, CacheKeys } from './cache.service';
+import { QueueService } from './queue.service';
+import logger from '../config/logger';
 
 const userRepository = new UserRepository();
 
@@ -10,20 +11,36 @@ const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const EMAIL_ENABLED = Boolean(EMAIL_USER && EMAIL_PASS);
 
-const transporter = EMAIL_ENABLED
-  ? nodemailer.createTransport({
+let transporter: nodemailer.Transporter | null = null;
+if (EMAIL_ENABLED) {
+  try {
+    transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: EMAIL_USER as string,
         pass: EMAIL_PASS as string,
       },
-    })
-  : null;
+    });
+  } catch (err) {
+    logger.warn('Failed to create nodemailer transporter', { err: err instanceof Error ? err.message : String(err) });
+  }
+}
 
 async function sendPasswordChangeNotification(userEmail: string, userName: string, newPassword_PlainText: string) {
   try {
     if (!EMAIL_ENABLED || !transporter) {
-      console.warn('Email not configured. Skipping password change notification.');
+      logger.warn('Email not configured. Queuing notification for retry.');
+      void QueueService.addEmailJob({
+        to: userEmail,
+        subject: 'Thông báo thay đổi mật khẩu tài khoản Tonic Store',
+        html: `
+          <p>Xin chào ${userName},</p>
+          <p>Mật khẩu của bạn tại Tonic Store vừa được thay đổi.</p>
+          <p>Mật khẩu mới: <strong>${newPassword_PlainText}</strong></p>
+          <p>Vui lòng đăng nhập và thay đổi mật khẩu ngay lập tức.</p>
+          <p>Trân trọng,<br>Đội ngũ Tonic Store</p>
+        `,
+      });
       return;
     }
     await transporter.sendMail({
@@ -42,6 +59,16 @@ async function sendPasswordChangeNotification(userEmail: string, userName: strin
     });
   } catch (error) {
     console.error(`Không thể gửi email thông báo đổi mật khẩu tới ${userEmail}:`, error);
+    void QueueService.addEmailJob({
+      to: userEmail,
+      subject: 'Thông báo thay đổi mật khẩu tài khoản Tonic Store',
+      html: `
+        <p>Xin chào ${userName},</p>
+        <p>Mật khẩu của bạn tại Tonic Store vừa được thay đổi.</p>
+        <p>Mật khẩu mới: <strong>${newPassword_PlainText}</strong></p>
+        <p>Trân trọng,<br>Đội ngũ Tonic Store</p>
+      `,
+    });
   }
 }
 
@@ -56,56 +83,83 @@ const userSelectFields = {
 };
 
 export const getAllUsers = async () => {
-  return userRepository.findUsersWithSelect(userSelectFields);
+  const cached = await CacheService.get(CacheKeys.USER_LIST());
+  if (cached) return cached;
+
+  const users = await userRepository.findUsersWithSelect(userSelectFields);
+  await CacheService.set(CacheKeys.USER_LIST(), users, 300);
+  return users;
 };
 
 export const deleteUser = async (id: number, force: boolean = false, deletedBy?: number) => {
+  let result;
   if (force && deletedBy) {
-   // Force delete: xóa dữ liệu không quan trọng nhưng giữ lại lệnh cho bảng điều khiển
-    await userRepository.forceDelete(id, deletedBy);
+    result = await userRepository.forceDelete(id, deletedBy);
   } else {
-    // Normal delete: kiểm tra các hồ sơ liên quan trước khi xóa
     const { hasRelated, relatedTypes } = await userRepository.checkRelatedRecords(id);
-    
     if (hasRelated) {
       throw new Error(
         `Không thể xóa người dùng này vì đang có dữ liệu liên quan: ${relatedTypes.join(', ')}. ` +
         `Vui lòng xóa hoặc chuyển đổi các dữ liệu liên quan trước khi xóa người dùng.`
       );
     }
-    
-    await userRepository.delete(id);
+    result = await userRepository.delete(id);
   }
+
+  await CacheService.delete(CacheKeys.USER_LIST());
+  await CacheService.delete(CacheKeys.USER_PROFILE(id));
+  return result;
 };
 
 export const getUserProfile = async (userId: number) => {
-  return userRepository.findUserByIdWithSelect(userId, userSelectFields);
+  const cacheKey = CacheKeys.USER_PROFILE(userId);
+  const cached = await CacheService.get(cacheKey);
+  if (cached) return cached;
+
+  const user = await userRepository.findUserByIdWithSelect(userId, userSelectFields);
+  if (user) {
+    await CacheService.set(cacheKey, user, 600);
+  }
+  return user;
 };
 
-export const updateUserProfile = async (userId: number, data: {
-  name?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-}) => {
-  return userRepository.updateUserWithSelect(userId, data, userSelectFields);
+export const updateUserProfile = async (userId: number, data) => {
+  const user = await userRepository.updateUserWithSelect(userId, data, userSelectFields);
+  await CacheService.delete(CacheKeys.USER_PROFILE(userId));
+  await CacheService.delete(CacheKeys.USER_LIST());
+  return user;
 };
 
 export const changeUserPassword = async (userId: number, adminId: number, newPassword: string) => {
   const hashedPassword = await bcrypt.hash(newPassword, 10);
-  
+
   const [updatedUser] = await userRepository.updateUserPasswordWithLog(
-    userId, 
-    adminId, 
-    hashedPassword, 
+    userId,
+    adminId,
+    hashedPassword,
     userSelectFields
   );
 
-  // Gửi email thông báo sau khi mật khẩu đã được thay đổi thành công
   if (updatedUser) {
-    await sendPasswordChangeNotification(updatedUser.email, updatedUser.name, 'Your password has been changed successfully.');
+    const userEmail = updatedUser.email;
+    const userName = updatedUser.name;
+    if (EMAIL_ENABLED && transporter) {
+      await sendPasswordChangeNotification(userEmail, userName, 'Your password has been changed successfully.');
+    } else {
+      void QueueService.addEmailJob({
+        to: userEmail,
+        subject: 'Thông báo thay đổi mật khẩu tài khoản Tonic Store',
+        html: `
+          <p>Xin chào ${userName},</p>
+          <p>Mật khẩu của bạn vừa được thay đổi bởi quản trị viên.</p>
+          <p>Vui lòng đăng nhập và đổi mật khẩu ngay lập tức.</p>
+          <p>Trân trọng,<br>Đội ngũ Tonic Store</p>
+        `,
+      });
+    }
   }
 
+  await CacheService.delete(CacheKeys.USER_PROFILE(userId));
   return updatedUser;
 };
 
@@ -121,21 +175,21 @@ export const changeOwnPassword = async (userId: number, currentPassword: string,
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
-  return userRepository.updateUserWithSelect(userId, { password: hashedPassword }, userSelectFields);
+  const result = await userRepository.updateUserWithSelect(userId, { password: hashedPassword }, userSelectFields);
+  await CacheService.delete(CacheKeys.USER_PROFILE(userId));
+  return result;
 };
 
-export const updateUser = async (id: number, data: {
-  name?: string;
-  email?: string;
-  role?: UserRole;
-  phone?: string;
-  address?: string;
-}) => {
-  return userRepository.updateUserWithSelect(id, {
+export const updateUser = async (id: number, data) => {
+  const user = await userRepository.updateUserWithSelect(id, {
     name: data.name,
     email: data.email,
     role: data.role ? data.role : undefined,
     phone: data.phone,
     address: data.address,
   }, userSelectFields);
+
+  await CacheService.delete(CacheKeys.USER_PROFILE(id));
+  await CacheService.delete(CacheKeys.USER_LIST());
+  return user;
 };

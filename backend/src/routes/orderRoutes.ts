@@ -7,6 +7,8 @@ import { createPayment, updatePaymentStatus } from '../services/paymentService';
 import { createPaymentUrl, verifyPayment } from '../services/vnpayService';
 import { PaymentMethod, PaymentStatus } from '@prisma/client';
 import { ShipperController } from '../controllers/shipperController';
+import { CacheService, CacheKeys } from '../services/cache.service';
+import { QueueService } from '../services/queue.service';
 
 const router = express.Router();
 // Store active SSE connections
@@ -37,6 +39,17 @@ router.patch('/:id/status', authenticate, async (req: Request, res: Response) =>
 
     const { status } = req.body;
     const order = await updateOrderStatus(Number(req.params.id), status);
+
+    await CacheService.delete(CacheKeys.ORDER_DETAIL(Number(req.params.id)));
+    await CacheService.delete(CacheKeys.ORDER_LIST());
+    await CacheService.delete(CacheKeys.STATS());
+
+    void QueueService.addNotificationJob({
+      userId: order.userId,
+      message: `Đơn hàng #${order.id} đã được cập nhật trạng thái: ${status}.`,
+      orderId: Number(req.params.id),
+    });
+
     res.json(order);
   } catch (error) {
     console.error('Error updating order status:', error);
@@ -54,6 +67,10 @@ router.patch('/:id/payment', authenticate, async (req: Request, res: Response) =
 
     const { status, transactionId } = req.body;
     const payment = await updatePaymentStatus(Number(req.params.id), status, transactionId);
+
+    void CacheService.delete(CacheKeys.ORDER_DETAIL(Number(req.params.id)));
+    void CacheService.delete(CacheKeys.STATS());
+
     res.json(payment);
   } catch (error) {
     console.error('Error updating payment status:', error);
@@ -90,6 +107,16 @@ router.post('/:id/confirm-cod', authenticate, async (req: Request, res: Response
         paymentDate: new Date()
       }
     });
+
+    void CacheService.delete(CacheKeys.ORDER_DETAIL(orderId));
+    void CacheService.delete(CacheKeys.STATS());
+
+    void QueueService.addNotificationJob({
+      userId: order.userId,
+      message: `Đơn hàng #${orderId} đã được xác nhận thanh toán thành công.`,
+      orderId,
+    });
+
     res.json(payment);
   } catch (error) {
     console.error('Error confirming COD payment:', error);
@@ -110,6 +137,8 @@ router.patch('/:id/cancel', authenticate, async (req: Request, res: Response) =>
     }
 
     res.json({ success: true, order: result.order });
+    void CacheService.deletePattern('orders:*');
+    void CacheService.delete(CacheKeys.STATS());
   } catch (error) {
     console.error('Error canceling order:', error);
     res.status(500).json({ error: 'Failed to cancel order' });
@@ -120,11 +149,22 @@ router.patch('/:id/cancel', authenticate, async (req: Request, res: Response) =>
 router.get('/user', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
+    const cacheKey = CacheKeys.USER_ORDERS(userId);
+    const cached = await CacheService.get(cacheKey);
+    if (cached) {
+      res.set('X-Cache', 'HIT');
+      res.json(cached);
+      return;
+    }
+
     const orders = await prisma.order.findMany({
       where: { userId },
       include: { items: { include: { product: true } }, payment: true },
       orderBy: { createdAt: 'desc' }
     });
+
+    await CacheService.set(cacheKey, orders, 120);
+    res.set('X-Cache', 'MISS');
     res.json(orders);
   } catch (error) {
     console.error('Error getting user orders:', error);
@@ -181,6 +221,11 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
       discount
     );
 
+    await CacheService.delete(CacheKeys.ORDER_LIST());
+    await CacheService.delete(CacheKeys.ORDER_DETAIL(order.id));
+    await CacheService.delete(CacheKeys.USER_ORDERS(userId));
+    await CacheService.delete(CacheKeys.STATS());
+
     // Create payment record
     await createPayment(
       order.id,
@@ -188,7 +233,6 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
       totalPrice
     );
 
-    // If payment method is VNPay, create payment URL
     if (paymentMethod === 'VN_PAY') {
       const ipAddr = req.ip || '127.0.0.1';
       const paymentUrl = createPaymentUrl(order.id, totalPrice, ipAddr);

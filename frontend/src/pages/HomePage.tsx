@@ -76,21 +76,21 @@ const HomePage = () => {
     {
       id: 1,
       image:
-        "https://img.freepik.com/premium-photo/.jpg",
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?fm=jpg&q=60&w=3000&auto=format&fit=crop",
       title: "Xu Hướng Thời Trang 2025",
       description: "GIẢM NGAY 25%",
     },
     {
       id: 2,
       image:
-        "https://img.freepik.com/premium-photo/.jpg",
+        "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?fm=jpg&q=60&w=3000&auto=format&fit=crop",
       title: "Bộ Sưu Tập Mùa Hè",
       description: "SALE OFF 30%",
     },
     {
       id: 3,
       image:
-        "https://img.freepik.com/premium-photo/6.jpg",
+        "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?fm=jpg&q=60&w=3000&auto=format&fit=crop",
       title: "Flash Sale Cuối Tuần",
       description: "ƯU ĐÃI SỐC NHẤT THÁNG",
     },
@@ -151,7 +151,7 @@ const HomePage = () => {
                 <Link to="/">
                   <div className="h-[20vh] sm:h-[20vh] lg:h-[30vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
                     <img
-                      src="https://img.freepik.com/premium-photo/colorful-fashion-clothes-hanging-hangers_93675-132374.jpg"
+                      src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?fm=jpg&q=60&w=3000&auto=format&fit=crop"
                       alt="Siêu sale quần áo"
                       className="w-full h-full object-cover"
                     />
@@ -179,7 +179,7 @@ const HomePage = () => {
               <Link to="/">
                 <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
                   <img
-                    src="https://img.freepik.com/free-photo/men-clothes-hanging-rack_23-2148748262.jpg"
+                    src="https://images.unsplash.com/photo-1507680434567-5739c80be1ac?fm=jpg&q=60&w=3000&auto=format&fit=crop"
                     alt="Banner 1"
                     className="w-full h-full object-cover"
                   />
@@ -197,7 +197,7 @@ const HomePage = () => {
               <Link to="/">
                 <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
                   <img
-                    src="https://img.freepik.com/free-photo/fashionable-female-clothes-white-background_93675-133021.jpg"
+                    src="https://images.unsplash.com/photo-1551232864-3f0890e580d9?fm=jpg&q=60&w=3000&auto=format&fit=crop"
                     alt="Banner 2"
                     className="w-full h-full object-cover"
                   />
@@ -215,7 +215,7 @@ const HomePage = () => {
               <Link to="/">
                 <div className="h-[10vh] sm:h-[15vh] bg-white rounded-lg overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg">
                   <img
-                    src="https://img.freepik.com/premium-photo/fashionable-colorful-clothes-hanging-hangers_93675-132379.jpg"
+                    src="https://images.unsplash.com/photo-1558171813-4c088753af8f?fm=jpg&q=60&w=3000&auto=format&fit=crop"
                     alt="Banner 3"
                     className="w-full h-full object-cover"
                   />

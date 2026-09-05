@@ -1,10 +1,12 @@
 import { ProductStatus } from '@prisma/client';
 import { ProductRepository } from '../repositories';
+import { CacheService, CacheKeys } from './cache.service';
+import logger from '../config/logger';
+import { QueueService } from './queue.service';
 
 const productRepository = new ProductRepository();
-// Cooldown mechanism to prevent spamming flash sale notifications
 let lastFlashSaleNotificationSent = 0;
-const NOTIFICATION_COOLDOWN = 60 * 60 * 1000; // 1 hour in milliseconds
+const NOTIFICATION_COOLDOWN = 60 * 60 * 1000;
 
 const productIncludeRelations = {
   category: true,
@@ -28,6 +30,15 @@ export const getAllProducts = async (categoryName?: string, filters?: {
   minPrice?: number;
   maxPrice?: number;
 }) => {
+  const filterKey = filters ? JSON.stringify(filters) : 'default';
+  const cacheKey = CacheKeys.PRODUCT_LIST(categoryName, filterKey);
+
+  const cached = await CacheService.get(cacheKey);
+  if (cached) {
+    logger.debug('Product list cache HIT', { categoryName, filterKey });
+    return cached;
+  }
+
   const where: any = {};
 
   if (categoryName) {
@@ -46,72 +57,53 @@ export const getAllProducts = async (categoryName?: string, filters?: {
     if (filters.maxPrice !== undefined) where.price = { ...where.price, lte: filters.maxPrice };
   }
 
-  return productRepository.findProductsWithRelations(where, productIncludeRelations);
+  const products = await productRepository.findProductsWithRelations(where, productIncludeRelations);
+  await CacheService.set(cacheKey, products, 300);
+  return products;
 };
 
 export const getProductById = async (id: number) => {
-  return productRepository.findProductByIdWithRelations(id, productIncludeRelations);
+  const cacheKey = CacheKeys.PRODUCT_DETAIL(id);
+
+  const cached = await CacheService.get(cacheKey);
+  if (cached) {
+    logger.debug('Product detail cache HIT', { id });
+    return cached;
+  }
+
+  const product = await productRepository.findProductByIdWithRelations(id, productIncludeRelations);
+  if (product) {
+    await CacheService.set(cacheKey, product, 600);
+  }
+  return product;
 };
 
-export const createProduct = async (data: {
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  categoryId: number;
-  imageUrl?: string;
-  sku?: string;
-  barcode?: string;
-  weight?: number;
-  dimensions?: string;
-  material?: string;
-  origin?: string;
-  warranty?: string;
-  status?: ProductStatus;
-  seoTitle?: string;
-  seoDescription?: string;
-  seoUrl?: string;
-  isFeatured?: boolean;
-  isNew?: boolean;
-  isBestSeller?: boolean;
-}) => {
-  return productRepository.createProductWithRelations(data, { category: true });
+export const createProduct = async (data) => {
+  const product = await productRepository.createProductWithRelations(data, { category: true });
+  await CacheService.deletePattern('products:*');
+  await QueueService.addProductIndexJob({ productId: product.id, action: 'index' });
+  return product;
 };
 
-export const updateProduct = async (id: number, data: {
-  name?: string;
-  description?: string;
-  price?: number;
-  promotionalPrice?: number;
-  stock?: number;
-  categoryId?: number;
-  imageUrl?: string;
-  sku?: string;
-  barcode?: string;
-  weight?: number;
-  dimensions?: string;
-  material?: string;
-  origin?: string;
-  warranty?: string;
-  status?: ProductStatus;
-  seoTitle?: string;
-  seoDescription?: string;
-  seoUrl?: string;
-  isFeatured?: boolean;
-  isNew?: boolean;
-  isBestSeller?: boolean;
-}) => {
-  // If stock is being updated, check if we need to update status
+export const updateProduct = async (id: number, data) => {
   if (data.stock !== undefined) {
     data.status = data.stock <= 0 ? 'OUT_OF_STOCK' : 'ACTIVE';
   }
 
-  return productRepository.updateProductWithRelations(id, data, { category: true });
+  const product = await productRepository.updateProductWithRelations(id, data, { category: true });
+  await CacheService.delete(CacheKeys.PRODUCT_DETAIL(id));
+  await CacheService.deletePattern('products:*');
+  await QueueService.addProductIndexJob({ productId: id, action: 'update' });
+  return product;
 };
 
 export const deleteProduct = async (id: number) => {
   try {
-    return await productRepository.deleteProductWithRelations(id);
+    const result = await productRepository.deleteProductWithRelations(id);
+    await CacheService.delete(CacheKeys.PRODUCT_DETAIL(id));
+    await CacheService.deletePattern('products:*');
+    await QueueService.addProductIndexJob({ productId: id, action: 'delete' });
+    return result;
   } catch (error) {
     console.error('Error deleting product:', error);
     if (error instanceof Error) {
@@ -122,22 +114,51 @@ export const deleteProduct = async (id: number) => {
 };
 
 export const updateProductStatus = async (id: number, status: ProductStatus) => {
-  return productRepository.updateProductWithRelations(id, { status }, { category: true });
+  const product = await productRepository.updateProductWithRelations(id, { status }, { category: true });
+  await CacheService.delete(CacheKeys.PRODUCT_DETAIL(id));
+  await CacheService.deletePattern('products:*');
+  return product;
 };
 
 export const searchProducts = async (query: string) => {
-  return productRepository.search(query);
+  const cacheKey = CacheKeys.PRODUCT_SEARCH(query);
+  const cached = await CacheService.get(cacheKey);
+  if (cached) {
+    logger.debug('Product search cache HIT', { query });
+    return cached;
+  }
+
+  const products = await productRepository.search(query);
+  await CacheService.set(cacheKey, products, 120);
+  return products;
 };
 
 export const getProductBySeoUrl = async (seoUrl: string) => {
-  return productRepository.findProductByIdWithRelations(
+  const cacheKey = CacheKeys.PRODUCT_BY_SEO(seoUrl);
+  const cached = await CacheService.get(cacheKey);
+  if (cached) {
+    logger.debug('Product by SEO cache HIT', { seoUrl });
+    return cached;
+  }
+
+  const product = await productRepository.findProductByIdWithRelations(
     (await productRepository.findBySeoUrl(seoUrl))?.id || 0,
     productIncludeRelations
   );
+  if (product) {
+    await CacheService.set(cacheKey, product, 600);
+  }
+  return product;
 };
 
 export const incrementViewCount = async (productId: number) => {
+  await CacheService.delete(CacheKeys.PRODUCT_DETAIL(productId));
   return productRepository.incrementViewCount(productId);
+};
+
+export const updateProductRating = async (productId: number) => {
+  await CacheService.delete(CacheKeys.PRODUCT_DETAIL(productId));
+  return productRepository.updateProductRating(productId);
 };
 
 export const checkAndUpdateStock = async (productId: number, quantity: number) => {
@@ -145,34 +166,59 @@ export const checkAndUpdateStock = async (productId: number, quantity: number) =
   if (!product || product.stock < quantity) {
     throw new Error('Insufficient stock');
   }
-  return productRepository.updateStock(productId, quantity);
+  const result = await productRepository.updateStock(productId, quantity);
+  await CacheService.delete(CacheKeys.PRODUCT_DETAIL(productId));
+  return result;
 };
 
 export const updateSoldCount = async (productId: number, quantity: number) => {
-  return productRepository.updateSoldCount(productId, quantity);
-};
-
-export const updateProductRating = async (productId: number) => {
-  return productRepository.updateProductRating(productId);
+  const result = await productRepository.updateSoldCount(productId, quantity);
+  await CacheService.delete(CacheKeys.PRODUCT_DETAIL(productId));
+  await CacheService.deletePattern('products:*');
+  return result;
 };
 
 export const getFlashSaleProducts = async () => {
+  const cacheKey = CacheKeys.PRODUCT_FLASH_SALE();
+  const cached = await CacheService.get(cacheKey);
+  if (cached) {
+    logger.debug('Flash sale products cache HIT');
+    return cached;
+  }
+
   const products = await productRepository.getFlashSaleProducts();
-  
-  // Check if we should send notification (cooldown mechanism)
+  await CacheService.set(cacheKey, products, 60);
+
   const now = Date.now();
   if (products.length > 0 && now - lastFlashSaleNotificationSent > NOTIFICATION_COOLDOWN) {
-    // Here you could add notification logic
     lastFlashSaleNotificationSent = now;
   }
-  
+
   return products;
 };
 
 export const getNewestProducts = async (limit: number = 8) => {
-  return productRepository.getNewestProducts(limit);
+  const cacheKey = CacheKeys.PRODUCT_NEWEST(limit);
+  const cached = await CacheService.get(cacheKey);
+  if (cached) {
+    logger.debug('Newest products cache HIT', { limit });
+    return cached;
+  }
+
+  const products = await productRepository.getNewestProducts(limit);
+  await CacheService.set(cacheKey, products, 300);
+  return products;
 };
 
 export const getBestSellingProducts = async (limit: number = 8) => {
-  return productRepository.getBestSellingProducts(limit);
-}; 
+  const cacheKey = CacheKeys.PRODUCT_BEST_SELLING(limit);
+  const cached = await CacheService.get(cacheKey);
+  if (cached) {
+    logger.debug('Best selling products cache HIT', { limit });
+    return cached;
+  }
+
+  const products = await productRepository.getBestSellingProducts(limit);
+  await CacheService.set(cacheKey, products, 300);
+  return products;
+};

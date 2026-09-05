@@ -1,35 +1,46 @@
 import { ShipperRepository } from '../repositories';
+import { CacheService, CacheKeys } from './cache.service';
 
 const shipperRepository = new ShipperRepository();
 
 export const getAllShippers = async () => {
-  return shipperRepository.getAllShippers();
+  const cached = await CacheService.get(CacheKeys.SHIPPER_LIST());
+  if (cached) return cached;
+
+  const shippers = await shipperRepository.getAllShippers();
+  await CacheService.set(CacheKeys.SHIPPER_LIST(), shippers, 300);
+  return shippers;
 };
 
 export const assignShipperToOrder = async (orderId: number, shipperId: number) => {
-  return shipperRepository.assignShipperToOrder(orderId, shipperId);
+  const result = await shipperRepository.assignShipperToOrder(orderId, shipperId);
+  await CacheService.deletePattern('orders:*');
+  await CacheService.delete(CacheKeys.SHIPPER_ORDERS(shipperId));
+  return result;
 };
 
-// Cập nhật trạng thái giao hàng
 export const updateDeliveryStatus = async (orderId: number, shipperId: number, status: any, note?: string) => {
-  // Tạo delivery log
   await shipperRepository.createDeliveryLog(orderId, shipperId, status, note);
-
-  // Cập nhật trạng thái đơn hàng
-  return shipperRepository.updateOrderStatus(orderId, status);
+  const result = await shipperRepository.updateOrderStatus(orderId, status);
+  await CacheService.deletePattern('orders:*');
+  await CacheService.delete(CacheKeys.SHIPPER_ORDERS(shipperId));
+  return result;
 };
 
-// Lấy danh sách đơn hàng của shipper
 export const getShipperOrders = async (shipperId: number, status?: any) => {
-  return shipperRepository.getShipperOrders(shipperId, status);
+  const cacheKey = CacheKeys.SHIPPER_ORDERS(shipperId, status);
+  const cached = await CacheService.get(cacheKey);
+  if (cached) return cached;
+
+  const orders = await shipperRepository.getShipperOrders(shipperId, status);
+  await CacheService.set(cacheKey, orders, 120);
+  return orders;
 };
 
-// Lấy lịch sử giao hàng của đơn hàng
 export const getOrderDeliveryLogs = async (orderId: number) => {
   return shipperRepository.getOrderDeliveryLogs(orderId);
 };
 
-// Lấy đánh giá shipper của một đơn hàng
 export const getDeliveryRating = async (orderId: number) => {
   try {
     console.log('Getting delivery rating for order:', orderId);
@@ -106,4 +117,4 @@ export const createDeliveryRating = async (orderId: number, userId: number, rati
 
 export const getShipperById = async (id: number) => {
   return shipperRepository.getShipperById(id);
-}; 
+};

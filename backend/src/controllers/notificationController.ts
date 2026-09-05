@@ -1,5 +1,6 @@
 import { prisma } from '../prisma';
 import type { Request, Response } from 'express';
+import { CacheService } from '../services/cache.service';
 
 export class NotificationController {
   // Get all notifications for a user
@@ -10,17 +11,21 @@ export class NotificationController {
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
+      const cacheKey = `notifications:user:${userId}:page:${page}:limit:${limit}`;
+      const cached = await CacheService.get(cacheKey);
+      if (cached) {
+        res.json(cached);
+        return;
+      }
+
       const notifications = await prisma.notification.findMany({
-        where: {
-          userId: userId
-        },
-        orderBy: {
-          createdAt: 'desc'
-        },
+        where: { userId: userId },
+        orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
       });
 
+      await CacheService.set(cacheKey, notifications, 60);
       res.json(notifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -35,15 +40,11 @@ export class NotificationController {
       const userId = req.user?.id;
 
       const notification = await prisma.notification.update({
-        where: {
-          id: id,
-          userId: userId
-        },
-        data: {
-          isRead: true
-        }
+        where: { id: id, userId: userId },
+        data: { isRead: true }
       });
 
+      void CacheService.deletePattern(`notifications:user:${userId}:page:*`);
       res.json(notification);
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -57,15 +58,11 @@ export class NotificationController {
       const userId = req.user?.id;
 
       await prisma.notification.updateMany({
-        where: {
-          userId: userId,
-          isRead: false
-        },
-        data: {
-          isRead: true
-        }
+        where: { userId: userId, isRead: false },
+        data: { isRead: true }
       });
 
+      void CacheService.deletePattern(`notifications:user:${userId}:page:*`);
       res.json({ message: 'All notifications marked as read' });
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
@@ -80,12 +77,10 @@ export class NotificationController {
       const userId = req.user?.id;
 
       await prisma.notification.delete({
-        where: {
-          id: id,
-          userId: userId
-        }
+        where: { id: id, userId: userId }
       });
 
+      void CacheService.deletePattern(`notifications:user:${userId}:page:*`);
       res.json({ message: 'Notification deleted successfully' });
     } catch (error) {
       console.error('Error deleting notification:', error);
@@ -99,11 +94,10 @@ export class NotificationController {
       const userId = req.user?.id;
 
       await prisma.notification.deleteMany({
-        where: {
-          userId: userId
-        }
+        where: { userId: userId }
       });
 
+      void CacheService.deletePattern(`notifications:user:${userId}:page:*`);
       res.json({ message: 'All notifications deleted successfully' });
     } catch (error) {
       console.error('Error deleting all notifications:', error);

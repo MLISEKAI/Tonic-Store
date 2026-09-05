@@ -1,7 +1,7 @@
 import { prisma } from '../../prisma';
 import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
+import { QueueService } from '../queue.service';
 
 const SECRET_KEY = process.env.JWT_SECRET;
 const FRONTEND_URL = process.env.FRONTEND_URL;
@@ -28,16 +28,7 @@ export async function sendResetPasswordEmail(email: string) {
   const token = jwt.sign({ userId: user.id }, SECRET_KEY as string, { expiresIn: '15m' });
   const resetLink = `${FRONTEND_URL}/reset-password?token=${token}`;
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
-        },
-    });
-
-  await transporter.sendMail({
-    from: EMAIL_USER,
+  void QueueService.addEmailJob({
     to: email,
     subject: 'Khôi phục mật khẩu Tonic Store',
     html: `
@@ -45,10 +36,7 @@ export async function sendResetPasswordEmail(email: string) {
       <a href="${resetLink}">${resetLink}</a>
       <p>Link này sẽ hết hạn sau 15 phút.</p>
       <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
-    `
-  }).catch(err => {
-    console.error('Gửi email thất bại:', err);
-    throw new Error('Không thể gửi email khôi phục');
+    `,
   });
 }
 

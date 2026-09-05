@@ -45,20 +45,16 @@ const FlashSale: React.FC<FlashSaleProps> = ({ breadcrumb}) => {
     }
   };
 
-  if (error) {
-    return (
-      <div className="text-center text-red-500 py-4">
-        {error}
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Spin size="large" />
       </div>
     );
+  }
+
+  if (error || products.length === 0) {
+    return null;
   }
 
   return (

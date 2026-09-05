@@ -122,6 +122,32 @@ export const CacheService = {
     }
   },
 
+  async deletePattern(pattern: string, prefix?: string): Promise<number> {
+    if (!redisAvailable) return 0;
+    try {
+      const fullPattern = prefix ? `${prefix}:${pattern}` : `${DEFAULT_PREFIX}:${pattern}`;
+      const keys = await redis.keys(fullPattern);
+      if (keys.length === 0) return 0;
+      await redis.del(...keys);
+      logger.info('Cache pattern deleted', { pattern: fullPattern, count: keys.length });
+      return keys.length;
+    } catch (err: any) {
+      logger.warn('Cache deletePattern error', { err: err?.message, pattern });
+      return 0;
+    }
+  },
+
+  async clearAll(): Promise<void> {
+    if (!redisAvailable) return;
+    try {
+      const keys = await redis.keys(`${DEFAULT_PREFIX}:*`);
+      if (keys.length > 0) await redis.del(...keys);
+      logger.info('Cache cleared', { count: keys.length });
+    } catch (err: any) {
+      logger.warn('Cache clearAll error', { err: err?.message });
+    }
+  },
+
   async exists(key: string, prefix?: string): Promise<boolean> {
     if (!redisAvailable) return false;
     try {
@@ -179,6 +205,44 @@ export const CacheService = {
 export const CacheKeys = {
   USER_SESSION: (userId: number) => `user:session:${userId}`,
   USER_PROFILE: (userId: number) => `user:profile:${userId}`,
-  PRODUCT_LIST: (page: number, limit: number) => `products:list:${page}:${limit}`,
-  CATEGORY_TREE: () => 'categories:tree',
+  USER_LIST: () => 'users:list',
+
+  PRODUCT_LIST: (category?: string, filters?: string) => `products:list:${category || 'all'}:${filters || 'default'}`,
+  PRODUCT_DETAIL: (id: number) => `products:detail:${id}`,
+  PRODUCT_BY_SEO: (seoUrl: string) => `products:seo:${seoUrl}`,
+  PRODUCT_SEARCH: (query: string) => `products:search:${query}`,
+  PRODUCT_FLASH_SALE: () => 'products:flash-sale',
+  PRODUCT_NEWEST: (limit: number) => `products:newest:${limit}`,
+  PRODUCT_BEST_SELLING: (limit: number) => `products:best-selling:${limit}`,
+
+  CATEGORY_LIST: () => 'categories:list',
+  CATEGORY_DETAIL: (id: number) => `categories:detail:${id}`,
+
+  ORDER_LIST: () => 'orders:list',
+  ORDER_DETAIL: (id: number) => `orders:detail:${id}`,
+  USER_ORDERS: (userId: number) => `orders:user:${userId}`,
+
+  CART: (userId: number) => `cart:${userId}`,
+
+  STATS: () => 'stats:dashboard',
+  STATS_SALES_BY_DATE: (start: string, end: string) => `stats:sales:${start}:${end}`,
+  STATS_TOP_CUSTOMERS: (limit: number) => `stats:top-customers:${limit}`,
+
+  REVIEW_PRODUCT: (productId: number) => `reviews:product:${productId}`,
+  REVIEW_ALL: () => 'reviews:all',
+  REVIEW_USER: (userId: number) => `reviews:user:${userId}`,
+
+  DISCOUNT_CODE_ALL: () => 'discount-codes:all',
+  DISCOUNT_CODE_DETAIL: (id: number) => `discount-codes:detail:${id}`,
+  DISCOUNT_CODE_BY_CODE: (code: string) => `discount-codes:code:${code}`,
+  DISCOUNT_CODE_CLAIMED: (userId: number) => `discount-codes:claimed:${userId}`,
+
+  WISHLIST: (userId: number) => `wishlist:${userId}`,
+
+  SHIPPER_LIST: () => 'shippers:list',
+  SHIPPER_ORDERS: (shipperId: number, status?: string) => `shippers:orders:${shipperId}:${status || 'all'}`,
+
+  SHIPPING_ADDRESSES: (userId: number) => `shipping:addresses:${userId}`,
+
+  HELP_FAQ: () => 'help:faqs',
 };

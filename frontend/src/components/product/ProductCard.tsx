@@ -1,9 +1,10 @@
 import React from 'react';
-import { Rate, Tag } from 'antd';
+import { Button, Rate, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { Product } from '../../types';
+import { Product, ProductStatus } from '../../types';
 import { formatPrice } from '../../utils/format';
 import WishlistButton from '../home/WishlistButton';
+import { ShoppingCartOutlined } from '@ant-design/icons';
 
 interface ProductCardProps {
   product: Product;
@@ -43,21 +44,23 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, breadcrumb }) => {
 
   return (
     <div
-      className="rounded-xl border hover:shadow-lg transition-shadow duration-300 bg-white overflow-hidden cursor-pointer"
+      className="rounded-xl border border-gray-100 hover:border-blue-300 hover:shadow-lg transition-all duration-300 bg-white overflow-hidden cursor-pointer"
       onClick={handleClick}
     >
       {/* Hình ảnh và nút Wishlist */}
       <div className="relative">
-      <img
+        <img
           alt={product.name}
           src={product.imageUrl}
           className="w-full h-[180px] object-cover"
         />
-        <WishlistButton
-          productId={product.id}
-          showText={false}
-          className="!p-1.5 absolute top-2 right-2"
-        />
+        <div className="absolute top-2 right-2 z-10">
+          <WishlistButton
+            productId={product.id}
+            showText={false}
+            className="!w-8 !h-8 !min-w-0 !p-0 !rounded-full !bg-white/80 hover:!bg-white !border-none !shadow-md flex items-center justify-center"
+          />
+        </div>
       </div>
     
       <div className="p-3 space-y-2">
@@ -110,24 +113,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, breadcrumb }) => {
           )}
         </div>
     
-        {/* Số lượng đã bán */}
-        <div className="flex justify-between items-center pt-1">
-          <div className="text-gray-500 text-xs md:text-sm">
-            Đã bán: {product.soldCount || 0}
+        {/* Số lượng đã bán và nút thêm vào giỏ */}
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <div className="flex items-center gap-1 text-xs text-gray-400">
+            <span className="inline-block w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+            Đã bán {product.soldCount || 0}
           </div>
-          {/* <Button
+          <Button
             type="primary"
             size="small"
-            className='!p-4 rounded-lg'
-            icon={<ShoppingCartOutlined />}
+            className="!h-8 !px-3 !rounded-full !bg-blue-500 hover:!bg-blue-600 !border-none !text-xs !font-medium !shadow-sm hover:!shadow-md transition-all"
+            icon={<ShoppingCartOutlined className="text-sm" />}
             onClick={(e) => {
               e.stopPropagation();
-              handleAddToCart(e);
             }}
             disabled={product.status === ProductStatus.OUT_OF_STOCK}
           >
             {product.status === ProductStatus.OUT_OF_STOCK ? 'Hết hàng' : 'Thêm vào giỏ'}
-          </Button> */}
+          </Button>
         </div>
       </div>
     </div>

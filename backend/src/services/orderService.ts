@@ -1,6 +1,9 @@
 import { OrderStatus, PaymentStatus } from '@prisma/client';
 import { OrderRepository } from '../repositories/OrderRepository';
 import { ProductRepository } from '../repositories/ProductRepository';
+import { CacheService, CacheKeys } from './cache.service';
+import { QueueService } from './queue.service';
+import logger from '../config/logger';
 
 const orderRepository = new OrderRepository();
 const productRepository = new ProductRepository();
@@ -18,15 +21,34 @@ const orderWithItemsInclude = {
 };
 
 export const getAllOrders = async () => {
-  return orderRepository.findOrdersWithRelations({
+  const cached = await CacheService.get(CacheKeys.ORDER_LIST());
+  if (cached) {
+    logger.debug('Order list cache HIT');
+    return cached;
+  }
+
+  const orders = await orderRepository.findOrdersWithRelations({
     user: true,
     items: true,
     payment: true
   });
+  await CacheService.set(CacheKeys.ORDER_LIST(), orders, 120);
+  return orders;
 };
 
 export const getOrder = async (id: number) => {
-  return orderRepository.findOrderByIdWithRelations(id, orderIncludeRelations);
+  const cacheKey = CacheKeys.ORDER_DETAIL(id);
+  const cached = await CacheService.get(cacheKey);
+  if (cached) {
+    logger.debug('Order detail cache HIT', { id });
+    return cached;
+  }
+
+  const order = await orderRepository.findOrderByIdWithRelations(id, orderIncludeRelations);
+  if (order) {
+    await CacheService.set(cacheKey, order, 300);
+  }
+  return order;
 };
 
 export const createOrder = async (
@@ -72,18 +94,37 @@ export const createOrder = async (
 
     const order = await orderRepository.createOrderWithItems(orderData, orderWithItemsInclude);
 
-    // If order is created with DELIVERED status, update soldCount immediately
+    await CacheService.delete(CacheKeys.ORDER_LIST());
+    await CacheService.delete(CacheKeys.ORDER_DETAIL(order.id));
+    await CacheService.deletePattern('orders:*');
+    await CacheService.delete(CacheKeys.STATS());
+    void CacheService.deletePattern('products:*');
+
     if (status === OrderStatus.DELIVERED) {
       for (const item of items) {
         await productRepository.updateSoldCount(item.productId, item.quantity);
       }
     }
 
-    // Create notification for the user
     await orderRepository.createNotification(
       userId,
       `Đơn hàng của bạn đã được tạo thành công`
     );
+
+    void QueueService.addOrderProcessingJob({
+      orderId: order.id,
+      userId,
+      items,
+      status,
+    });
+
+    void QueueService.addNotificationJob({
+      userId,
+      message: `Đơn hàng của bạn (#${order.id}) đã được tạo thành công`,
+      orderId: order.id,
+    });
+
+    void QueueService.addStatsJob({ type: 'manual' });
 
     return order;
   } catch (error) {
@@ -131,7 +172,17 @@ export const updateOrderStatus = async (id: number, status: string) => {
     orderWithItemsInclude
   );
 
-  // Broadcast update to connected clients
+  await CacheService.delete(CacheKeys.ORDER_DETAIL(id));
+  await CacheService.delete(CacheKeys.ORDER_LIST());
+  await CacheService.delete(CacheKeys.USER_ORDERS(order.userId));
+  await CacheService.delete(CacheKeys.STATS());
+
+  void QueueService.addNotificationJob({
+    userId: order.userId,
+    message: `Đơn hàng #${order.id} đã được cập nhật trạng thái: ${status}.`,
+    orderId: id,
+  });
+
   const update = {
     type: 'order_update',
     orderId: id,
@@ -177,6 +228,11 @@ export const cancelOrder = async (orderId: number, userId: number) => {
       OrderStatus.CANCELLED,
       PaymentStatus.FAILED
     );
+
+    await CacheService.delete(CacheKeys.ORDER_DETAIL(orderId));
+    await CacheService.delete(CacheKeys.ORDER_LIST());
+    await CacheService.delete(CacheKeys.USER_ORDERS(order.userId));
+    await CacheService.delete(CacheKeys.STATS());
 
     return { success: true, order: canceledOrder };
   } catch (error) {

@@ -190,7 +190,7 @@ const xuFaqData = [
 export const searchFAQs = async (req: Request, res: Response) => {
   try {
     const { q: query, limit = 20 } = req.query;
-    
+
     if (!query || typeof query !== 'string') {
       res.json({
         success: true,
@@ -201,15 +201,14 @@ export const searchFAQs = async (req: Request, res: Response) => {
     }
 
     const searchTerm = query.toLowerCase().trim();
-    
-    // Tìm kiếm trong câu hỏi, câu trả lời và từ khóa
+
     const results = faqData.filter(faq => {
       const questionMatch = faq.question.toLowerCase().includes(searchTerm);
       const answerMatch = faq.answer.toLowerCase().includes(searchTerm);
-      const keywordMatch = faq.keywords.some(keyword => 
+      const keywordMatch = faq.keywords.some(keyword =>
         keyword.toLowerCase().includes(searchTerm)
       );
-      
+
       return questionMatch || answerMatch || keywordMatch;
     })
     .map(faq => ({
@@ -219,7 +218,7 @@ export const searchFAQs = async (req: Request, res: Response) => {
       answer: faq.answer.substring(0, 150) + '...', // Truncate for preview
       relevanceScore: calculateRelevanceScore(faq, searchTerm)
     }))
-    .sort((a, b) => b.relevanceScore - a.relevanceScore) // Sort by relevance
+    .sort((a, b) => b.relevanceScore - a.relevanceScore)
     .slice(0, parseInt(limit as string));
 
     res.json({

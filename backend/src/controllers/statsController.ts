@@ -1,81 +1,38 @@
-import { prisma } from '../prisma';
 import type { Request, Response } from 'express';
-import { OrderStatus } from '@prisma/client';
-interface OrderItem {
-  productId: number;
-  _sum: {
-    quantity: number | null;
-  };
-}
+import * as statsService from '../services/statsService';
 
 export const getStats = async (req: Request, res: Response) => {
   try {
-    // Get total products
-    const totalProducts = await prisma.product.count();
-    
-    // Get total users
-    const totalUsers = await prisma.user.count();
-    
-    // Get total orders
-    const totalOrders = await prisma.order.count();
-    
-    // Get total revenue
-    const orders = await prisma.order.findMany({
-      where: {
-        status: OrderStatus.DELIVERED
-      },
-      select: {
-        totalPrice: true
-      }
-    });
-    
-    const totalRevenue = orders.reduce((sum: number, order) => sum + order.totalPrice, 0);
-    
-    // Get orders by status
-    const ordersByStatus = await prisma.order.groupBy({
-      by: ['status'],
-      _count: {
-        status: true
-      }
-    });
-    
-    // Get top selling products
-    const topProducts = await prisma.orderItem.groupBy({
-      by: ['productId'],
-      _sum: {
-        quantity: true
-      },
-      orderBy: {
-        _sum: {
-          quantity: 'desc'
-        }
-      },
-      take: 5
-    });
-    
-    const productsWithDetails = await Promise.all(
-      topProducts.map(async (item: OrderItem) => {
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId },
-          select: { name: true }
-        });
-        return {
-          name: product?.name || 'Unknown',
-          value: item._sum.quantity || 0
-        };
-      })
-    );
-
-    res.json({
-      totalProducts,
-      totalUsers,
-      totalOrders,
-      totalRevenue,
-      ordersByStatus,
-      topProducts: productsWithDetails
-    });
+    const stats = await statsService.getStats();
+    res.json(stats);
   } catch (error) {
     console.error('Error fetching stats:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-}; 
+};
+
+export const getSalesByDateHandler = async (req: Request, res: Response) => {
+  try {
+    const { startDate, endDate } = req.query;
+    if (!startDate || !endDate) {
+      res.status(400).json({ error: 'startDate and endDate are required' });
+      return;
+    }
+    const result = await statsService.getSalesByDate(new Date(startDate as string), new Date(endDate as string));
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching sales by date:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getTopCustomersHandler = async (req: Request, res: Response) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    const customers = await statsService.getTopCustomers(limit);
+    res.json(customers);
+  } catch (error) {
+    console.error('Error fetching top customers:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};

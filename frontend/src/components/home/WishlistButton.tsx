@@ -33,9 +33,9 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({ productId, className, s
 
   return (
     <Button
-      type={isInWishlist ? 'primary' : 'default'}
+      type="default"
       icon={isInWishlist
-        ? <HeartFilled className={!showText ? 'text-xl' : ''} />
+        ? <HeartFilled className={`!text-red-500 ${!showText ? 'text-xl' : ''}`} />
         : <HeartOutlined className={!showText ? 'text-xl' : ''} />}
       onClick={e => {
         e.stopPropagation();

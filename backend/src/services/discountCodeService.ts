@@ -1,5 +1,6 @@
 import { DiscountCodeRepository } from '../repositories';
 import { prisma } from '../prisma';
+import { CacheService, CacheKeys } from './cache.service';
 
 const discountCodeRepository = new DiscountCodeRepository();
 
@@ -104,43 +105,89 @@ export const processDiscountCodeUsage = async (
 
 export const discountCodeService = {
   getAll: async () => {
-    return discountCodeRepository.findAll();
+    const cached = await CacheService.get(CacheKeys.DISCOUNT_CODE_ALL());
+    if (cached) return cached;
+
+    const codes = await discountCodeRepository.findAll();
+    await CacheService.set(CacheKeys.DISCOUNT_CODE_ALL(), codes, 300);
+    return codes;
   },
   getById: async (id: number) => {
-    return discountCodeRepository.findById(id);
+    const cacheKey = CacheKeys.DISCOUNT_CODE_DETAIL(id);
+    const cached = await CacheService.get(cacheKey);
+    if (cached) return cached;
+
+    const code = await discountCodeRepository.findById(id);
+    if (code) {
+      await CacheService.set(cacheKey, code, 300);
+    }
+    return code;
   },
   getByCode: async (code: string) => {
-    return discountCodeRepository.findByCode(code);
+    const cacheKey = CacheKeys.DISCOUNT_CODE_BY_CODE(code);
+    const cached = await CacheService.get(cacheKey);
+    if (cached) return cached;
+
+    const discountCode = await discountCodeRepository.findByCode(code);
+    if (discountCode) {
+      await CacheService.set(cacheKey, discountCode, 300);
+    }
+    return discountCode;
   },
   create: async (data: any) => {
-    // Validate logic có thể giữ lại ở đây nếu cần
-    return discountCodeRepository.create(data);
+    const code = await discountCodeRepository.create(data);
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    return code;
   },
   update: async (id: number, data: any) => {
-    return discountCodeRepository.update(id, data);
+    const code = await discountCodeRepository.update(id, data);
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_DETAIL(id));
+    return code;
   },
   delete: async (id: number) => {
-    return discountCodeRepository.delete(id);
+    const code = await discountCodeRepository.delete(id);
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_DETAIL(id));
+    return code;
   },
   claimDiscountCode: async (code: string, userId: number) => {
-    return discountCodeRepository.claimDiscountCode(code, userId);
+    const result = await discountCodeRepository.claimDiscountCode(code, userId);
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_CLAIMED(userId));
+    return result;
   },
   saveDiscountCodeUsage: async (userId: number, discountCodeId: number, orderId: number) => {
-    return discountCodeRepository.saveDiscountCodeUsage(userId, discountCodeId, orderId);
+    const result = await discountCodeRepository.saveDiscountCodeUsage(userId, discountCodeId, orderId);
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_CLAIMED(userId));
+    return result;
   },
   checkUserUsage: async (userId: number, discountCodeId: number) => {
     return discountCodeRepository.checkUserUsage(userId, discountCodeId);
   },
   updateDiscountCodeUsage: async (userId: number, discountCodeId: number, orderId: number) => {
-    return discountCodeRepository.updateDiscountCodeUsage(userId, discountCodeId, orderId);
+    const result = await discountCodeRepository.updateDiscountCodeUsage(userId, discountCodeId, orderId);
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_CLAIMED(userId));
+    return result;
   },
   resetUsage: async (id: number) => {
-    return discountCodeRepository.resetUsage(id);
+    const result = await discountCodeRepository.resetUsage(id);
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.delete(CacheKeys.DISCOUNT_CODE_DETAIL(id));
+    return result;
   },
   validateAndApply: async (code: string, _userId: number) => {
+    const cacheKey = CacheKeys.DISCOUNT_CODE_BY_CODE(code);
+    const cached = await CacheService.get(cacheKey);
+    if (cached) return { isValid: true, discountCode: cached };
+
     const discountCode = await discountCodeRepository.findByCode(code);
     if (!discountCode) throw new Error('Mã giảm giá không hợp lệ hoặc đã hết hạn');
-    // Có thể bổ sung thêm các điều kiện kiểm tra khác ở đây
+    if (discountCode) {
+      await CacheService.set(cacheKey, discountCode, 300);
+    }
     return { isValid: true, discountCode };
   },
   applyDiscountCode: async (code: string, orderValue: number, userId: number) => {
@@ -148,34 +195,25 @@ export const discountCodeService = {
     if (orderValue <= 0) throw new Error('Giá trị đơn hàng phải lớn hơn 0');
     const discountCode = await discountCodeRepository.findByCode(code);
     if (!discountCode) throw new Error('Mã giảm giá không tồn tại hoặc đã hết hiệu lực');
-    
-    // Kiểm tra user đã dùng mã này chưa (mỗi user chỉ dùng 1 lần)
+
     const hasUsed = await discountCodeRepository.checkUserUsage(userId, discountCode.id);
     if (hasUsed) {
       throw new Error('Bạn đã sử dụng mã giảm giá này rồi. Mỗi tài khoản chỉ được sử dụng 1 lần.');
     }
-    
-    // Kiểm tra user đã claim mã này chưa
+
     const claim = await prisma.discountCodeClaim.findFirst({
-      where: {
-        userId,
-        discountCodeId: discountCode.id,
-        isUsed: false
-      }
+      where: { userId, discountCodeId: discountCode.id, isUsed: false }
     });
     if (!claim) {
       throw new Error('Bạn chưa nhận mã giảm giá này. Vui lòng nhận mã trước khi sử dụng.');
     }
-    
-    // Kiểm tra số lượt sử dụng
+
     if (discountCode.usageLimit && discountCode.usedCount >= discountCode.usageLimit) {
       throw new Error('Mã giảm giá đã hết lượt sử dụng');
     }
-    // Kiểm tra giá trị đơn hàng tối thiểu
     if (discountCode.minOrderValue && orderValue < discountCode.minOrderValue) {
       throw new Error(`Đơn hàng phải có giá trị tối thiểu ${discountCode.minOrderValue.toLocaleString('vi-VN')}đ`);
     }
-    // Tính toán số tiền được giảm
     let discountAmount: number;
     if (discountCode.discountType === 'PERCENTAGE') {
       discountAmount = (orderValue * discountCode.discountValue) / 100;
@@ -193,6 +231,12 @@ export const discountCodeService = {
     };
   },
   getClaimedCodes: async (userId: number) => {
-    return discountCodeRepository.getClaimedCodes(userId);
+    const cacheKey = CacheKeys.DISCOUNT_CODE_CLAIMED(userId);
+    const cached = await CacheService.get(cacheKey);
+    if (cached) return cached;
+
+    const codes = await discountCodeRepository.getClaimedCodes(userId);
+    await CacheService.set(cacheKey, codes, 300);
+    return codes;
   },
-}; 
+};

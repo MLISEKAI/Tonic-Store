@@ -2,12 +2,17 @@ import express from "express";
 import type { Request, Response } from "express";
 import { getAllProducts, createProduct, getProductById, updateProduct, deleteProduct, searchProducts, updateProductStatus, updateProductRating, getProductBySeoUrl, incrementViewCount, getFlashSaleProducts, getNewestProducts, getBestSellingProducts } from "../services/productService";
 import { authenticate } from "../middleware/auth";
+import { cacheMiddleware } from "../services/cache-middleware";
+import { CacheKeys } from "../services/cache.service";
 import logger from "../config/logger";
 
 const router = express.Router();
 
 // Public routes - anyone can view products
-router.get("/", async (req: Request, res: Response): Promise<void> => {
+router.get("/", cacheMiddleware({
+  ttl: 300,
+  keyGenerator: (req) => `cache:${CacheKeys.PRODUCT_LIST(req.query.category as string, JSON.stringify(req.query))}`,
+}), async (req: Request, res: Response): Promise<void> => {
   try {
     const { category, status, isFeatured, isNew, isBestSeller, minPrice, maxPrice } = req.query;
     const filters: any = {};
@@ -42,7 +47,7 @@ router.get("/search", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-router.get("/flash-sale", async (req: Request, res: Response): Promise<void> => {
+router.get("/flash-sale", cacheMiddleware({ ttl: 60, keyGenerator: () => `cache:${CacheKeys.PRODUCT_FLASH_SALE()}` }), async (req: Request, res: Response): Promise<void> => {
   try {
     const products = await getFlashSaleProducts();
     res.json(products);
@@ -55,7 +60,10 @@ router.get("/flash-sale", async (req: Request, res: Response): Promise<void> => 
   }
 });
 
-router.get("/featured", async (req: Request, res: Response): Promise<void> => {
+router.get("/featured", cacheMiddleware({
+  ttl: 300,
+  keyGenerator: (req) => `cache:${CacheKeys.PRODUCT_LIST(undefined, JSON.stringify({ isFeatured: true, limit: req.query.limit }))}`,
+}), async (req: Request, res: Response): Promise<void> => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
     const products = await getAllProducts(undefined, { isFeatured: true });
@@ -70,7 +78,10 @@ router.get("/featured", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-router.get("/newest", async (req: Request, res: Response): Promise<void> => {
+router.get("/newest", cacheMiddleware({
+  ttl: 300,
+  keyGenerator: (req) => `cache:${CacheKeys.PRODUCT_NEWEST(req.query.limit ? parseInt(req.query.limit as string) : 8)}`,
+}), async (req: Request, res: Response): Promise<void> => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
     const products = await getNewestProducts(limit);
@@ -84,7 +95,10 @@ router.get("/newest", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-router.get("/best-selling", async (req: Request, res: Response): Promise<void> => {
+router.get("/best-selling", cacheMiddleware({
+  ttl: 300,
+  keyGenerator: (req) => `cache:${CacheKeys.PRODUCT_BEST_SELLING(req.query.limit ? parseInt(req.query.limit as string) : 8)}`,
+}), async (req: Request, res: Response): Promise<void> => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
     const products = await getBestSellingProducts(limit);
@@ -113,7 +127,10 @@ router.get("/seo/:seoUrl", async (req: Request, res: Response): Promise<void> =>
   }
 });
 
-router.get("/:id", async (req: Request, res: Response): Promise<void> => {
+router.get("/:id", cacheMiddleware({
+  ttl: 600,
+  keyGenerator: (req) => `cache:${CacheKeys.PRODUCT_DETAIL(Number(req.params.id))}`,
+}), async (req: Request, res: Response): Promise<void> => {
   try {
     const id = parseInt(req.params.id);
     const product = await getProductById(id);
