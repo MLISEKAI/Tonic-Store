@@ -2,7 +2,7 @@ import express from "express";
 import type { Request, Response } from "express";
 import { getAllProducts, createProduct, getProductById, updateProduct, deleteProduct, searchProducts, updateProductStatus, updateProductRating, getProductBySeoUrl, incrementViewCount, getFlashSaleProducts, getNewestProducts, getBestSellingProducts } from "../services/productService";
 import { authenticate } from "../middleware/auth";
-import { cacheMiddleware } from "../services/cache-middleware";
+ import { cacheMiddleware } from "../services/cache-middleware";
 import { CacheKeys } from "../services/cache.service";
 import logger from "../config/logger";
 

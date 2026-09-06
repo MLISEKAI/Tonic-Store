@@ -9,8 +9,10 @@ import compression from 'compression';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import logger from './config/logger';
+import { requestLogger } from './middleware/request-logger';
 
 import authRoutes from "./routes/authRoutes";
+import logRoutes from "./routes/logRoutes";
 import { connectRedis, disconnectRedis } from './services/cache.service';
 import { setupQueues, closeQueues } from './services/queue.service';
 import userRoutes from "./routes/userRoutes";
@@ -89,11 +91,8 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Middleware untuk xử lý request
-app.use((req: Request, res: Response, next: NextFunction) => {
-    logger.debug('Request', { method: req.method, url: req.url });
-    next();
-});
+// Request Logger Middleware
+app.use(requestLogger);
 
 // Test endpoint
 app.get('/test', (req: Request, res: Response) => {
@@ -120,6 +119,7 @@ app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/discount-codes', discountCodeRoutes);
 app.use('/api/help-center', helpCenterRoutes);
+app.use('/api/logs', logRoutes);
 
 
 // Middleware để bắt lỗi

@@ -1,5 +1,6 @@
 import Redis from 'ioredis';
 import logger from '../config/logger';
+import { incrementCacheHit, incrementCacheMiss, incrementCacheError } from '../middleware/request-logger';
 
 export type CacheValue = string | number | boolean | object | null;
 
@@ -9,6 +10,8 @@ export interface CacheOptions {
 }
 
 const DEFAULT_PREFIX = process.env.NODE_ENV || 'development';
+
+const cacheMetrics = { hits: 0, misses: 0, errors: 0, sets: 0, deletes: 0 };
 
 const redisConfig: any = {
   maxRetriesPerRequest: 3,
@@ -90,23 +93,32 @@ export const CacheService = {
       } else {
         await redis.set(fullKey, serialized);
       }
+      cacheMetrics.sets++;
     } catch (err: any) {
       logger.warn('Cache set error', { err: err?.message, key });
     }
   },
 
   async get<T = any>(key: string, prefix?: string): Promise<T | null> {
-    if (!redisAvailable) return null;
+    if (!redisAvailable) { cacheMetrics.misses++; incrementCacheMiss(); return null; }
     try {
       const fullKey = buildKey(key, prefix);
       const data = await redis.get(fullKey);
-      if (!data) return null;
+      if (!data) {
+        cacheMetrics.misses++;
+        incrementCacheMiss();
+        return null;
+      }
+      cacheMetrics.hits++;
+      incrementCacheHit();
       try {
         return JSON.parse(data) as T;
       } catch {
         return data as T;
       }
     } catch (err: any) {
+      cacheMetrics.errors++;
+      incrementCacheError();
       logger.warn('Cache get error', { err: err?.message, key });
       return null;
     }
@@ -199,6 +211,18 @@ export const CacheService = {
 
   getClient(): Redis {
     return redis;
+  },
+
+  getMetrics() {
+    return { ...cacheMetrics };
+  },
+
+  resetMetrics() {
+    cacheMetrics.hits = 0;
+    cacheMetrics.misses = 0;
+    cacheMetrics.errors = 0;
+    cacheMetrics.sets = 0;
+    cacheMetrics.deletes = 0;
   },
 };
 

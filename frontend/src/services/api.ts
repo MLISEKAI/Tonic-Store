@@ -82,7 +82,6 @@ export const ENDPOINTS = {
     LIST: `${API_URL}/api/wishlist`,
     ADD: `${API_URL}/api/wishlist`,
     REMOVE: (id: number) => `${API_URL}/api/wishlist/${id}`,
-    CHECK: (id: number) => `${API_URL}/api/wishlist/check/${id}`,
   },
   // Stats
   STATS: {

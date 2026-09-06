@@ -26,13 +26,5 @@ export const WishlistService = {
       headers: getHeaders()
     });
     return handleResponse(response);
-  },
-
-  // Kiểm tra trạng thái sản phẩm trong wishlist
-  async checkWishlistStatus(productId: number) {
-    const response = await fetchWithCredentials(ENDPOINTS.WISHLIST.CHECK(productId), {
-      headers: getHeaders()
-    });
-    return handleResponse(response);
   }
 };

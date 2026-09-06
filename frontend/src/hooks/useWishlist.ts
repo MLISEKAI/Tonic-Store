@@ -1,23 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { WishlistService } from '../services/wishlist/wishlistService';
 import { useWishlist as useWishlistContext } from '../contexts/WishlistContext';
-import { useAuth } from '../contexts/AuthContext';
 
 export function useWishlist(productId: number) {
-  const [isInWishlist, setIsInWishlist] = useState(false);
+  const { wishlist, reloadWishlist } = useWishlistContext();
   const [loading, setLoading] = useState(false);
-  const { reloadWishlist } = useWishlistContext();
-  const { isAuthenticated } = useAuth();
 
-  const checkWishlistStatus = async () => {
-    if (!isAuthenticated) return;
-    try {
-      const { isInWishlist } = await WishlistService.checkWishlistStatus(productId);
-      setIsInWishlist(isInWishlist);
-    } catch (error) {
-      // silent fail
-    }
-  };
+  const isInWishlist = useMemo(() => {
+    return wishlist.some(item => item.product.id === productId);
+  }, [wishlist, productId]);
 
   const toggleWishlist = async () => {
     try {
@@ -27,24 +18,18 @@ export function useWishlist(productId: number) {
       } else {
         await WishlistService.addToWishlist(productId);
       }
-      setIsInWishlist(!isInWishlist);
       await reloadWishlist();
       return true;
-    } catch (error) {
+    } catch {
       throw new Error('Failed to update wishlist');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    checkWishlistStatus();
-  }, [productId, isAuthenticated]);
-
   return {
     isInWishlist,
     loading,
     toggleWishlist,
-    checkWishlistStatus
   };
 } 

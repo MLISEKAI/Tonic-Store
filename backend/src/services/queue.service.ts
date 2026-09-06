@@ -1,4 +1,5 @@
 import { Queue, Worker, QueueEvents, Job } from 'bullmq';
+import Redis from 'ioredis';
 import logger from '../config/logger';
 import { CacheService } from './cache.service';
 import { isRedisAvailable } from './cache.service';
@@ -76,8 +77,24 @@ let notificationScheduler: QueueEvents | null = null;
 let statsScheduler: QueueEvents | null = null;
 let productScheduler: QueueEvents | null = null;
 
-function getRedisConnection() {
-  return CacheService.getClient();
+let bullmqConnection: Redis | null = null;
+
+function getRedisConnection(): Redis {
+  if (!bullmqConnection) {
+    const config: any = {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      maxRetriesPerRequest: null,
+    };
+    if (process.env.REDIS_PASSWORD) {
+      config.password = process.env.REDIS_PASSWORD;
+    }
+    if (process.env.REDIS_TLS === 'true') {
+      config.tls = {};
+    }
+    bullmqConnection = new Redis(config);
+  }
+  return bullmqConnection;
 }
 
 function createQueue(name: string): Queue | null {
@@ -125,6 +142,18 @@ function createWorker(name: string, processor: (job: Job) => Promise<void>): Wor
 
     worker.on('error', (err: Error) => {
       logger.error(`Worker "${name}" error`, { err: err.message });
+    });
+
+    worker.on('active', (job: Job) => {
+      logger.info(`Worker "${name}" STARTED`, { jobId: job.id, type: job.name, data: job.data });
+    });
+
+    worker.on('completed', (job: Job) => {
+      logger.info(`Worker "${name}" COMPLETED`, { jobId: job.id, type: job.name, duration: job.finishedOn ? job.finishedOn - (job.processedOn || 0) : 0 });
+    });
+
+    worker.on('failed', (job: Job | undefined, err: Error) => {
+      logger.error(`Worker "${name}" FAILED`, { jobId: job?.id, type: job?.name, err: err.message });
     });
 
     worker.on('drained', () => {

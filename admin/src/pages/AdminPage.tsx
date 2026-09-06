@@ -11,6 +11,7 @@ import {
   LogoutOutlined,
   CommentOutlined,
   GiftOutlined,
+  LineChartOutlined,
 } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
@@ -105,6 +106,11 @@ const AdminPage: React.FC = () => {
       key: 'reviews',
       icon: <CommentOutlined />,
       label: 'Bình luận / Đánh giá',
+    },
+    {
+      key: 'logs',
+      icon: <LineChartOutlined />,
+      label: 'API Logs',
     },
     {
       key: 'logout',

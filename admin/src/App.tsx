@@ -9,6 +9,7 @@ import Reviews from './components/Reviews'
 import UserManagement from './components/UserManagement'
 import ShipperList from './components/ShipperList'
 import Promotions from './components/DiscountCode'
+import LogDashboard from './components/LogDashboard'
 import AdminRouter from './components/AdminRouter'
 import AdminWelcome from './components/AdminWelcome'
 
@@ -26,6 +27,7 @@ function App() {
         <Route path="shippers" element={<ShipperList />} />
         <Route path="discount-codes" element={<Promotions />} />
         <Route path="reviews" element={<Reviews />} />
+        <Route path="logs" element={<LogDashboard />} />
       </Route>
       <Route path="/" element={<Navigate to="/admin" replace />} />
     </Routes>
