@@ -7,6 +7,22 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserGenderEnum {
+  male
+  female
+}
+
+enum UserProviderEnum {
+  anonymous
+  phone
+  facebook
+  microsoft
+  google
+  apple
+  password
+}
+
+
 model User {
   id        Int      @id @default(autoincrement())
   name      String
@@ -15,8 +31,17 @@ model User {
   role      Role     @default(CUSTOMER)
   phone     String?
   address   String?
+  unionId   String?  @unique
+  gender    String?  @default("female")
+  isBlocked Boolean? @default(false)
+  bio       String?  @db.Text
+  profileUrls Json?  @db.JsonB
+  avatarUrl String?  @db.VarChar(255)
+  dateOfBirth DateTime?
+  isActive  Boolean  @default(true)
+  isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
+  updatedAt DateTime @updatedAt
   deletedAt DateTime?
   deletedBy Int?
   cart      Cart?
@@ -34,17 +59,36 @@ model User {
   discountCodeClaims DiscountCodeClaim[]
   blacklistedTokens TokenBlacklist[]
   refreshTokens RefreshToken[]
-  
+  wallet        Wallet?
+  walletTransactions WalletTransaction[]
+  withdrawalRequests WithdrawalRequest[] @relation("UserWithdrawals")
+  processedWithdrawals WithdrawalRequest[] @relation("WithdrawalProcessor")
+  gatewayTransactions PaymentGatewayTransaction[]
+  interests          ResInterest[] @relation("relation_user_interest")
+  associates         UserAssociate[]
+  devices            UserDevice[]
+
   @@index([deletedAt])
   @@index([deletedBy])
+  @@index([isDeleted])
+  @@index([isActive])
+  @@index([email])
+  @@index([unionId])
 }
 
 model Category {
   id        Int       @id @default(autoincrement())
   name      String    @unique
+  slug      String?   @unique
+  isActive  Boolean   @default(true)
+  isDeleted Boolean   @default(false)
   products  Product[]
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([isActive])
+  @@index([isDeleted])
 }
 
 model Product {
@@ -57,8 +101,11 @@ model Product {
   imageUrl    String?
   categoryId  Int
   category    Category    @relation(fields: [categoryId], references: [id])
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt @default(now())
+  isActive    Boolean     @default(true)
+  isDeleted   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
   cartItems   CartItem[]  @relation("ProductToCartItem")
   orderItems  OrderItem[] @relation("ProductToOrderItem")
   reviews     Review[]
@@ -86,15 +133,86 @@ model Product {
   @@index([categoryId])
   @@index([sku])
   @@index([barcode])
+  @@index([status])
+  @@index([isFeatured])
+  @@index([isNew])
+  @@index([isBestSeller])
+  @@index([soldCount])
+  @@index([price])
+  @@index([isDeleted])
+  @@index([isActive])
+  @@index([status, promotionalPrice, stock])
 }
 
 model Cart {
   id        Int        @id @default(autoincrement())
   userId    Int        @unique
+  isActive  Boolean    @default(true)
+  isDeleted Boolean    @default(false)
   createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime?
   user      User       @relation(fields: [userId], references: [id])
   items     CartItem[]
+
+  @@index([isDeleted])
+}
+
+model UserAssociate {
+  id           String    @id @default(uuid())
+  userId       Int
+  email        String?
+  phoneNumber  String?
+  refId        String
+  provider     UserProviderEnum
+  isActive     Boolean   @default(true)
+  isDeleted    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([refId])
+  @@map("user_associate")
+}
+
+model UserDevice {
+  id            String    @id @default(uuid())
+  userId        Int
+  deviceId      String
+  deviceName    String?
+  deviceModel   String?
+  deviceType    String?
+  osVersion     String?
+  lastLogin     DateTime? @default(now())
+  lastLocation  String?
+  lastIpAddress String?
+  isActive      Boolean   @default(true)
+  isDeleted     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([deviceId, userId])
+  @@index([userId])
+  @@map("user_device")
+}
+
+model ResInterest {
+  id            String    @id @default(uuid())
+  name          String
+  thumbnailUrl  String?
+  languageCode  String
+  isActive      Boolean   @default(true)
+  isDeleted     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  users         User[]    @relation("relation_user_interest")
+
+  @@map("res_interest")
 }
 
 model CartItem {
@@ -103,8 +221,10 @@ model CartItem {
   productId Int
   quantity  Int      @default(1)
   price     Float    
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
   cart      Cart     @relation(fields: [cartId], references: [id])
   product   Product  @relation("ProductToCartItem", fields: [productId], references: [id])
 
@@ -117,16 +237,19 @@ model Order {
   userId          Int
   totalPrice      Float
   status          OrderStatus    @default(PENDING)
+  isActive        Boolean        @default(true)
+  isDeleted       Boolean        @default(false)
   shippingAddress String
   shippingPhone   String
   shippingName    String
   note            String?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
   shipperId       Int?
 
-  promotionCode   String?        // mã giảm giá đã áp dụng
-  discount        Float?         // số tiền được giảm
+  promotionCode   String?
+  discount        Float?
 
   user            User           @relation(fields: [userId], references: [id])
   items           OrderItem[]
@@ -137,6 +260,9 @@ model Order {
 
   @@index([userId])
   @@index([shipperId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([isDeleted])
 }
 
 model OrderItem {
@@ -145,6 +271,7 @@ model OrderItem {
   productId Int
   quantity  Int
   price     Float
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   order     Order    @relation(fields: [orderId], references: [id])
@@ -163,6 +290,7 @@ model Payment {
   currency      String        @default("VND")
   transactionId String?
   paymentDate   DateTime?
+  isActive      Boolean       @default(true)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   order         Order         @relation(fields: [orderId], references: [id])
@@ -185,8 +313,11 @@ model Review {
   productId   Int
   rating      Int     
   comment     String?  
+  isActive    Boolean  @default(true)
+  isDeleted   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
 
   user        User     @relation(fields: [userId], references: [id])
   product     Product  @relation(fields: [productId], references: [id])
@@ -194,6 +325,8 @@ model Review {
   @@unique([userId, productId]) 
   @@index([productId])
   @@index([userId])
+  @@index([createdAt])
+  @@index([isDeleted])
 }
 
 model ShippingAddress {
@@ -203,11 +336,15 @@ model ShippingAddress {
   phone     String
   address   String
   isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
+  @@index([isDeleted])
 }
 
 model DeliveryLog {
@@ -216,6 +353,7 @@ model DeliveryLog {
   deliveryId Int
   status    OrderStatus
   note      String?
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -230,14 +368,18 @@ model Wishlist {
   id        Int      @id @default(autoincrement())
   userId    Int
   productId Int
+  isActive  Boolean  @default(true)
+  isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
   user      User     @relation(fields: [userId], references: [id])
   product   Product  @relation(fields: [productId], references: [id])
 
   @@unique([userId, productId])
   @@index([userId])
   @@index([productId])
+  @@index([isDeleted])
 }
 
 model Notification {
@@ -245,12 +387,18 @@ model Notification {
   userId    Int
   message   String
   isRead    Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  isDeleted Boolean  @default(false)
   link      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([isDeleted])
 }
 
 model DeliveryRating {
@@ -259,13 +407,17 @@ model DeliveryRating {
   userId    Int
   rating    Int
   comment   String?
+  isActive  Boolean  @default(true)
+  isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
   user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId])
+  @@index([isDeleted])
 }
 
 enum Role {
@@ -298,6 +450,9 @@ enum PaymentMethod {
   VN_PAY
   COD
   BANK_TRANSFER
+  WALLET
+  ZALO_PAY
+  MOMO
 }
 
 enum ProductStatus {
@@ -310,6 +465,172 @@ enum ProductStatus {
 enum DiscountType {
   PERCENTAGE
   FIXED_AMOUNT
+}
+
+enum WalletTransactionType {
+  DEPOSIT
+  PAYMENT
+  REFUND
+  WITHDRAWAL
+  ADMIN_ADJUSTMENT
+  ORDER_CANCELLATION_REFUND
+}
+
+enum WalletTransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentGateway {
+  ZALO_PAY
+  MOMO
+  PAYPAL
+  BANK_TRANSFER
+  VN_PAY
+}
+
+enum PaymentGatewayStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model Wallet {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
+  balance       Decimal  @default(0) @db.Decimal(15, 2)
+  currency      String   @default("VND")
+  isActive      Boolean  @default(true)
+  isDeleted     Boolean  @default(false)
+  totalDeposited Decimal @default(0) @db.Decimal(15, 2)
+  totalWithdrawn Decimal @default(0) @db.Decimal(15, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+  user          User      @relation(fields: [userId], references: [id])
+  transactions  WalletTransaction[]
+  withdrawals   WithdrawalRequest[]
+  gatewayTransactions PaymentGatewayTransaction[]
+
+  @@index([userId])
+  @@index([isDeleted])
+}
+
+model WalletTransaction {
+  id            Int      @id @default(autoincrement())
+  walletId      Int
+  userId        Int
+  type          WalletTransactionType
+  status        WalletTransactionStatus @default(PENDING)
+  amount        Decimal  @db.Decimal(15, 2)
+  balanceBefore Decimal  @db.Decimal(15, 2)
+  balanceAfter  Decimal  @db.Decimal(15, 2)
+  currency      String   @default("VND")
+  referenceType String?
+  referenceId   Int?
+  description   String?
+  metadata      Json?
+  idempotencyKey String? @unique
+  isActive      Boolean  @default(true)
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  wallet        Wallet   @relation(fields: [walletId], references: [id])
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@index([walletId])
+  @@index([userId])
+  @@index([idempotencyKey])
+  @@index([referenceType, referenceId])
+  @@index([isDeleted])
+}
+
+model WithdrawalRequest {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  walletId      Int
+  amount        Decimal  @db.Decimal(15, 2)
+  status        WithdrawalStatus @default(PENDING)
+  bankName      String
+  accountNumber String
+  accountHolder String
+  note          String?
+  processedBy   Int?
+  processedAt   DateTime?
+  isActive      Boolean  @default(true)
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+  wallet        Wallet   @relation(fields: [walletId], references: [id])
+  user          User     @relation("UserWithdrawals", fields: [userId], references: [id])
+  processor     User?    @relation("WithdrawalProcessor", fields: [processedBy], references: [id])
+
+  @@index([userId])
+  @@index([walletId])
+  @@index([status])
+  @@index([isDeleted])
+}
+
+model TopUpPackage {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(255)
+  description   String?
+  amount        Decimal  @db.Decimal(15, 2)
+  bonusAmount   Decimal? @db.Decimal(15, 2)
+  currency      String   @default("VND")
+  isActive      Boolean  @default(true)
+  isDeleted     Boolean  @default(false)
+  displayOrder  Int      @default(0)
+  icon          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  @@index([isActive])
+  @@index([isDeleted])
+  @@index([displayOrder])
+}
+
+model PaymentGatewayTransaction {
+  id            Int      @id @default(autoincrement())
+  walletId      Int
+  userId        Int
+  gateway       PaymentGateway
+  status        PaymentGatewayStatus @default(PENDING)
+  amount        Decimal  @db.Decimal(15, 2)
+  currency      String   @default("VND")
+  gatewayTransactionId String? @unique
+  gatewayResponse Json?
+  description   String?
+  metadata      Json?
+  idempotencyKey String? @unique
+  isActive      Boolean  @default(true)
+  isDeleted     Boolean  @default(false)
+  processedAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+  wallet        Wallet   @relation(fields: [walletId], references: [id])
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@index([walletId])
+  @@index([userId])
+  @@index([idempotencyKey])
+  @@index([gateway, status])
+  @@index([isDeleted])
 }
 
 model DiscountCode {
@@ -325,12 +646,18 @@ model DiscountCode {
   usageLimit    Int?
   usedCount     Int         @default(0)
   isActive      Boolean     @default(true)
+  isDeleted     Boolean     @default(false)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime?
   usages        DiscountCodeUsage[]
   claims        DiscountCodeClaim[]
 
   @@map("discount_codes")
+  @@index([isActive])
+  @@index([isDeleted])
+  @@index([startDate])
+  @@index([endDate])
 }
 
 model DiscountCodeUsage {
@@ -338,6 +665,8 @@ model DiscountCodeUsage {
   userId         Int
   discountCodeId Int
   orderId        Int?
+  isActive       Boolean       @default(true)
+  isDeleted      Boolean       @default(false)
   usedAt         DateTime      @default(now())
 
   user           User          @relation(fields: [userId], references: [id])
@@ -345,12 +674,15 @@ model DiscountCodeUsage {
 
   @@unique([userId, discountCodeId])
   @@index([discountCodeId])
+  @@index([isDeleted])
 }
 
 model DiscountCodeClaim {
   id             Int           @id @default(autoincrement())
   userId         Int
   discountCodeId Int
+  isActive       Boolean       @default(true)
+  isDeleted      Boolean       @default(false)
   claimedAt      DateTime      @default(now())
   isUsed         Boolean       @default(false)
 
@@ -360,6 +692,7 @@ model DiscountCodeClaim {
   @@unique([userId, discountCodeId])
   @@index([discountCodeId])
   @@index([userId])
+  @@index([isDeleted])
 }
 
 model TokenBlacklist {
@@ -367,6 +700,7 @@ model TokenBlacklist {
   token     String   @unique @db.VarChar(500)
   userId    Int
   expiresAt DateTime
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -375,14 +709,16 @@ model TokenBlacklist {
 
 model RefreshToken {
   id          Int      @id @default(autoincrement())
-  token       String   @unique @db.VarChar(500) // Có thể lưu hash nếu muốn
+  token       String   @unique @db.VarChar(500)
   userId      Int
   deviceInfo  String?
   expiresAt   DateTime
+  isActive    Boolean  @default(true)
+  isRevoked   Boolean  @default(false)
   createdAt   DateTime @default(now())
-  revoked     Boolean  @default(false)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
 }
+

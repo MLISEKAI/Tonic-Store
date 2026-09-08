@@ -1,192 +1,154 @@
 import type { Request, Response } from 'express';
 import * as shipperService from '../services/shipperService';
 import { OrderStatus } from '@prisma/client';
+import { handleControllerError, ErrorCodes } from '../common/types/api-response';
+import logger from '../config/logger';
 
 export const ShipperController = {
-  // Lấy danh sách shipper (admin only)
   async getAllShippers(req: Request, res: Response) {
     try {
       if (req.user?.role !== 'ADMIN') {
-        res.status(403).json({ error: 'Unauthorized' });
+        res.apiError('Unauthorized', ErrorCodes.FORBIDDEN);
         return;
       }
-
       const shippers = await shipperService.getAllShippers();
-      res.json(shippers);
+      res.apiSuccess(shippers, "Lấy danh sách shipper thành công");
     } catch (error) {
-      console.error('Error getting shippers:', error);
-      res.status(500).json({ error: 'Failed to get shippers' });
+      handleControllerError(res, error, "getAllShippers");
     }
   },
 
-  // Lấy thông tin chi tiết shipper
   async getShipperById(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const shipper = await shipperService.getShipperById(Number(id));
-
       if (!shipper) {
-        res.status(404).json({ error: 'Shipper not found' });
+        res.apiError('Shipper not found', ErrorCodes.NOT_FOUND);
         return;
       }
-
-      res.json(shipper);
+      res.apiSuccess(shipper, "Lấy thông tin shipper thành công");
     } catch (error) {
-      console.error('Error getting shipper:', error);
-      res.status(500).json({ error: 'Failed to get shipper' });
+      handleControllerError(res, error, "getShipperById");
     }
   },
 
-  // Gán shipper cho đơn hàng (admin only)
   async assignShipperToOrder(req: Request, res: Response) {
     try {
       if (req.user?.role !== 'ADMIN') {
-        res.status(403).json({ error: 'Unauthorized' });
+        res.apiError('Unauthorized', ErrorCodes.FORBIDDEN);
         return;
       }
-
       const { orderId } = req.params;
       const { shipperId } = req.body;
-
       if (!shipperId) {
-        res.status(400).json({ error: 'Shipper ID is required' });
+        res.apiError('Shipper ID is required', ErrorCodes.BAD_REQUEST);
         return;
       }
-
       const order = await shipperService.assignShipperToOrder(Number(orderId), Number(shipperId));
-      res.json(order);
+      res.apiSuccess(order, "Gán shipper thành công");
     } catch (error) {
-      console.error('Error assigning shipper:', error);
-      res.status(500).json({ error: 'Failed to assign shipper' });
+      handleControllerError(res, error, "assignShipperToOrder");
     }
   },
 
-  // Cập nhật trạng thái giao hàng (shipper only)
   async updateDeliveryStatus(req: Request, res: Response) {
     try {
       if (req.user?.role !== 'DELIVERY') {
-        res.status(403).json({ error: 'Unauthorized' });
+        res.apiError('Unauthorized', ErrorCodes.FORBIDDEN);
         return;
       }
-
       const { orderId } = req.params;
       const { status, note } = req.body;
       const shipperId = req.user.id;
-
       if (!status || !Object.values(OrderStatus).includes(status)) {
-        res.status(400).json({ error: 'Invalid status' });
+        res.apiError('Invalid status', ErrorCodes.BAD_REQUEST);
         return;
       }
-
       const order = await shipperService.updateDeliveryStatus(
         Number(orderId),
         shipperId,
         status as OrderStatus,
         note
       );
-
-      res.json(order);
+      res.apiSuccess(order, "Cập nhật trạng thái giao hàng thành công");
     } catch (error) {
-      console.error('Error updating delivery status:', error);
-      res.status(500).json({ error: 'Failed to update delivery status' });
+      handleControllerError(res, error, "updateDeliveryStatus");
     }
   },
 
-  // Lấy danh sách đơn hàng của shipper
   async getShipperOrders(req: Request, res: Response) {
     try {
-      console.log('Headers:', req.headers);
-      console.log('Authorization:', req.headers.authorization);
-      console.log('req.user:', req.user);
-
       if (!req.user) {
-        console.log('No user attached to request');
-        res.status(401).json({ error: 'Unauthorized' });
+        res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
         return;
       }
-
       if (req.user.role !== 'DELIVERY') {
-        console.log('User role is not DELIVERY:', req.user.role);
-        res.status(403).json({ error: 'Forbidden' });
+        res.apiError('Forbidden', ErrorCodes.FORBIDDEN);
         return;
       }
-
       const { status } = req.query;
-      console.log('Getting orders for shipper:', req.user.id, 'with status:', status);
-      
       const orders = await shipperService.getShipperOrders(
         req.user.id,
         status as OrderStatus
       );
-
-      res.json(orders);
+      res.apiSuccess(orders, "Lấy danh sách đơn hàng thành công");
     } catch (error) {
-      console.error('Error getting shipper orders:', error);
-      res.status(500).json({ error: 'Failed to get shipper orders' });
+      handleControllerError(res, error, "getShipperOrders");
     }
   },
 
-  // Lấy lịch sử giao hàng của đơn hàng
   async getOrderDeliveryLogs(req: Request, res: Response) {
     try {
       const { orderId } = req.params;
       const logs = await shipperService.getOrderDeliveryLogs(Number(orderId));
-      res.json(logs);
+      res.apiSuccess(logs, "Lấy lịch sử giao hàng thành công");
     } catch (error) {
-      console.error('Error getting delivery logs:', error);
-      res.status(500).json({ error: 'Failed to get delivery logs' });
+      handleControllerError(res, error, "getOrderDeliveryLogs");
     }
   },
 
-  // Lấy đánh giá shipper của một đơn hàng
   async getDeliveryRating(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const orderId = Number(id);
       if (!orderId || isNaN(orderId)) {
-        res.status(400).json({ error: 'Order ID không hợp lệ' });
+        res.apiError('Order ID không hợp lệ', ErrorCodes.BAD_REQUEST);
         return;
       }
       const rating = await shipperService.getDeliveryRating(orderId);
-      if (rating === null) {
-        res.json(null);
-        return;
-      }
-      res.json(rating);
+      res.apiSuccess(rating, "Lấy đánh giá giao hàng thành công");
     } catch (error: any) {
-      console.error('Error getting delivery rating:', error);
       if (error.message === 'Invalid order ID') {
-        res.status(400).json({ error: error.message });
+        res.apiError(error.message, ErrorCodes.BAD_REQUEST);
         return;
       }
       if (error.message === 'Order not found') {
-        res.status(404).json({ error: error.message });
+        res.apiError(error.message, ErrorCodes.NOT_FOUND);
         return;
       }
       if (error.message === 'Order is not delivered yet') {
-        res.status(400).json({ error: error.message });
+        res.apiError(error.message, ErrorCodes.BAD_REQUEST);
         return;
       }
-      res.status(500).json({ error: 'Failed to get delivery rating' });
+      handleControllerError(res, error, "getDeliveryRating");
     }
   },
 
-  // Tạo đánh giá shipper
   async createDeliveryRating(req: Request, res: Response) {
     try {
       if (!req.user) {
-        res.status(401).json({ error: 'Unauthorized' });
+        res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
         return;
       }
       const { id } = req.params;
       const orderId = Number(id);
       const { rating, comment } = req.body;
       if (!orderId || isNaN(orderId)) {
-        res.status(400).json({ error: 'Order ID không hợp lệ' });
+        res.apiError('Order ID không hợp lệ', ErrorCodes.BAD_REQUEST);
         return;
       }
       if (!rating || rating < 1 || rating > 5) {
-        res.status(400).json({ error: 'Invalid rating value' });
+        res.apiError('Invalid rating value', ErrorCodes.BAD_REQUEST);
         return;
       }
       const newRating = await shipperService.createDeliveryRating(
@@ -195,18 +157,13 @@ export const ShipperController = {
         rating,
         comment
       );
-      res.status(201).json(newRating);
+      res.apiSuccess(newRating, "Tạo đánh giá thành công", 201);
     } catch (error: any) {
-      console.error('Error creating delivery rating:', error);
-      if (error.message === 'Order is not delivered yet') {
-        res.status(400).json({ error: error.message });
+      if (error.message === 'Order is not delivered yet' || error.message === 'Order has already been rated') {
+        res.apiError(error.message, ErrorCodes.BAD_REQUEST);
         return;
       }
-      if (error.message === 'Order has already been rated') {
-        res.status(400).json({ error: error.message });
-        return;
-      }
-      res.status(500).json({ error: 'Failed to create delivery rating' });
+      handleControllerError(res, error, "createDeliveryRating");
     }
   }
-}; 
+};

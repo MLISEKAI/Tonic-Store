@@ -1,21 +1,12 @@
-import { fetchWithCredentials, getHeaders } from './api';
+import { fetchWithCredentials, getHeaders, API_URL, handleResponse } from './api';
 import { User, CreateUserData, UpdateUserData } from '../types/user';
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/users`;
-const AUTH_URL = `${import.meta.env.VITE_API_URL}/api/auth`;
-
-// Xử lý phản hồi từ API
-const handleResponse = async (res: Response) => {
-  if (!res.ok) {
-    const error = await res.text();
-    throw new Error(error || 'Something went wrong');
-  }
-  return res.json();
-};
+const USERS_URL = `${API_URL}/api/users`;
+const AUTH_URL = `${API_URL}/api/auth`;
 
 export const userService = {
   getAllUsers: async (): Promise<User[]> => {
-    const res = await fetchWithCredentials(API_URL, {
+    const res = await fetchWithCredentials(USERS_URL, {
       headers: getHeaders(),
     });
     return handleResponse(res);
@@ -39,14 +30,14 @@ export const userService = {
   },
 
   getUserById: async (id: number): Promise<User> => {
-    const res = await fetchWithCredentials(`${API_URL}/${id}`, {
+    const res = await fetchWithCredentials(`${USERS_URL}/${id}`, {
       headers: getHeaders(),
     });
     return handleResponse(res);
   },
 
   getProfile: async (): Promise<User> => {
-    const res = await fetchWithCredentials(`${API_URL}/profile`, {
+    const res = await fetchWithCredentials(`${USERS_URL}/profile`, {
       headers: getHeaders(),
     });
     return handleResponse(res);
@@ -69,7 +60,7 @@ export const userService = {
   },
 
   updateUser: async (id: number, data: UpdateUserData): Promise<User> => {
-    const res = await fetchWithCredentials(`${API_URL}/${id}`, {
+    const res = await fetchWithCredentials(`${USERS_URL}/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -78,7 +69,7 @@ export const userService = {
   },
 
   deleteUser: async (id: number, force: boolean = false): Promise<void> => {
-    const url = force ? `${API_URL}/${id}?force=true` : `${API_URL}/${id}`;
+    const url = force ? `${USERS_URL}/${id}?force=true` : `${USERS_URL}/${id}`;
     const res = await fetchWithCredentials(url, {
       method: 'DELETE',
       headers: getHeaders(),
@@ -96,7 +87,7 @@ export const userService = {
   },
 
   changeUserPassword: async (userId: number, newPassword: string): Promise<void> => {
-    const res = await fetchWithCredentials(`${API_URL}/${userId}/password`, {
+    const res = await fetchWithCredentials(`${USERS_URL}/${userId}/password`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify({ newPassword }),

@@ -22,7 +22,7 @@ const NewArrivalsPage = () => {
       try {
         const data = await ProductService.getNewestProducts();
         setProducts(data);
-      } catch (error) {
+      } catch {
         notification.error({
           message: 'Lỗi',
           description: 'Không thể tải danh sách sản phẩm mới',
@@ -61,7 +61,7 @@ const NewArrivalsPage = () => {
         placement: 'topRight',
         duration: 2,
       });
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Thêm sản phẩm vào giỏ hàng thất bại',

@@ -46,7 +46,7 @@ const HomePage = () => {
     try {
       await addToCart(product, 1);
       message.success('Đã thêm sản phẩm vào giỏ hàng');
-    } catch (error) {
+    } catch {
       message.error('Thêm sản phẩm vào giỏ hàng thất bại');
     }
   };

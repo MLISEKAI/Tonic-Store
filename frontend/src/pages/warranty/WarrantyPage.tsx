@@ -123,7 +123,7 @@ const WarrantyPage: React.FC = () => {
       message.success('Yêu cầu bảo hành đã được gửi! Chúng tôi sẽ liên hệ lại trong vòng 24h.');
       form.resetFields();
       setCurrentStep(0);
-    } catch (error) {
+    } catch {
       message.error('Có lỗi xảy ra. Vui lòng thử lại sau.');
     }
   };

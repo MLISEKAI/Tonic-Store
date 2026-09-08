@@ -12,7 +12,7 @@ const WishlistPage: React.FC = () => {
     try {
       await addToCart(product, 1);
       message.success('Product added to cart');
-    } catch (error) {
+    } catch {
       message.error('Failed to add to cart');
     }
   };

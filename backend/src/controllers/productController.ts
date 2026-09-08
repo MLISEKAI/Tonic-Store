@@ -1,12 +1,35 @@
 import type { Request, Response } from "express";
+import { prisma } from '../prisma';
 import * as productService from "../services/productService";
 import logger from "../config/logger";
+import { parsePageOptions, calculatePagination } from '../common/types/pagination';
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
+    const pagination = parsePageOptions(req.query);
     const category = req.query.category as string;
-    const products = await productService.getAllProducts(category);
-    res.json(products);
+
+    const where = category ? { categoryId: parseInt(category) } : {};
+
+      const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        skip: (pagination.page - 1) * pagination.limit,
+        take: pagination.limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, name: true, description: true, price: true, promotionalPrice: true,
+          imageUrl: true, status: true, stock: true, isFeatured: true, isNew: true,
+          isBestSeller: true, rating: true, reviewCount: true, soldCount: true, viewCount: true,
+          seoUrl: true, createdAt: true, updatedAt: true, categoryId: true,
+          category: { select: { id: true, name: true } },
+        },
+      }),
+      prisma.product.count({ where }),
+    ]);
+
+    const paginationMeta = calculatePagination(total, pagination.limit, pagination.page);
+    res.apiSuccess(products, "Lấy danh sách sản phẩm thành công", 200, paginationMeta);
   } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: "Error fetching products" });
   }
 };

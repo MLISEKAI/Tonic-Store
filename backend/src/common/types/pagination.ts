@@ -1,3 +1,6 @@
+import { Response } from 'express';
+import { Prisma } from '@prisma/client';
+
 export interface PageOptionsDto {
   search_text?: string;
   page?: number;
@@ -76,4 +79,51 @@ export function decodeCursor(cursor: string): { created_at: string; id?: string 
   } catch {
     return null;
   }
+}
+
+export async function paginatedList<T>(
+  prismaModel: any,
+  args: {
+    where?: any;
+    include?: any;
+    orderBy?: any;
+    select?: any;
+  },
+  pageOptions: Required<PageOptionsDto>
+): Promise<{ items: T[]; pagination: PaginationMeta }> {
+  const { page, limit } = pageOptions;
+  const skip = (page - 1) * limit;
+
+  const [items, total] = await Promise.all([
+    prismaModel.findMany({
+      where: args.where,
+      include: args.include,
+      orderBy: args.orderBy || { createdAt: 'desc' },
+      select: args.select,
+      skip,
+      take: limit,
+    }),
+    prismaModel.count({ where: args.where }),
+  ]);
+
+  return {
+    items,
+    pagination: calculatePagination(total, limit, page),
+  };
+}
+
+export function sendPaginated<T>(
+  res: Response,
+  data: { items: T[]; pagination: PaginationMeta },
+  message = 'success'
+): void {
+  res.json({
+    error: false,
+    code: 200,
+    message,
+    data: data.items,
+    pagination: data.pagination,
+    traceId: '',
+    timestamp: new Date().toISOString(),
+  });
 }

@@ -1,16 +1,7 @@
-import { fetchWithCredentials, getHeaders } from './api';
+import { fetchWithCredentials, getHeaders, handleResponse } from './api';
 import { Product, CreateProductData, UpdateProductData } from '../types/product';
 
 const API_URL = import.meta.env.VITE_API_URL + '/api/products';
-
-// Xử lý phản hồi từ API
-const handleResponse = async (response: Response) => {
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error || 'Something went wrong');
-  }
-  return response.json();
-};
 
 export const productService = {
   getAllProducts: async (): Promise<Product[]> => {

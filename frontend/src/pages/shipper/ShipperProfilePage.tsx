@@ -46,7 +46,7 @@ const ShipperProfilePage: React.FC = () => {
         placement: 'topRight',
         duration: 2,
       });
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Cập nhật thông tin thất bại',

@@ -176,5 +176,48 @@ export const UserService = {
       }
     });
     return handleResponse(response);
+  },
+
+  // Gửi mã xác thực đăng ký
+  async sendRegisterCode(email: string) {
+    const response = await fetch(ENDPOINTS.AUTH.SEND_REGISTER_CODE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email }),
+    });
+    return handleResponse(response);
+  },
+
+  // Xác thực mã OTP (chỉ verify, không tạo user)
+  async verifyOtpOnly(email: string, code: string) {
+    const response = await fetchWithCredentials(ENDPOINTS.AUTH.VERIFY_OTP_ONLY, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, code }),
+    });
+    return handleResponse(response);
+  },
+
+  // Xác thực mã và đăng ký
+  async verifyRegisterCode(data: {
+    email: string;
+    code: string;
+    name: string;
+    password: string;
+    phone?: string;
+    address?: string;
+  }) {
+    const response = await fetchWithCredentials(ENDPOINTS.AUTH.VERIFY_REGISTER_CODE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
   }
 };

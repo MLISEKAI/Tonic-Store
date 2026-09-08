@@ -4,6 +4,7 @@ import { OrderStatus } from "@prisma/client";
 import { createPaymentUrl } from "../services/vnpayService";
 import { processDiscountCodeUsage } from "../services/discountCodeService";
 import logger from '../config/logger';
+import { parsePageOptions, calculatePagination } from '../common/types/pagination';
 
 interface OrderItem {
   productId: number;
@@ -225,22 +226,28 @@ export const OrderController = {
   async getUserOrders(req: Request, res: Response) {
     try {
       const { userId } = req.params;
-      const orders = await prisma.order.findMany({
-        where: { userId: Number(userId) },
-        include: {
-          items: {
-            include: {
-              product: true,
-            },
-          },
-          payment: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
+      const pagination = parsePageOptions(req.query);
 
-      res.json(orders);
+      const [orders, total] = await Promise.all([
+        prisma.order.findMany({
+          where: { userId: Number(userId) },
+          include: {
+            items: {
+              include: {
+                product: { select: { id: true, name: true, imageUrl: true, price: true, promotionalPrice: true } },
+              },
+            },
+            payment: { select: { id: true, method: true, status: true, amount: true } },
+          },
+          orderBy: { createdAt: "desc" },
+          skip: (pagination.page - 1) * pagination.limit,
+          take: pagination.limit,
+        }),
+        prisma.order.count({ where: { userId: Number(userId) } }),
+      ]);
+
+      const paginationMeta = calculatePagination(total, pagination.limit, pagination.page);
+      res.apiSuccess(orders, "Lấy danh sách đơn hàng thành công", 200, paginationMeta);
     } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: "Failed to get user orders" });
     }
   },
@@ -302,8 +309,8 @@ export const OrderController = {
   // Get all orders (admin)
   async getAllOrders(req: Request, res: Response) {
     try {
-      const { status, page = 1, limit = 10 } = req.query;
-
+      const pagination = parsePageOptions(req.query);
+      const { status } = req.query;
       const where = status ? { status: status as OrderStatus } : {};
 
       const [orders, total] = await Promise.all([
@@ -312,28 +319,21 @@ export const OrderController = {
           include: {
             items: {
               include: {
-                product: true,
+                product: { select: { id: true, name: true, imageUrl: true, price: true, promotionalPrice: true } },
               },
             },
-            payment: true,
-            user: true,
+            payment: { select: { id: true, method: true, status: true, amount: true } },
+            user: { select: { id: true, name: true, email: true } },
           },
-          orderBy: {
-            createdAt: "desc",
-          },
-          skip: (Number(page) - 1) * Number(limit),
-          take: Number(limit),
+          orderBy: { createdAt: "desc" },
+          skip: (pagination.page - 1) * pagination.limit,
+          take: pagination.limit,
         }),
         prisma.order.count({ where }),
       ]);
 
-      res.json({
-        orders,
-        total,
-        page: Number(page),
-        limit: Number(limit),
-        totalPages: Math.ceil(total / Number(limit)),
-      });
+      const paginationMeta = calculatePagination(total, pagination.limit, pagination.page);
+      res.apiSuccess(orders, "Lấy danh sách đơn hàng thành công", 200, paginationMeta);
     } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: "Failed to get orders" });
     }
   },

@@ -12,6 +12,16 @@ import shippingAddressRoutes from './routes/shippingAddressRoutes';
 import discountCodeRoutes from './routes/discountCodeRoutes';
 import shipperRoutes from './routes/shipperRoutes';
 import helpCenterRoutes from './routes/helpCenterRoutes';
+import walletRoutes from './routes/walletRoutes';
+import paymentGatewayRoutes from './routes/paymentGatewayRoutes';
+import withdrawalRoutes from './routes/withdrawalRoutes';
+import topUpPackageRoutes from './routes/topUpPackageRoutes';
+import logRoutes from './routes/logRoutes';
+import notificationRoutes from './routes/notificationRoutes';
+import reviewRoutes from './routes/reviewRoutes';
+import wishlistRoutes from './routes/wishlistRoutes';
+import { attachApiResponseHelpers } from './common/types/api-response';
+import logger from './config/logger';
 
 const app = express();
 
@@ -38,6 +48,17 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
+app.use(attachApiResponseHelpers);
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    logger.http(`${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`);
+  });
+  next();
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
@@ -49,6 +70,13 @@ app.use('/api/shipping-addresses', shippingAddressRoutes);
 app.use('/api/discount-codes', discountCodeRoutes);
 app.use('/api/shippers', shipperRoutes);
 app.use('/api/help-center', helpCenterRoutes);
-
+app.use('/api/wallet', walletRoutes);
+app.use('/api/payment-gateway', paymentGatewayRoutes);
+app.use('/api/withdrawal', withdrawalRoutes);
+app.use('/api/topup-packages', topUpPackageRoutes);
+app.use('/api/logs', logRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/wishlist', wishlistRoutes);
 
 export default app;

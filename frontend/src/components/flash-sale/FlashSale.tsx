@@ -36,7 +36,7 @@ const FlashSale: React.FC<FlashSaleProps> = ({ breadcrumb}) => {
         description: 'Đã thêm sản phẩm vào giỏ hàng',
         placement: 'topRight',
       });
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Không thể thêm sản phẩm vào giỏ hàng',

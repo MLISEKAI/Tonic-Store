@@ -1,94 +1,52 @@
-import { fetchWithCredentials, getHeaders } from './api';
+import { fetchWithCredentials, getHeaders, handleResponse } from './api';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const ShipperService = {
   // Lấy danh sách shipper
   async getAllShippers() {
-    try {
-      const response = await fetchWithCredentials(`${API_URL}/api/shippers`, {
-        headers: getHeaders()
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch shippers');
-      }
-      return response.json();
-    } catch (error) {
-      console.error('Error fetching shippers:', error);
-      throw error;
-    }
+    const response = await fetchWithCredentials(`${API_URL}/api/shippers`, {
+      headers: getHeaders()
+    });
+    return handleResponse(response);
   },
 
   // Lấy thông tin chi tiết shipper
   async getShipperById(id: number) {
-    try {
-      const response = await fetchWithCredentials(`${API_URL}/api/shippers/${id}`, {
-        headers: getHeaders()
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch shipper details');
-      }
-      return response.json();
-    } catch (error) {
-      console.error('Error fetching shipper details:', error);
-      throw error;
-    }
+    const response = await fetchWithCredentials(`${API_URL}/api/shippers/${id}`, {
+      headers: getHeaders()
+    });
+    return handleResponse(response);
   },
 
   // Gán shipper cho đơn hàng
   async assignShipperToOrder(orderId: number, shipperId: number) {
-    try {
-      const response = await fetchWithCredentials(`${API_URL}/api/shippers/orders/${orderId}/assign`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ shipperId })
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to assign shipper');
-      }
-      return response.json();
-    } catch (error) {
-      console.error('Error assigning shipper:', error);
-      throw error;
-    }
+    const response = await fetchWithCredentials(`${API_URL}/api/shippers/orders/${orderId}/assign`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ shipperId })
+    });
+    return handleResponse(response);
   },
 
   // Lấy lịch sử giao hàng của một đơn hàng (admin)
   async getOrderDeliveryLogs(orderId: number) {
-    try {
-      const response = await fetchWithCredentials(`${API_URL}/api/orders/${orderId}/delivery/logs`, {
-        headers: getHeaders()
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch delivery logs');
-      }
-      return response.json();
-    } catch (error) {
-      console.error('Error fetching delivery logs:', error);
-      throw error;
-    }
+    const response = await fetchWithCredentials(`${API_URL}/api/orders/${orderId}/delivery/logs`, {
+      headers: getHeaders()
+    });
+    return handleResponse(response);
   },
 
   // Lấy đánh giá của người dùng cho đơn hàng (admin)
   async getOrderDeliveryRating(orderId: number) {
-    try {
-      const response = await fetchWithCredentials(`${API_URL}/api/orders/${orderId}/delivery/rating`, {
-        headers: getHeaders()
-      });
-      if (!response.ok) {
-        // 404 coi như chưa có đánh giá
-        if (response.status === 404) return null;
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch delivery rating');
-      }
-      return response.json();
-    } catch (error) {
-      console.error('Error fetching delivery rating:', error);
-      throw error;
+    const response = await fetchWithCredentials(`${API_URL}/api/orders/${orderId}/delivery/rating`, {
+      headers: getHeaders()
+    });
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch delivery rating');
     }
+    return handleResponse(response);
   }
 };

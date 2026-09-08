@@ -22,7 +22,7 @@ export default tseslint.config(
       'react-hooks/exhaustive-deps': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'warn',
-        { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' },
+        { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
       ],
       'react-refresh/only-export-components': [
         'warn',

@@ -30,6 +30,9 @@ export const ENDPOINTS = {
     LOGOUT: `${API_URL}/api/auth/logout`,
     FORGOT_PASSWORD: `${API_URL}/api/auth/forgot-password`,
     RESET_PASSWORD: `${API_URL}/api/auth/reset-password`,
+    SEND_REGISTER_CODE: `${API_URL}/api/auth/send-register-code`,
+    VERIFY_OTP_ONLY: `${API_URL}/api/auth/verify-otp-only`,
+    VERIFY_REGISTER_CODE: `${API_URL}/api/auth/verify-register-code`,
   },
   // User
   USER: {
@@ -122,6 +125,35 @@ export const ENDPOINTS = {
     UPDATE_STATUS: (orderId: string) => `${API_URL}/api/orders/${orderId}/payment`,
     CONFIRM_COD: (orderId: number) => `${API_URL}/api/orders/${orderId}/confirm-cod`,
   },
+  // Wallet
+  WALLET: {
+    GET: `${API_URL}/api/wallet`,
+    TOPUP: `${API_URL}/api/wallet/topup`,
+    DEDUCT: `${API_URL}/api/wallet/deduct`,
+    REFUND: `${API_URL}/api/wallet/refund`,
+    TRANSACTIONS: `${API_URL}/api/wallet/transactions`,
+  },
+  // Withdrawals
+  WITHDRAWAL: {
+    REQUEST: `${API_URL}/api/withdrawals/request`,
+    MY: `${API_URL}/api/withdrawals/my`,
+    PENDING: `${API_URL}/api/withdrawals/pending`,
+    APPROVE: (id: number) => `${API_URL}/api/withdrawals/${id}/approve`,
+    REJECT: (id: number) => `${API_URL}/api/withdrawals/${id}/reject`,
+  },
+  // Top-up Packages
+  TOP_UP_PACKAGES: {
+    LIST: `${API_URL}/api/top-up-packages`,
+    ACTIVE: `${API_URL}/api/top-up-packages/active`,
+    DETAIL: (id: number) => `${API_URL}/api/top-up-packages/${id}`,
+  },
+  // Payment Gateway (deposit simulation)
+  PAYMENT_GATEWAY: {
+    DEPOSIT: `${API_URL}/api/payment-gateway/deposit`,
+    COMPLETE: (id: number) => `${API_URL}/api/payment-gateway/${id}/complete`,
+    FAIL: (id: number) => `${API_URL}/api/payment-gateway/${id}/fail`,
+    CANCEL: (id: number) => `${API_URL}/api/payment-gateway/${id}/cancel`,
+  },
   // Delivery
   DELIVERY: {
     INFO: (orderId: string) => `${API_URL}/api/orders/${orderId}/delivery`,
@@ -170,16 +202,15 @@ export const handleResponse = async (response: Response) => {
       const text = await response.text();
       throw new Error(text || `HTTP ${response.status}`);
     } catch (e) {
-      // Fallback when body is empty or parsing fails
       if (e instanceof Error) throw e;
       throw new Error(`HTTP ${response.status}`);
     }
   }
   const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
-    return response.json();
+    const json = await response.json();
+    return json.data !== undefined ? json.data : json;
   }
-  // When server returns empty body (204/empty 200)
   return null as unknown as any;
 };
 

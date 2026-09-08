@@ -2,21 +2,25 @@ import express from "express";
 import type { Request, Response } from "express";
 import { getAllProducts, createProduct, getProductById, updateProduct, deleteProduct, searchProducts, updateProductStatus, updateProductRating, getProductBySeoUrl, incrementViewCount, getFlashSaleProducts, getNewestProducts, getBestSellingProducts } from "../services/productService";
 import { authenticate } from "../middleware/auth";
- import { cacheMiddleware } from "../services/cache-middleware";
+import { cacheMiddleware } from "../services/cache-middleware";
 import { CacheKeys } from "../services/cache.service";
+import { handleControllerError, ErrorCodes } from "../common/types/api-response";
+import { parsePageOptions, sendPaginated } from "../common/types/pagination";
 import logger from "../config/logger";
 
 const router = express.Router();
 
-// Public routes - anyone can view products
 router.get("/", cacheMiddleware({
   ttl: 300,
   keyGenerator: (req) => `cache:${CacheKeys.PRODUCT_LIST(req.query.category as string, JSON.stringify(req.query))}`,
 }), async (req: Request, res: Response): Promise<void> => {
   try {
+    const pageOptions = parsePageOptions(req.query);
+    const { search_text } = pageOptions;
     const { category, status, isFeatured, isNew, isBestSeller, minPrice, maxPrice } = req.query;
-    const filters: any = {};
 
+    const filters: any = {};
+    if (category) filters.categoryName = category as string;
     if (status) filters.status = status;
     if (isFeatured !== undefined) filters.isFeatured = isFeatured === 'true';
     if (isNew !== undefined) filters.isNew = isNew === 'true';
@@ -24,11 +28,22 @@ router.get("/", cacheMiddleware({
     if (minPrice) filters.minPrice = parseFloat(minPrice as string);
     if (maxPrice) filters.maxPrice = parseFloat(maxPrice as string);
 
-    const products = await getAllProducts(category as string, filters);
-    res.json(products);
+    const products = await getAllProducts(filters.categoryName, filters);
+    const total = products.length;
+    const skip = (pageOptions.page - 1) * pageOptions.limit;
+    const paginatedProducts = products.slice(skip, skip + pageOptions.limit);
+
+    const pagination = {
+      item_count: paginatedProducts.length,
+      total_items: total,
+      items_per_page: pageOptions.limit,
+      total_pages: Math.ceil(total / pageOptions.limit),
+      current_page: pageOptions.page,
+    };
+
+    sendPaginated(res, { items: paginatedProducts, pagination }, "Lấy danh sách sản phẩm thành công");
   } catch (error) {
-    logger.error('Failed to get products', { err: (error as Error).message });
-    res.status(500).json({ error: 'Failed to get products' });
+    handleControllerError(res, error, "GET /api/products");
   }
 });
 
@@ -36,27 +51,22 @@ router.get("/search", async (req: Request, res: Response): Promise<void> => {
   try {
     const query = req.query.q as string;
     if (!query) {
-      res.status(400).json({ error: "Vui lòng nhập từ khóa tìm kiếm" });
+      res.apiError("Vui lòng nhập từ khóa tìm kiếm", ErrorCodes.BAD_REQUEST);
       return;
     }
     const products = await searchProducts(query);
-    res.json(products);
+    res.apiSuccess(products, "Tìm kiếm thành công");
   } catch (error) {
-    logger.error('Error searching products', { err: (error as Error).message });
-    res.status(500).json({ error: "Lỗi khi tìm kiếm sản phẩm" });
+    handleControllerError(res, error, "GET /api/products/search");
   }
 });
 
 router.get("/flash-sale", cacheMiddleware({ ttl: 60, keyGenerator: () => `cache:${CacheKeys.PRODUCT_FLASH_SALE()}` }), async (req: Request, res: Response): Promise<void> => {
   try {
     const products = await getFlashSaleProducts();
-    res.json(products);
+    res.apiSuccess(products, "Lấy sản phẩm flash sale thành công");
   } catch (error) {
-    logger.error('Error in flash sale route', { err: (error as Error).message });
-    res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to get flash sale products',
-      details: error instanceof Error ? error.stack : undefined
-    });
+    handleControllerError(res, error, "GET /api/products/flash-sale");
   }
 });
 
@@ -68,13 +78,9 @@ router.get("/featured", cacheMiddleware({
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
     const products = await getAllProducts(undefined, { isFeatured: true });
     const limitedProducts = products.slice(0, limit);
-    res.json(limitedProducts);
+    res.apiSuccess(limitedProducts, "Lấy sản phẩm nổi bật thành công");
   } catch (error) {
-    logger.error('Error in featured products route', { err: (error as Error).message });
-    res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to get featured products',
-      details: error instanceof Error ? error.stack : undefined
-    });
+    handleControllerError(res, error, "GET /api/products/featured");
   }
 });
 
@@ -85,13 +91,9 @@ router.get("/newest", cacheMiddleware({
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
     const products = await getNewestProducts(limit);
-    res.json(products);
+    res.apiSuccess(products, "Lấy sản phẩm mới nhất thành công");
   } catch (error) {
-    logger.error('Error in newest products route', { err: (error as Error).message });
-    res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to get newest products',
-      details: error instanceof Error ? error.stack : undefined
-    });
+    handleControllerError(res, error, "GET /api/products/newest");
   }
 });
 
@@ -102,13 +104,9 @@ router.get("/best-selling", cacheMiddleware({
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
     const products = await getBestSellingProducts(limit);
-    res.json(products);
+    res.apiSuccess(products, "Lấy sản phẩm bán chạy thành công");
   } catch (error) {
-    logger.error('Error in best selling products route', { err: (error as Error).message });
-    res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to get best selling products',
-      details: error instanceof Error ? error.stack : undefined
-    });
+    handleControllerError(res, error, "GET /api/products/best-selling");
   }
 });
 
@@ -117,13 +115,12 @@ router.get("/seo/:seoUrl", async (req: Request, res: Response): Promise<void> =>
     const { seoUrl } = req.params;
     const product = await getProductBySeoUrl(seoUrl);
     if (!product) {
-      res.status(404).json({ error: 'Product not found' });
+      res.apiError('Sản phẩm không tồn tại', ErrorCodes.NOT_FOUND);
       return;
     }
-    res.json(product);
+    res.apiSuccess(product, "Lấy sản phẩm thành công");
   } catch (error) {
-    logger.error('Failed to get product by seoUrl', { err: (error as Error).message });
-    res.status(500).json({ error: 'Failed to get product' });
+    handleControllerError(res, error, "GET /api/products/seo/:seoUrl");
   }
 });
 
@@ -135,73 +132,68 @@ router.get("/:id", cacheMiddleware({
     const id = parseInt(req.params.id);
     const product = await getProductById(id);
     if (!product) {
-      res.status(404).json({ error: 'Product not found' });
+      res.apiError('Sản phẩm không tồn tại', ErrorCodes.NOT_FOUND);
       return;
     }
-    res.json(product);
+    res.apiSuccess(product, "Lấy sản phẩm thành công");
   } catch (error) {
-    logger.error('Failed to get product', { err: (error as Error).message });
-    res.status(500).json({ error: 'Failed to get product' });
+    handleControllerError(res, error, "GET /api/products/:id");
   }
 });
 
 router.post("/", authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user || req.user.role !== "ADMIN") {
-      res.status(403).json({ error: "Only admin can create products" });
+      res.apiError("Chỉ admin mới có quyền tạo sản phẩm", ErrorCodes.FORBIDDEN);
       return;
     }
     const product = await createProduct(req.body);
-    res.json(product);
+    res.apiSuccess(product, "Tạo sản phẩm thành công", 201);
   } catch (error) {
-    logger.error('Failed to create product', { err: (error as Error).message });
-    res.status(500).json({ error: 'Failed to create product' });
+    handleControllerError(res, error, "POST /api/products");
   }
 });
 
 router.put("/:id", authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user || req.user.role !== "ADMIN") {
-      res.status(403).json({ error: "Only admin can update products" });
+      res.apiError("Chỉ admin mới có quyền cập nhật sản phẩm", ErrorCodes.FORBIDDEN);
       return;
     }
     const id = parseInt(req.params.id);
     const product = await updateProduct(id, req.body);
-    res.json(product);
+    res.apiSuccess(product, "Cập nhật sản phẩm thành công");
   } catch (error) {
-    logger.error('Failed to update product', { err: (error as Error).message });
-    res.status(500).json({ error: 'Failed to update product' });
+    handleControllerError(res, error, "PUT /api/products/:id");
   }
 });
 
 router.delete("/:id", authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user || req.user.role !== "ADMIN") {
-      res.status(403).json({ error: "Only admin can delete products" });
+      res.apiError("Chỉ admin mới có quyền xóa sản phẩm", ErrorCodes.FORBIDDEN);
       return;
     }
     const id = parseInt(req.params.id);
     await deleteProduct(id);
-    res.json({ message: 'Product deleted successfully' });
+    res.apiSuccess(null, 'Xóa sản phẩm thành công');
   } catch (error) {
-    logger.error('Failed to delete product', { err: (error as Error).message });
-    res.status(500).json({ error: 'Failed to delete product' });
+    handleControllerError(res, error, "DELETE /api/products/:id");
   }
 });
 
 router.patch("/:id/status", authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user || req.user.role !== "ADMIN") {
-      res.status(403).json({ error: "Only admin can update product status" });
+      res.apiError("Chỉ admin mới có quyền cập nhật trạng thái sản phẩm", ErrorCodes.FORBIDDEN);
       return;
     }
     const id = parseInt(req.params.id);
     const { status } = req.body;
     const product = await updateProductStatus(id, status);
-    res.json(product);
+    res.apiSuccess(product, "Cập nhật trạng thái sản phẩm thành công");
   } catch (error) {
-    logger.error('Failed to update product status', { err: (error as Error).message });
-    res.status(500).json({ error: 'Failed to update product status' });
+    handleControllerError(res, error, "PATCH /api/products/:id/status");
   }
 });
 
@@ -209,10 +201,9 @@ router.patch("/:id/rating", async (req: Request, res: Response): Promise<void> =
   try {
     const id = parseInt(req.params.id);
     const product = await updateProductRating(id);
-    res.json(product);
+    res.apiSuccess(product, "Cập nhật đánh giá sản phẩm thành công");
   } catch (error) {
-    logger.error('Failed to update product rating', { err: (error as Error).message });
-    res.status(500).json({ error: 'Failed to update product rating' });
+    handleControllerError(res, error, "PATCH /api/products/:id/rating");
   }
 });
 
@@ -220,10 +211,9 @@ router.patch("/:id/view", async (req: Request, res: Response): Promise<void> => 
   try {
     const id = parseInt(req.params.id);
     const product = await incrementViewCount(id);
-    res.json(product);
+    res.apiSuccess(product, "Cập nhật lượt xem sản phẩm thành công");
   } catch (error) {
-    logger.error('Failed to update product view count', { err: (error as Error).message });
-    res.status(500).json({ error: 'Failed to update product view count' });
+    handleControllerError(res, error, "PATCH /api/products/:id/view");
   }
 });
 

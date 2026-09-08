@@ -63,7 +63,7 @@ export const getStats = async () => {
     categorySales
   };
 
-  await CacheService.set(cacheKey, result, 300);
+  await CacheService.set(cacheKey, result, 900);
   return result;
 };
 
@@ -87,7 +87,7 @@ export const getSalesByDate = async (startDate: Date, endDate: Date) => {
     return acc;
   }, {});
 
-  await CacheService.set(cacheKey, salesByDay, 300);
+  await CacheService.set(cacheKey, salesByDay, 900);
   return salesByDay;
 };
 
@@ -121,6 +121,6 @@ export const getTopCustomers = async (limit: number = 10) => {
     .sort((a, b) => b.totalSpent - a.totalSpent)
     .slice(0, limit);
 
-  await CacheService.set(cacheKey, result, 300);
+  await CacheService.set(cacheKey, result, 900);
   return result;
 };

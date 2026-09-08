@@ -15,7 +15,51 @@ code {
     monospace;
 }
 
-
 .ant-steps-item-icon .anticon {
   color: #1677ff !important;
+}
+
+/* Login & Register Button */
+.login-btn.ant-btn {
+  background-color: #111827 !important;
+  border-color: #111827 !important;
+  color: #ffffff !important;
+}
+
+.login-btn.ant-btn:hover {
+  background-color: #ffffff !important;
+  border-color: #111827 !important;
+  color: #111827 !important;
+}
+
+/* Step Animation */
+.animate-step {
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Page Slide Animation */
+.animate-page-slide-in {
+  animation: pageSlideIn 0.35s ease-out;
+}
+
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

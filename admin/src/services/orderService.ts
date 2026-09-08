@@ -1,5 +1,5 @@
 import { Order, OrderDetail, CreateOrderData } from '../types/order';
-import { fetchWithCredentials, getHeaders } from './api';
+import { fetchWithCredentials, getHeaders, handleResponse } from './api';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -11,8 +11,7 @@ const OrderService = {
       headers: getHeaders(),
       body: JSON.stringify(orderData),
     });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
+    return handleResponse(response);
   },
 
   // Get order by ID
@@ -20,8 +19,7 @@ const OrderService = {
     const response = await fetchWithCredentials(`${API_URL}/api/orders/${id}`, {
       headers: getHeaders()
     });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
+    return handleResponse(response);
   },
 
   // Get user's orders
@@ -29,8 +27,7 @@ const OrderService = {
     const response = await fetchWithCredentials(`${API_URL}/api/orders/user/${userId}`, {
       headers: getHeaders()
     });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
+    return handleResponse(response);
   },
 
   // Get all orders (admin)
@@ -39,8 +36,7 @@ const OrderService = {
     const response = await fetchWithCredentials(`${API_URL}/api/orders?${queryString}`, {
          headers: getHeaders()
     });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
+    return handleResponse(response);
   },
 
   // Update order status (admin)
@@ -50,8 +46,7 @@ const OrderService = {
        headers: getHeaders(),
        body: JSON.stringify({ status })
      });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
+    return handleResponse(response);
   },
 
   // Update payment status (admin)
@@ -61,8 +56,17 @@ const OrderService = {
       headers: getHeaders(),
       body: JSON.stringify({ status, transactionId })
     });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
+    return handleResponse(response);
+  },
+
+  // Confirm bank transfer payment (admin)
+  async confirmBankTransfer(id: string, transactionId?: string) {
+    const response = await fetchWithCredentials(`${API_URL}/api/orders/${id}/confirm-bank-transfer`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ transactionId })
+    });
+    return handleResponse(response);
   }
 };
 

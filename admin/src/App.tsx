@@ -12,10 +12,12 @@ import Promotions from './components/DiscountCode'
 import LogDashboard from './components/LogDashboard'
 import AdminRouter from './components/AdminRouter'
 import AdminWelcome from './components/AdminWelcome'
+import AdminLoginPage from './pages/AdminLoginPage'
 
 function App() {
   return (
     <Routes>
+      <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin" element={<AdminRouter><AdminPage /></AdminRouter>}>
         <Route index element={<AdminWelcome />} />
         <Route path="dashboard" element={<DashboardPage />} />

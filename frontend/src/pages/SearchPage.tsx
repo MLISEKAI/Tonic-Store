@@ -30,7 +30,7 @@ const SearchPage = () => {
       try {
         const res = await ProductService.getCategories();
         setCategories(res.map((c: any) => ({ id: c.id, name: c.name })));
-      } catch (error) {
+      } catch {
         notification.error({ message: 'Lỗi', description: 'Không lấy được danh mục', duration: 2 });
       }
     };
@@ -69,7 +69,7 @@ const SearchPage = () => {
           }
         }
         setProducts(sorted);
-      } catch (error) {
+      } catch {
         notification.error({ message: 'Lỗi', description: 'Không lấy được sản phẩm', duration: 2 });
       } finally {
         setLoading(false);
@@ -87,7 +87,7 @@ const SearchPage = () => {
       }
       await addToCart(product, 1);
       notification.success({ message: 'Thành công', description: 'Đã thêm sản phẩm vào giỏ hàng', duration: 2 });
-    } catch (error) {
+    } catch {
       notification.error({ message: 'Lỗi', description: 'Thêm sản phẩm vào giỏ hàng thất bại', duration: 2 });
     }
   };

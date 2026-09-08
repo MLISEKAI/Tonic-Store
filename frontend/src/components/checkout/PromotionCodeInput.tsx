@@ -43,7 +43,7 @@ const PromotionCodeInput = forwardRef<PromotionCodeInputRef, PromotionCodeInputP
     setSelectedCode(null);
     setDiscountAmount(0);
     onDiscountApplied(0, orderValue, undefined);
-  }, [location.pathname]); // Refresh khi route thay đổi (ví dụ quay lại checkout)
+  }, [location.pathname, onDiscountApplied, orderValue]); // Refresh khi route thay đổi (ví dụ quay lại checkout)
 
   const fetchClaimedCodes = async () => {
     try {

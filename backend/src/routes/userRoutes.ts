@@ -1,19 +1,26 @@
 import express from "express";
 import type { Request, Response } from "express";
-import { getAllUsers, deleteUser, getUserProfile, updateUserProfile, changeUserPassword, changeOwnPassword, updateUser } from "../services/userService";
+import { getAllUsers, getUserProfile, updateUserProfile, changeUserPassword, changeOwnPassword, updateUser, deleteUser } from "../services/userService";
 import { authenticate, requireAdmin } from "../middleware/auth";
-import logger from "../config/logger";
+import { handleControllerError, ErrorCodes } from "../common/types/api-response";
+import { parsePageOptions, sendPaginated } from "../common/types/pagination";
 
 const router = express.Router();
 
 router.get("/", authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
-    const users = await getAllUsers();
-    res.json(users);
-    return;
+    const pageOptions = parsePageOptions(req.query);
+    const search = pageOptions.search_text || '';
+
+    const result = await getAllUsers({
+      page: pageOptions.page,
+      limit: pageOptions.limit,
+      search,
+    });
+
+    sendPaginated(res, result, "Lấy danh sách users thành công");
   } catch (error) {
-    logger.error('Failed to get users', { err: (error as Error).message });
-    res.status(500).json({ error: "Lỗi khi lấy danh sách user" });
+    handleControllerError(res, error, "GET /api/users");
   }
 });
 
@@ -25,65 +32,58 @@ router.delete("/:id", authenticate, requireAdmin, async (req: Request, res: Resp
 
     if (force && deletedBy) {
       await deleteUser(userId, true, deletedBy);
-      res.json({ message: "User đã bị xóa (force delete)" });
+      res.apiSuccess({ forceDeleted: true }, "User đã bị xóa (force delete)");
     } else {
       await deleteUser(userId, false);
-      res.json({ message: "User đã bị xóa" });
+      res.apiSuccess(null, "User đã bị xóa");
     }
-    return;
   } catch (error) {
-    console.error(error);
-    if (error instanceof Error) {
-      // Nếu lỗi liên quan đến các hồ sơ liên quan, trả về 400 với thông báo
-      if (error.message.includes('Không thể xóa người dùng')) {
-        res.status(400).json({ error: error.message });
-        return;
-      }
+    if (error instanceof Error && error.message.includes('Không thể xóa người dùng')) {
+      res.apiError(error.message, ErrorCodes.BAD_REQUEST);
+      return;
     }
-    res.status(500).json({ error: "Lỗi khi xóa user" });
-    return;
+    handleControllerError(res, error, "DELETE /api/users/:id");
   }
 });
 
-// Get user profile
 router.get('/profile', authenticate, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ message: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
     const user = await getUserProfile(userId);
-    res.json(user);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: 'Error fetching user profile' });
+    res.apiSuccess(user, "Lấy thông tin user thành công");
+  } catch (error) {
+    handleControllerError(res, error, "GET /api/users/profile");
   }
 });
 
-// Update user profile
 router.put('/profile', authenticate, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ message: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
     const updatedUser = await updateUserProfile(userId, req.body);
-    res.json(updatedUser);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ message: 'Error updating user profile' });
+    res.apiSuccess(updatedUser, "Cập nhật thông tin thành công");
+  } catch (error) {
+    handleControllerError(res, error, "PUT /api/users/profile");
   }
 });
 
-// Admin changes user's password
 router.put("/:id/password", authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { newPassword } = req.body;
     if (!newPassword) {
-      res.status(400).json({ error: "Mật khẩu mới là bắt buộc" });
+      res.apiError('Mật khẩu mới là bắt buộc', ErrorCodes.BAD_REQUEST);
       return;
     }
 
     if (!req.user) {
-      res.status(401).json({ error: "Unauthorized" });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
@@ -92,39 +92,37 @@ router.put("/:id/password", authenticate, requireAdmin, async (req: Request, res
       req.user.id,
       newPassword
     );
-    res.json(updatedUser);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: "Lỗi khi thay đổi mật khẩu" });
+    res.apiSuccess(updatedUser, "Đổi mật khẩu thành công");
+  } catch (error) {
+    handleControllerError(res, error, "PUT /api/users/:id/password");
   }
 });
 
-// User changes their own password
 router.put("/profile/password", authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ error: "Unauthorized" });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
-      res.status(400).json({ error: "Mật khẩu hiện tại và mật khẩu mới là bắt buộc" });
+      res.apiError('Mật khẩu hiện tại và mật khẩu mới là bắt buộc', ErrorCodes.BAD_REQUEST);
       return;
     }
 
     const updatedUser = await changeOwnPassword(userId, currentPassword, newPassword);
-    res.json(updatedUser);
+    res.apiSuccess(updatedUser, "Đổi mật khẩu thành công");
   } catch (error) {
     if (error instanceof Error && error.message === "Current password is incorrect") {
-      res.status(400).json({ error: "Mật khẩu hiện tại không đúng" });
+      res.apiError('Mật khẩu hiện tại không đúng', ErrorCodes.BAD_REQUEST);
       return;
     }
-    logger.error('Error', { err: (error as Error).message });
-    res.status(500).json({ error: "Lỗi khi thay đổi mật khẩu" });
+    handleControllerError(res, error, "PUT /api/users/profile/password");
   }
 });
 
-// Update user information (admin only)
 router.put("/:id", authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { name, email, role, phone, address } = req.body;
@@ -135,8 +133,9 @@ router.put("/:id", authenticate, requireAdmin, async (req: Request, res: Respons
       phone,
       address
     });
-    res.json(updatedUser);
-  } catch { logger.error('Error', { err: 'internal error' }); res.status(500).json({ error: "Lỗi khi cập nhật user" });
+    res.apiSuccess(updatedUser, "Cập nhật user thành công");
+  } catch (error) {
+    handleControllerError(res, error, "PUT /api/users/:id");
   }
 });
 

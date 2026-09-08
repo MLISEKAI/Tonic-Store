@@ -6,8 +6,11 @@ export class ProductRepository extends BaseRepository<any> {
     super(prisma.product);
   }
 
-  async findBySeoUrl(seoUrl: string) {
-    return this.model.findUnique({ where: { seoUrl } });
+  async findBySeoUrl(seoUrl: string, include?: any, select?: any) {
+    if (select) {
+      return this.model.findUnique({ where: { seoUrl }, select });
+    }
+    return this.model.findUnique({ where: { seoUrl }, include });
   }
 
   async updateStatus(id: number, status: string) {
@@ -22,6 +25,15 @@ export class ProductRepository extends BaseRepository<any> {
           { description: { contains: query } },
           { sku: { contains: query } },
         ],
+      },
+      select: {
+        id: true,
+        name: true,
+        imageUrl: true,
+        price: true,
+        promotionalPrice: true,
+        status: true,
+        stock: true,
       },
     });
   }
@@ -101,11 +113,17 @@ export class ProductRepository extends BaseRepository<any> {
     });
   }
 
-  async findProductsWithRelations(where: any, include: any) {
+  async findProductsWithRelations(where: any, include: any, select?: any) {
+    if (select) {
+      return this.model.findMany({ where, select });
+    }
     return this.model.findMany({ where, include });
   }
 
-  async findProductByIdWithRelations(id: number, include: any) {
+  async findProductByIdWithRelations(id: number, include: any, select?: any) {
+    if (select) {
+      return this.model.findUnique({ where: { id }, select });
+    }
     return this.model.findUnique({ where: { id }, include });
   }
 

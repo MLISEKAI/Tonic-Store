@@ -8,17 +8,42 @@ const productRepository = new ProductRepository();
 let lastFlashSaleNotificationSent = 0;
 const NOTIFICATION_COOLDOWN = 60 * 60 * 1000;
 
-const productIncludeRelations = {
-  category: true,
-  reviews: {
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true
-        }
-      }
+const productListSelect = {
+  id: true,
+  name: true,
+  description: true,
+  price: true,
+  promotionalPrice: true,
+  imageUrl: true,
+  status: true,
+  stock: true,
+  isFeatured: true,
+  isNew: true,
+  isBestSeller: true,
+  rating: true,
+  reviewCount: true,
+  soldCount: true,
+  viewCount: true,
+  seoUrl: true,
+  createdAt: true,
+  updatedAt: true,
+  category: {
+    select: {
+      id: true,
+      name: true,
     }
+  },
+};
+
+const productDetailInclude = {
+  category: { select: { id: true, name: true } },
+  reviews: {
+    select: {
+      id: true, rating: true, comment: true, createdAt: true,
+      user: { select: { id: true, name: true, avatarUrl: true } },
+    },
+    orderBy: { createdAt: 'desc' as const },
+    take: 10,
   }
 };
 
@@ -57,7 +82,7 @@ export const getAllProducts = async (categoryName?: string, filters?: {
     if (filters.maxPrice !== undefined) where.price = { ...where.price, lte: filters.maxPrice };
   }
 
-  const products = await productRepository.findProductsWithRelations(where, productIncludeRelations);
+  const products = await productRepository.findProductsWithRelations(where, undefined, productListSelect);
   await CacheService.set(cacheKey, products, 300);
   return products;
 };
@@ -71,7 +96,7 @@ export const getProductById = async (id: number) => {
     return cached;
   }
 
-  const product = await productRepository.findProductByIdWithRelations(id, productIncludeRelations);
+  const product = await productRepository.findProductByIdWithRelations(id, productDetailInclude);
   if (product) {
     await CacheService.set(cacheKey, product, 600);
   }
@@ -141,10 +166,7 @@ export const getProductBySeoUrl = async (seoUrl: string) => {
     return cached;
   }
 
-  const product = await productRepository.findProductByIdWithRelations(
-    (await productRepository.findBySeoUrl(seoUrl))?.id || 0,
-    productIncludeRelations
-  );
+  const product = await productRepository.findBySeoUrl(seoUrl, productDetailInclude);
   if (product) {
     await CacheService.set(cacheKey, product, 600);
   }

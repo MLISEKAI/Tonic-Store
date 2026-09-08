@@ -1,20 +1,20 @@
 import { prisma } from '../prisma';
 import type { Request, Response } from 'express';
 import * as cartService from '../services/cartService';
+import { handleControllerError, ErrorCodes } from '../common/types/api-response';
 
 export const getCart = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ message: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
     const cart = await cartService.getCart(userId);
-    res.json(cart);
+    res.apiSuccess(cart, "Lấy giỏ hàng thành công");
   } catch (error) {
-    console.error('Error in getCart controller:', error);
-    res.status(500).json({ message: 'Error fetching cart' });
+    handleControllerError(res, error, "getCart");
   }
 };
 
@@ -22,57 +22,48 @@ export const addToCart = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ message: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
     const { productId, quantity } = req.body;
     
-    // Validate input
     if (!productId || !quantity) {
-      res.status(400).json({ message: 'Missing required fields: productId and quantity are required' });
+      res.apiError('Missing required fields: productId and quantity are required', ErrorCodes.BAD_REQUEST);
       return;
     }
 
-    // Convert to numbers and validate
     const parsedProductId = Number(productId);
     const parsedQuantity = Number(quantity);
     
     if (isNaN(parsedProductId) || isNaN(parsedQuantity)) {
-      res.status(400).json({ message: 'Invalid input: productId and quantity must be numbers' });
+      res.apiError('Invalid input: productId and quantity must be numbers', ErrorCodes.BAD_REQUEST);
       return;
     }
 
     if (parsedQuantity <= 0) {
-      res.status(400).json({ message: 'Quantity must be greater than 0' });
+      res.apiError('Quantity must be greater than 0', ErrorCodes.BAD_REQUEST);
       return;
     }
 
-    // Check if product exists
     const product = await prisma.product.findUnique({
       where: { id: parsedProductId }
     });
 
     if (!product) {
-      res.status(404).json({ message: 'Product not found' });
+      res.apiError('Product not found', ErrorCodes.NOT_FOUND);
       return;
     }
 
-    // Check if product is in stock
     if (product.stock < parsedQuantity) {
-      res.status(400).json({ message: 'Not enough stock available' });
+      res.apiError('Not enough stock available', ErrorCodes.BAD_REQUEST);
       return;
     }
 
     const cartItem = await cartService.addToCart(userId, parsedProductId, parsedQuantity);
-    res.json(cartItem);
+    res.apiSuccess(cartItem, "Thêm vào giỏ hàng thành công");
   } catch (error) {
-    console.error('Error in addToCart controller:', error);
-    if (error instanceof Error) {
-      res.status(500).json({ message: `Error adding to cart: ${error.message}` });
-    } else {
-      res.status(500).json({ message: 'Error adding to cart' });
-    }
+    handleControllerError(res, error, "addToCart");
   }
 };
 
@@ -80,7 +71,7 @@ export const updateCartItem = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ message: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
@@ -88,25 +79,20 @@ export const updateCartItem = async (req: Request, res: Response) => {
     const { quantity } = req.body;
 
     if (!quantity || quantity < 1) {
-      res.status(400).json({ message: 'Invalid quantity' });
+      res.apiError('Invalid quantity', ErrorCodes.BAD_REQUEST);
       return;
     }
 
     await cartService.updateCartItem(userId, parseInt(itemId), quantity);
-    res.json({ message: 'Cart item updated successfully' });
+    res.apiSuccess(null, "Cập nhật giỏ hàng thành công");
   } catch (error) {
-    console.error('Error in updateCartItem controller:', error);
     if (error instanceof Error) {
-      if (error.message === 'Cart not found') {
-        res.status(404).json({ message: 'Cart not found' });
-        return;
-      }
-      if (error.message === 'Cart item not found') {
-        res.status(404).json({ message: 'Cart item not found' });
+      if (error.message === 'Cart not found' || error.message === 'Cart item not found') {
+        res.apiError(error.message, ErrorCodes.NOT_FOUND);
         return;
       }
     }
-    res.status(500).json({ message: 'Error updating cart item' });
+    handleControllerError(res, error, "updateCartItem");
   }
 };
 
@@ -114,26 +100,21 @@ export const removeFromCart = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ message: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
     const { itemId } = req.params;
-    const result = await cartService.removeFromCart(userId, parseInt(itemId));
-    res.json(result);
+    await cartService.removeFromCart(userId, parseInt(itemId));
+    res.apiSuccess(null, "Xóa khỏi giỏ hàng thành công");
   } catch (error) {
-    console.error('Error in removeFromCart controller:', error);
     if (error instanceof Error) {
-      if (error.message === 'Cart not found') {
-        res.status(404).json({ message: 'Cart not found' });
-        return;
-      }
-      if (error.message === 'Cart item not found') {
-        res.status(404).json({ message: 'Cart item not found' });
+      if (error.message === 'Cart not found' || error.message === 'Cart item not found') {
+        res.apiError(error.message, ErrorCodes.NOT_FOUND);
         return;
       }
     }
-    res.status(500).json({ message: 'Error removing from cart' });
+    handleControllerError(res, error, "removeFromCart");
   }
 };
 
@@ -141,20 +122,17 @@ export const clearCart = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ message: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
     await cartService.clearCart(userId);
-    res.json({ message: 'Cart cleared successfully' });
+    res.apiSuccess(null, "Xóa giỏ hàng thành công");
   } catch (error) {
-    console.error('Error in clearCart controller:', error);
-    if (error instanceof Error) {
-      if (error.message === 'Cart not found') {
-        res.status(404).json({ message: 'Cart not found' });
-        return;
-      }
+    if (error instanceof Error && error.message === 'Cart not found') {
+      res.apiError(error.message, ErrorCodes.NOT_FOUND);
+      return;
     }
-    res.status(500).json({ message: 'Error clearing cart' });
+    handleControllerError(res, error, "clearCart");
   }
-}; 
+};

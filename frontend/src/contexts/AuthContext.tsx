@@ -22,6 +22,16 @@ interface AuthContextType {
     phone: string;
     address: string;
   }) => Promise<void>;
+  sendRegisterCode: (email: string) => Promise<any>;
+  verifyOtpOnly: (email: string, code: string) => Promise<any>;
+  verifyRegisterCode: (data: {
+    email: string;
+    code: string;
+    name: string;
+    password: string;
+    phone?: string;
+    address?: string;
+  }) => Promise<any>;
   logout: () => void;
 }
 
@@ -91,6 +101,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const sendRegisterCode = async (email: string) => {
+    try {
+      const response = await UserService.sendRegisterCode(email);
+      return response;
+    } catch (error) {
+      console.error("Send register code error:", error);
+      throw error;
+    }
+  };
+
+  const verifyOtpOnly = async (email: string, code: string) => {
+    try {
+      const response = await UserService.verifyOtpOnly(email, code);
+      return response;
+    } catch (error) {
+      console.error("Verify OTP error:", error);
+      throw error;
+    }
+  };
+
+  const verifyRegisterCode = async (data: {
+    email: string;
+    code: string;
+    name: string;
+    password: string;
+    phone?: string;
+    address?: string;
+  }) => {
+    try {
+      const response = await UserService.verifyRegisterCode(data);
+      await checkAuth();
+      return response;
+    } catch (error) {
+      console.error("Verify register code error:", error);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       await UserService.logout();
@@ -110,6 +158,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         error,
         login,
         register,
+        sendRegisterCode,
+        verifyOtpOnly,
+        verifyRegisterCode,
         logout
       }}
     >

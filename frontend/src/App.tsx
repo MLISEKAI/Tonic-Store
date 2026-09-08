@@ -41,6 +41,7 @@ import ReturnRefundPage from "./pages/return-refund/ReturnRefundPage";
 import HowToSellPage from "./pages/how-to-sell/HowToSellPage";
 import WalletPage from "./pages/wallet/WalletPage";
 import WalletHelpPage from "./pages/help-center/WalletHelpPage";
+import WalletTopUpPage from "./pages/wallet/WalletTopUpPage";
 import XuPage from "./pages/xu/XuPage";
 import XuHelpPage from "./pages/help-center/XuHelpPage";
 import WarrantyPage from "./pages/warranty/WarrantyPage";
@@ -205,6 +206,11 @@ const AppContent = () => {
                         <Route path="/user/wallet" element={
                           <ProtectedRoute>
                             <WalletPage />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/user/wallet/topup" element={
+                          <ProtectedRoute>
+                            <WalletTopUpPage />
                           </ProtectedRoute>
                         } />
                         

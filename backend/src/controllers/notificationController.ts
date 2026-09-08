@@ -1,107 +1,87 @@
-import { prisma } from '../prisma';
+import { notificationService } from '../services/notificationService';
 import type { Request, Response } from 'express';
-import { CacheService } from '../services/cache.service';
+import { handleControllerError, ErrorCodes } from '../common/types/api-response';
 
 export class NotificationController {
-  // Get all notifications for a user
   async getNotifications(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-      const skip = (page - 1) * limit;
-
-      const cacheKey = `notifications:user:${userId}:page:${page}:limit:${limit}`;
-      const cached = await CacheService.get(cacheKey);
-      if (cached) {
-        res.json(cached);
+      if (!userId) {
+        res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
         return;
       }
 
-      const notifications = await prisma.notification.findMany({
-        where: { userId: userId },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      });
-
-      await CacheService.set(cacheKey, notifications, 60);
-      res.json(notifications);
+      const { items, pagination } = await notificationService.getNotifications(userId, req.query);
+      res.set('X-Cache', pagination ? '' : '');
+      res.apiSuccess(items, "Lấy danh sách thông báo thành công", 200, pagination);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      handleControllerError(res, error, "getNotifications");
     }
   }
 
-  // Mark a notification as read
   async markAsRead(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const userId = req.user?.id;
 
-      const notification = await prisma.notification.update({
-        where: { id: id, userId: userId },
-        data: { isRead: true }
-      });
+      if (!userId) {
+        res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
+        return;
+      }
 
-      void CacheService.deletePattern(`notifications:user:${userId}:page:*`);
-      res.json(notification);
+      const notification = await notificationService.markAsRead(id, userId);
+      res.apiSuccess(notification, "Đánh dấu đã đọc thành công");
     } catch (error) {
-      console.error('Error marking notification as read:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      handleControllerError(res, error, "markAsRead");
     }
   }
 
-  // Mark all notifications as read
   async markAllAsRead(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
 
-      await prisma.notification.updateMany({
-        where: { userId: userId, isRead: false },
-        data: { isRead: true }
-      });
+      if (!userId) {
+        res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
+        return;
+      }
 
-      void CacheService.deletePattern(`notifications:user:${userId}:page:*`);
-      res.json({ message: 'All notifications marked as read' });
+      await notificationService.markAllAsRead(userId);
+      res.apiSuccess(null, "Đánh dấu tất cả đã đọc thành công");
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      handleControllerError(res, error, "markAllAsRead");
     }
   }
 
-  // Delete a notification
   async deleteNotification(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const userId = req.user?.id;
 
-      await prisma.notification.delete({
-        where: { id: id, userId: userId }
-      });
+      if (!userId) {
+        res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
+        return;
+      }
 
-      void CacheService.deletePattern(`notifications:user:${userId}:page:*`);
-      res.json({ message: 'Notification deleted successfully' });
+      await notificationService.deleteNotification(id, userId);
+      res.apiSuccess(null, "Xóa thông báo thành công");
     } catch (error) {
-      console.error('Error deleting notification:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      handleControllerError(res, error, "deleteNotification");
     }
   }
 
-  // Delete all notifications
   async deleteAllNotifications(req: Request, res: Response) {
     try {
       const userId = req.user?.id;
 
-      await prisma.notification.deleteMany({
-        where: { userId: userId }
-      });
+      if (!userId) {
+        res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
+        return;
+      }
 
-      void CacheService.deletePattern(`notifications:user:${userId}:page:*`);
-      res.json({ message: 'All notifications deleted successfully' });
+      await notificationService.deleteAllNotifications(userId);
+      res.apiSuccess(null, "Xóa tất cả thông báo thành công");
     } catch (error) {
-      console.error('Error deleting all notifications:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      handleControllerError(res, error, "deleteAllNotifications");
     }
   }
-} 
+}

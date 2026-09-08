@@ -128,7 +128,7 @@ const OrderList: React.FC = () => {
         duration: 2,
       });
       await fetchOrders();
-    } catch (err) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Failed to update order status',
@@ -156,12 +156,10 @@ const OrderList: React.FC = () => {
 
     setLoading(true);
     try {
-      // Cập nhật trạng thái thanh toán
-      await OrderService.updatePaymentStatus(selectedOrder.id, 'COMPLETED', transactionId);
-
-      // Tự động cập nhật trạng thái đơn hàng sang CONFIRMED nếu đang ở PENDING
-      if (selectedOrder.status === 'PENDING') {
-        await OrderService.updateOrderStatus(selectedOrder.id, 'CONFIRMED');
+      if (selectedOrder.payment?.method === 'BANK_TRANSFER') {
+        await OrderService.confirmBankTransfer(selectedOrder.id, transactionId);
+      } else {
+        await OrderService.updatePaymentStatus(selectedOrder.id, 'COMPLETED', transactionId);
       }
 
       notification.success({
@@ -173,7 +171,7 @@ const OrderList: React.FC = () => {
       setConfirmModalVisible(false);
       setTransactionId('');
       await fetchOrders();
-    } catch (err) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Không thể xác nhận thanh toán',
@@ -195,12 +193,12 @@ const OrderList: React.FC = () => {
       try {
         const rating = await ShipperService.getOrderDeliveryRating(parseInt(order.id));
         setDeliveryRating(rating);
-      } catch (e) {
+      } catch {
         setDeliveryRating(null);
       }
       setDetailModalVisible(true);
-    } catch (err) {
-      console.error('Error fetching order details:', err);
+    } catch {
+      console.error('Error fetching order details:');
       notification.error({
         message: 'Lỗi',
         description: 'Không thể tải thông tin chi tiết đơn hàng',
@@ -223,7 +221,7 @@ const OrderList: React.FC = () => {
     try {
       const shipperList = await ShipperService.getAllShippers();
       setShippers(shipperList);
-    } catch (err) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Không thể tải danh sách shipper',

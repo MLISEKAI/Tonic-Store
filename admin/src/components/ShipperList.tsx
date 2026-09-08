@@ -15,7 +15,7 @@ const ShipperList: React.FC = () => {
       setLoading(true);
       const data = await shipperService.getAll();
       setShippers(data);
-    } catch (error) {
+    } catch {
       message.error('Failed to load shippers');
     } finally {
       setLoading(false);
@@ -31,7 +31,7 @@ const ShipperList: React.FC = () => {
       await shipperService.delete(id);
       message.success('Shipper deleted successfully');
       fetchShippers();
-    } catch (error) {
+    } catch {
       message.error('Failed to delete shipper');
     }
   };

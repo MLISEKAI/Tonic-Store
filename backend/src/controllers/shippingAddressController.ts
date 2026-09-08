@@ -1,29 +1,36 @@
 import type { Request, Response } from 'express';
 import * as shippingAddressService from '../services/shippingAddressService';
+import { handleControllerError, ErrorCodes } from '../common/types/api-response';
+import { parsePageOptions } from '../common/types/pagination';
 
 export const getShippingAddresses = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     const userRole = req.user?.role;
-    
+
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
-    // Nếu là admin, lấy tất cả địa chỉ
+    const pagination = parsePageOptions(req.query);
+
     if (userRole === 'ADMIN') {
-      const addresses = await shippingAddressService.getAllShippingAddresses();
-      res.json(addresses);
+      const { items, pagination: paginationMeta } = await shippingAddressService.getAllShippingAddresses({
+        page: pagination.page,
+        limit: pagination.limit,
+      });
+      res.apiSuccess(items, "Lấy danh sách địa chỉ thành công", 200, paginationMeta);
       return;
     }
 
-    // Nếu là user thường, chỉ lấy địa chỉ của họ
-    const addresses = await shippingAddressService.getShippingAddresses(userId);
-    res.json(addresses);
+    const { items, pagination: paginationMeta } = await shippingAddressService.getShippingAddresses(userId, {
+      page: pagination.page,
+      limit: pagination.limit,
+    });
+    res.apiSuccess(items, "Lấy danh sách địa chỉ thành công", 200, paginationMeta);
   } catch (error) {
-    console.error('Error getting shipping addresses:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleControllerError(res, error, "getShippingAddresses");
   }
 };
 
@@ -31,26 +38,25 @@ export const getShippingAddress = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      res.status(400).json({ error: 'Invalid address ID' });
+      res.apiError('Invalid address ID', ErrorCodes.BAD_REQUEST);
       return;
     }
 
     const address = await shippingAddressService.getShippingAddress(id, userId);
     if (!address) {
-      res.status(404).json({ error: 'Address not found' });
+      res.apiError('Address not found', ErrorCodes.NOT_FOUND);
       return;
     }
 
-    res.json(address);
+    res.apiSuccess(address, "Lấy địa chỉ thành công");
   } catch (error) {
-    console.error('Error getting shipping address:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleControllerError(res, error, "getShippingAddress");
   }
 };
 
@@ -58,13 +64,13 @@ export const createShippingAddress = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
     const { name, phone, address, isDefault } = req.body;
     if (!name || !phone || !address) {
-      res.status(400).json({ error: 'Missing required fields' });
+      res.apiError('Missing required fields', ErrorCodes.BAD_REQUEST);
       return;
     }
 
@@ -75,10 +81,9 @@ export const createShippingAddress = async (req: Request, res: Response) => {
       isDefault
     });
 
-    res.status(201).json(newAddress);
+    res.apiSuccess(newAddress, "Tạo địa chỉ thành công", 201);
   } catch (error) {
-    console.error('Error creating shipping address:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleControllerError(res, error, "createShippingAddress");
   }
 };
 
@@ -86,13 +91,13 @@ export const updateShippingAddress = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      res.status(400).json({ error: 'Invalid address ID' });
+      res.apiError('Invalid address ID', ErrorCodes.BAD_REQUEST);
       return;
     }
 
@@ -104,10 +109,9 @@ export const updateShippingAddress = async (req: Request, res: Response) => {
       isDefault
     });
 
-    res.json(updatedAddress);
+    res.apiSuccess(updatedAddress, "Cập nhật địa chỉ thành công");
   } catch (error) {
-    console.error('Error updating shipping address:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleControllerError(res, error, "updateShippingAddress");
   }
 };
 
@@ -115,21 +119,20 @@ export const deleteShippingAddress = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      res.status(400).json({ error: 'Invalid address ID' });
+      res.apiError('Invalid address ID', ErrorCodes.BAD_REQUEST);
       return;
     }
 
     await shippingAddressService.deleteShippingAddress(id, userId);
-    res.status(204).send();
+    res.apiSuccess(null, "Xóa địa chỉ thành công");
   } catch (error) {
-    console.error('Error deleting shipping address:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleControllerError(res, error, "deleteShippingAddress");
   }
 };
 
@@ -137,20 +140,19 @@ export const setDefaultShippingAddress = async (req: Request, res: Response) => 
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      res.apiError('Unauthorized', ErrorCodes.UNAUTHORIZED);
       return;
     }
 
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      res.status(400).json({ error: 'Invalid address ID' });
+      res.apiError('Invalid address ID', ErrorCodes.BAD_REQUEST);
       return;
     }
 
     const updatedAddress = await shippingAddressService.setDefaultShippingAddress(id, userId);
-    res.json(updatedAddress);
+    res.apiSuccess(updatedAddress, "Đặt địa chỉ mặc định thành công");
   } catch (error) {
-    console.error('Error setting default shipping address:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleControllerError(res, error, "setDefaultShippingAddress");
   }
-}; 
+};

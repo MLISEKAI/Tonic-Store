@@ -22,7 +22,7 @@ const FeaturedProductsPage = () => {
       try {
         const data = await ProductService.getFeaturedProducts();
         setProducts(data);
-      } catch (error) {
+      } catch {
         notification.error({
           message: 'Lỗi',
           description: 'Không thể tải danh sách sản phẩm nổi bật',
@@ -61,7 +61,7 @@ const FeaturedProductsPage = () => {
         placement: 'topRight',
         duration: 2,
       });
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Thêm sản phẩm vào giỏ hàng thất bại',

@@ -21,7 +21,7 @@ const WishlistButton: React.FC<WishlistButtonProps> = ({ productId, className, s
         placement: 'topRight',
         duration: 2,
       });
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Không thể cập nhật danh sách yêu thích',

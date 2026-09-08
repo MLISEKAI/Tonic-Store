@@ -13,6 +13,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<User>
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -24,11 +25,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkSession = async () => {
       try {
+        const stored = localStorage.getItem('admin_user');
+        if (stored) {
+          const profile = JSON.parse(stored);
+          if (profile.role === 'ADMIN') {
+            setUser(profile);
+            return;
+          }
+        }
+
         const profile = await userService.getProfile();
         if (profile.role !== 'ADMIN') {
           setUser(null);
           return;
         }
+        localStorage.setItem('admin_user', JSON.stringify(profile));
         setUser(profile);
       } catch (error) {
         setUser(null);
@@ -42,18 +53,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     const result = await userService.login(email, password);
-    if (result.role !== 'ADMIN') {
+    const userData = result.user || result;
+    if (userData.role !== 'ADMIN') {
       throw new Error('Bạn không có quyền truy cập vào trang quản trị');
     }
-    setUser(result);
-    console.log(result);
-    return result;
+    setUser(userData);
+    localStorage.setItem('admin_user', JSON.stringify(userData));
+    return userData;
+  };
+
+  const refreshUser = async () => {
+    try {
+      const profile = await userService.getProfile();
+      if (profile.role === 'ADMIN') {
+        setUser(profile);
+        localStorage.setItem('admin_user', JSON.stringify(profile));
+      } else {
+        setUser(null);
+        localStorage.removeItem('admin_user');
+      }
+    } catch {
+      // ignore
+    }
   };
 
   const logout = async () => {
-    await userService.logout();
+    try {
+      await userService.logout();
+    } catch (error) {
+      console.error('Logout API error:', error);
+    }
     setUser(null);
-    window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
+    localStorage.removeItem('admin_user');
+    if (window.location.pathname !== '/admin/login') {
+      window.location.href = '/admin/login';
+    }
   };
 
   return (
@@ -64,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         login,
         logout,
+        refreshUser,
       }}
     >
       {children}

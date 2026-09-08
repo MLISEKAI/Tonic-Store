@@ -4,13 +4,29 @@ import jwt from "jsonwebtoken";
 import config from "../../config";
 import { createRefreshToken } from '../../repositories/refreshTokenRepository';
 import { QueueService } from '../queue.service';
+import { CacheService, CacheKeys } from '../cache.service';
+import logger from '../../config/logger';
 
 const SECRET_KEY: jwt.Secret = config.jwt.secret || '';
 const REFRESH_SECRET_KEY: jwt.Secret = config.jwt.refreshSecret || '';
 
+const userLoginSelect = {
+  id: true,
+  email: true,
+  password: true,
+  role: true,
+  name: true,
+  phone: true,
+  address: true,
+  createdAt: true,
+};
+
 export const loginUser = async (email: string, password: string, deviceInfo: string | null = null) => {
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: userLoginSelect,
+    });
     if (!user) {
       throw new Error("User not found");
     }

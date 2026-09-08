@@ -26,7 +26,7 @@ const ProfilePage: FC = () => {
       const data = await UserService.getProfile();
       setProfile(data);
       setLoading(false)
-    } catch (error) {
+    } catch {
       message.error('Không thể tải thông tin hồ sơ');
     }
   };
@@ -45,7 +45,7 @@ const ProfilePage: FC = () => {
         placement: 'topRight',
         duration: 2,
       });
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Cập nhật thông tin thất bại',

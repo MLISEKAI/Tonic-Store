@@ -114,7 +114,7 @@ const OrderDetailPage: React.FC = () => {
           try {
             const rating = await ShipperService.getShipperRating(data.id);
             setShipperRating(rating as ShipperRating);
-          } catch (error) {
+          } catch {
             // Chưa có đánh giá cho đơn hàng này
             setShipperRating(null);
           }

@@ -230,6 +230,7 @@ export const CacheKeys = {
   USER_SESSION: (userId: number) => `user:session:${userId}`,
   USER_PROFILE: (userId: number) => `user:profile:${userId}`,
   USER_LIST: () => 'users:list',
+  USER_LIST_PAGED: (page?: number, limit?: number, search?: string) => `users:list:page:${page || 1}:limit:${limit || 10}:search:${search || ''}`,
 
   PRODUCT_LIST: (category?: string, filters?: string) => `products:list:${category || 'all'}:${filters || 'default'}`,
   PRODUCT_DETAIL: (id: number) => `products:detail:${id}`,
@@ -262,11 +263,15 @@ export const CacheKeys = {
   DISCOUNT_CODE_CLAIMED: (userId: number) => `discount-codes:claimed:${userId}`,
 
   WISHLIST: (userId: number) => `wishlist:${userId}`,
+  WISHLIST_PAGED: (userId: number, page?: number, limit?: number) => `wishlist:${userId}:page:${page || 1}:limit:${limit || 10}`,
 
   SHIPPER_LIST: () => 'shippers:list',
   SHIPPER_ORDERS: (shipperId: number, status?: string) => `shippers:orders:${shipperId}:${status || 'all'}`,
 
-  SHIPPING_ADDRESSES: (userId: number) => `shipping:addresses:${userId}`,
+   SHIPPING_ADDRESSES: (userId: number) => `shipping:addresses:${userId}`,
 
-  HELP_FAQ: () => 'help:faqs',
+   NOTIFICATIONS: (userId: number, page?: number, limit?: number) => `notifications:user:${userId}:page:${page || 1}:limit:${limit || 10}`,
+   NOTIFICATION_UNREAD_COUNT: (userId: number) => `notifications:unread:${userId}`,
+
+   HELP_FAQ: () => 'help:faqs',
 };

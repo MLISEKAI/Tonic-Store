@@ -1,4 +1,4 @@
-import { getRecentLogs, getSlowLogs } from '../middleware/request-logger';
+import { getRecentLogs } from '../middleware/request-logger';
 import { CacheService } from './cache.service';
 
 export interface OptimizationSuggestion {

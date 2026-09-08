@@ -22,6 +22,7 @@ import {
   CloseOutlined,
   CreditCardOutlined,
   GiftOutlined,
+  PlusOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useAuth } from '../../contexts/AuthContext';
@@ -151,6 +152,15 @@ const Navbar = () => {
       )
     },
     {
+      key: 'topup',
+      label: (
+        <Link to="/user/wallet/topup" className="flex items-center">
+          <PlusOutlined className="mr-2" />
+          Nạp tiền
+        </Link>
+      )
+    },
+    {
       key: 'xu',
       label: (
         <Link to="/user/xu" className="flex items-center">
@@ -178,7 +188,7 @@ const Navbar = () => {
         const results = await ProductService.searchProducts(searchQuery.trim());
         navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`, { state: { results } });
         setIsMobileMenuOpen(false);
-      } catch (error) {
+      } catch {
         notification.error({
           message: 'Lỗi',
           description: 'Có lỗi xảy ra khi tìm kiếm sản phẩm',

@@ -35,7 +35,7 @@ const Promotions: React.FC = () => {
         isActive: Boolean(item.isActive),
       }));
       setPromotions(normalized);
-    } catch (error) {
+    } catch {
       message.error('Failed to load promotions');
     } finally {
       setLoading(false);
@@ -66,7 +66,7 @@ const Promotions: React.FC = () => {
       await promotionService.resetUsage(id);
       message.success('Đã reset số lần sử dụng thành công. Tất cả tài khoản có thể sử dụng lại mã này.');
       fetchPromotions();
-    } catch (error) {
+    } catch {
       message.error('Không thể reset số lần sử dụng. Vui lòng thử lại sau.');
     }
   };
@@ -76,7 +76,7 @@ const Promotions: React.FC = () => {
       await promotionService.delete(id);
       message.success('Mã giảm giá đã được xóa thành công.');
       fetchPromotions();
-    } catch (error) {
+    } catch {
       message.error('Không thể xóa mã giảm giá. Vui lòng thử lại sau.');
     }
   };
@@ -106,7 +106,7 @@ const Promotions: React.FC = () => {
       }
       setModalVisible(false);
       fetchPromotions();
-    } catch (error) {
+    } catch {
       message.error(`Failed to ${editingPromotion ? 'update' : 'create'} promotion`);
     }
   };

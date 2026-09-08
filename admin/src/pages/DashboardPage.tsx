@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Statistic, Typography, Spin } from 'antd';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { StatsData } from '../types/stats';
-import { fetchWithCredentials } from '../services/api';
+import { fetchWithCredentials, handleResponse } from '../services/api';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 const API_URL = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL;
@@ -18,7 +18,7 @@ const DashboardPage: React.FC = () => {
         if (!response.ok) {
           throw new Error('Failed to fetch stats');
         }
-        const data = await response.json();
+        const data = await handleResponse(response);
         setStats(data);
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -39,7 +39,7 @@ const DashboardPage: React.FC = () => {
           height: '60vh',
         }}
       >
-        <Spin size="large" tip="Đang tải thống kê..." />
+        <Spin size="large" description="Đang tải thống kê..." />
       </div>
     );
   }
@@ -49,11 +49,14 @@ const DashboardPage: React.FC = () => {
   }
 
   const statCards = [
-    { title: 'Tổng sản phẩm', value: stats.totalProducts, color: '#4caf50' },
-    { title: 'Tổng người dùng', value: stats.totalUsers, color: '#2196f3' },
-    { title: 'Tổng đơn hàng', value: stats.totalOrders, color: '#f44336' },
-    { title: 'Tổng doanh thu', value: `${stats.totalRevenue.toLocaleString('vi-VN')} ₫`, color: '#ff9800' },
+    { title: 'Tổng sản phẩm', value: stats.totalProducts ?? 0, color: '#4caf50' },
+    { title: 'Tổng người dùng', value: stats.totalUsers ?? 0, color: '#2196f3' },
+    { title: 'Tổng đơn hàng', value: stats.totalOrders ?? 0, color: '#f44336' },
+    { title: 'Tổng doanh thu', value: `${(stats.totalRevenue ?? 0).toLocaleString('vi-VN')} ₫`, color: '#ff9800' },
   ];
+  const ordersByStatus = stats.ordersByStatus ?? [];
+  const topProducts = stats.topProducts ?? [];
+
   return (
     <div>
       <Row gutter={[16, 16]}>
@@ -63,7 +66,7 @@ const DashboardPage: React.FC = () => {
               <Statistic
                 title={card.title}
                 value={card.value}
-                valueStyle={{ color: card.color }}
+                styles={{ content: { color: card.color } }}
               />
             </Card>
           </Col>
@@ -75,9 +78,9 @@ const DashboardPage: React.FC = () => {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={stats.ordersByStatus.map(status => ({
+                  data={ordersByStatus.map(status => ({
                     name: status.status,
-                    value: status._count.status
+                    value: status._count?.status ?? 0
                   }))}
                   cx="50%"
                   cy="50%"
@@ -87,7 +90,7 @@ const DashboardPage: React.FC = () => {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {stats.ordersByStatus.map((_, index) => (
+                  {ordersByStatus.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -100,7 +103,7 @@ const DashboardPage: React.FC = () => {
         <Col xs={24} md={12}>
           <Card title="Sản phẩm bán chạy nhất">
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={stats.topProducts}>
+              <BarChart data={topProducts}>
                 <XAxis 
                   dataKey="name" 
                   tick={{ fontSize: 12 }}

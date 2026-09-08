@@ -7,7 +7,6 @@ export const handleResponse = async (response: Response) => {
 
   if (!response.ok) {
     if (response.status === 401) {
-      window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
       throw new Error('Unauthorized');
     }
     try {
@@ -18,7 +17,7 @@ export const handleResponse = async (response: Response) => {
       }
       const text = await response.text();
       throw new Error(text || 'Something went wrong');
-    } catch (e) {
+    } catch {
       // Fallback if body is empty or not parsable
       throw new Error('Something went wrong');
     }
@@ -27,9 +26,13 @@ export const handleResponse = async (response: Response) => {
   if (response.status === 204) return null;
   try {
     if (contentType.includes('application/json')) {
-      return await response.json();
+      const json = await response.json();
+      return json.data !== undefined ? json.data : json;
     }
     const text = await response.text();
+    if (text && text.trim().startsWith('<')) {
+      throw new Error('Received HTML instead of JSON');
+    }
     return text ? text : null;
   } catch {
     return null;
@@ -169,8 +172,7 @@ export const promotionService = {
     const response = await fetchWithCredentials(`${API_URL}/api/discount-codes`, {
       headers: getHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to fetch promotions');
-    return response.json();
+    return handleResponse(response);
   },
 
   create: async (data: any) => {
@@ -179,8 +181,7 @@ export const promotionService = {
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to create promotion');
-    return response.json();
+    return handleResponse(response);
   },
 
   update: async (id: string, data: any) => {
@@ -189,8 +190,7 @@ export const promotionService = {
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Failed to update promotion');
-    return response.json();
+    return handleResponse(response);
   },
 
   delete: async (id: string) => {
@@ -198,8 +198,7 @@ export const promotionService = {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to delete promotion');
-    return response.json();
+    return handleResponse(response);
   },
 
   resetUsage: async (id: string) => {
@@ -207,15 +206,14 @@ export const promotionService = {
       method: 'POST',
       headers: getHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to reset promotion usage');
-    return response.json();
+    return handleResponse(response);
   },
 };
 
 // Shipper API
 export const shipperService = {
   getAll: async () => {
-    const response = await fetchWithCredentials(`${API_URL}/api/users`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/shippers`, {
       headers: getHeaders(),
     });
     const data = await handleResponse(response);

@@ -1,23 +1,53 @@
 import type { Request, Response } from 'express';
+import { prisma } from '../prisma';
 import { createReview, getProductReviews, getUserReviews, updateReview, deleteReview, getAllReviews} from '../services/reviewService';
 import { updateProductRating } from '../services/productService';
-import logger from '../config/logger';
+import { handleControllerError, ErrorCodes } from '../common/types/api-response';
+import { parsePageOptions, calculatePagination } from '../common/types/pagination';
 
 export const getProductReviewsController = async (req: Request, res: Response) => {
   try {
     const productId = parseInt(req.params.productId);
-    const reviews = await getProductReviews(productId);
-    res.json(reviews);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to get product reviews' });
+    const pagination = parsePageOptions(req.query);
+
+    const [reviews, total] = await Promise.all([
+      prisma.review.findMany({
+        where: { productId },
+        include: { user: { select: { id: true, name: true, avatarUrl: true } } },
+        skip: (pagination.page - 1) * pagination.limit,
+        take: pagination.limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.review.count({ where: { productId } }),
+    ]);
+
+    const paginationMeta = calculatePagination(total, pagination.limit, pagination.page);
+    res.apiSuccess(reviews, "Lấy đánh giá sản phẩm thành công", 200, paginationMeta);
+  } catch (error) {
+    handleControllerError(res, error, "getProductReviewsController");
   }
 };
 
 export const getUserReviewsController = async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId);
-    const reviews = await getUserReviews(userId);
-    res.json(reviews);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to get user reviews' });
+    const pagination = parsePageOptions(req.query);
+
+    const [reviews, total] = await Promise.all([
+      prisma.review.findMany({
+        where: { userId },
+        include: { product: { select: { id: true, name: true, imageUrl: true } } },
+        skip: (pagination.page - 1) * pagination.limit,
+        take: pagination.limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.review.count({ where: { userId } }),
+    ]);
+
+    const paginationMeta = calculatePagination(total, pagination.limit, pagination.page);
+    res.apiSuccess(reviews, "Lấy đánh giá người dùng thành công", 200, paginationMeta);
+  } catch (error) {
+    handleControllerError(res, error, "getUserReviewsController");
   }
 };
 
@@ -26,19 +56,17 @@ export const createReviewController = async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
     const { productId, rating, comment } = req.body;
     
-    // Validate rating
     if (rating < 1 || rating > 5) {
-      res.status(400).json({ error: 'Rating must be between 1 and 5' });
+      res.apiError('Rating must be between 1 and 5', ErrorCodes.BAD_REQUEST);
       return;
     }
 
     const review = await createReview(userId, productId, rating, comment);
-    
-    // Update product rating
     await updateProductRating(productId);
     
-    res.status(201).json(review);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to create review' });
+    res.apiSuccess(review, "Tạo đánh giá thành công", 201);
+  } catch (error) {
+    handleControllerError(res, error, "createReviewController");
   }
 };
 
@@ -47,19 +75,17 @@ export const updateReviewController = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const { rating, comment } = req.body;
     
-    // Validate rating
     if (rating < 1 || rating > 5) {
-      res.status(400).json({ error: 'Rating must be between 1 and 5' });
+      res.apiError('Rating must be between 1 and 5', ErrorCodes.BAD_REQUEST);
       return;
     }
 
     const review = await updateReview(id, rating, comment);
-    
-    // Update product rating
     await updateProductRating(review.productId);
     
-    res.json(review);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to update review' });
+    res.apiSuccess(review, "Cập nhật đánh giá thành công");
+  } catch (error) {
+    handleControllerError(res, error, "updateReviewController");
   }
 };
 
@@ -67,19 +93,34 @@ export const deleteReviewController = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     const review = await deleteReview(id);
-    
-    // Update product rating
     await updateProductRating(review.productId);
     
-    res.json({ message: 'Review deleted successfully' });
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to delete review' });
+    res.apiSuccess(null, "Xóa đánh giá thành công");
+  } catch (error) {
+    handleControllerError(res, error, "deleteReviewController");
   }
 };
 
 export const getAllReviewsController = async (req: Request, res: Response) => {
   try {
-    const reviews = await getAllReviews();
-    res.json(reviews);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to get all reviews' });
+    const pagination = parsePageOptions(req.query);
+
+    const [reviews, total] = await Promise.all([
+      prisma.review.findMany({
+        include: {
+          user: { select: { id: true, name: true, avatarUrl: true } },
+          product: { select: { id: true, name: true, imageUrl: true } },
+        },
+        skip: (pagination.page - 1) * pagination.limit,
+        take: pagination.limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.review.count(),
+    ]);
+
+    const paginationMeta = calculatePagination(total, pagination.limit, pagination.page);
+    res.apiSuccess(reviews, "Lấy tất cả đánh giá thành công", 200, paginationMeta);
+  } catch (error) {
+    handleControllerError(res, error, "getAllReviewsController");
   }
 };

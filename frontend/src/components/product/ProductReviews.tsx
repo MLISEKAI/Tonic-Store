@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Rate, Button, Input, notification, List, Avatar } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { ReviewService } from '../../services/product/reviewService';
@@ -17,15 +17,11 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
   const [submitting, setSubmitting] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    fetchReviews();
-  }, [productId]);
-
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       const data = await ReviewService.getProductReviews(productId);
       setReviews(data);
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Không thể tải đánh giá',
@@ -35,7 +31,11 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   const handleSubmit = async () => {
     if (!isAuthenticated) {
@@ -73,7 +73,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
       });
       setComment('');
       fetchReviews();
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Không thể gửi đánh giá',
@@ -95,7 +95,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
         duration: 2,
       });
       fetchReviews();
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Không thể xóa đánh giá',

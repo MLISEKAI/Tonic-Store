@@ -28,7 +28,7 @@ const ProductsPage = () => {
       try {
         const data = await ProductService.getProducts(categoryId ? categoryId : undefined);
         setProducts(data);
-      } catch (error) {
+      } catch {
         notification.error({
           message: 'Lỗi',
           description: 'Không thể tải danh sách sản phẩm',
@@ -89,7 +89,7 @@ const ProductsPage = () => {
         placement: 'topRight',
         duration: 2,
       });
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Thêm sản phẩm vào giỏ hàng thất bại',

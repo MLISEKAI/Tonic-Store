@@ -29,6 +29,19 @@ export class UserRepository extends BaseRepository<any> {
     });
   }
 
+  async findUsersPaginated(select: any, where: any, skip: number, take: number): Promise<any[]> {
+    return prisma.user.findMany({
+      select,
+      where: { ...where, deletedAt: null },
+      skip,
+      take,
+    });
+  }
+
+  async countUsers(where: any = {}): Promise<number> {
+    return prisma.user.count({ where: { ...where, deletedAt: null } });
+  }
+
   async findUserByIdWithSelect(id: number, select: any): Promise<any | null> {
     return prisma.user.findUnique({ where: { id }, select });
   }

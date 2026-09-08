@@ -19,9 +19,10 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://server-be:8085',
+        target: 'http://localhost:8085',
         changeOrigin: true,
         secure: false,
+        credentials: 'include',
       },
     },
     headers: {

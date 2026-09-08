@@ -14,6 +14,7 @@ import {
   LineChartOutlined,
 } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const { Header, Sider, Content } = Layout;
 
@@ -21,25 +22,17 @@ const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const { logout } = useAuth();
 
-  
-  // Lấy key từ URL để highlight menu
   const pathname = location.pathname;
   const selectedKey = pathname.split('/').slice(2).join('/') || 'dashboard';
 
-
   const handleLogout = async () => {
     try {
-      // Gọi API đăng xuất để xóa cookie
-      await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      localStorage.removeItem('user');
-      window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
+      await logout();
     } catch (error) {
       console.error('Lỗi khi đăng xuất:', error);
-      window.location.href = `${import.meta.env.VITE_FRONTEND_URL}/login`;
+      window.location.href = '/admin/login';
     }
   };
 

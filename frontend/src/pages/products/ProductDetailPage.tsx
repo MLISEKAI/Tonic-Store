@@ -53,7 +53,7 @@ const ProductDetailPage = () => {
           setProduct(data);
           await ProductService.incrementProductView(parseInt(id));
         }
-      } catch (error) {
+      } catch {
         notification.error({
           message: 'Lỗi',
           description: 'Không thể tải thông tin sản phẩm',
@@ -82,7 +82,7 @@ const ProductDetailPage = () => {
         placement: 'topRight',
         duration: 2,
       });
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Không thể thêm sản phẩm vào giỏ hàng',

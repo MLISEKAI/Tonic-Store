@@ -1,7 +1,6 @@
 import { Queue, Worker, QueueEvents, Job } from 'bullmq';
 import Redis from 'ioredis';
 import logger from '../config/logger';
-import { CacheService } from './cache.service';
 import { isRedisAvailable } from './cache.service';
 import { processOrderJob } from './processors/orderProcessor';
 import { processEmailJob } from './processors/emailProcessor';

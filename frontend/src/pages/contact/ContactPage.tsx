@@ -44,7 +44,7 @@ const ContactPage: React.FC = () => {
       console.log('Contact form submitted:', values);
       message.success('Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.');
       form.resetFields();
-    } catch (error) {
+    } catch {
       message.error('Có lỗi xảy ra. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);

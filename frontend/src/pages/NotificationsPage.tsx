@@ -12,7 +12,7 @@ const NotificationsPage = () => {
         const result = await NotificationService.getNotifications();
         const data = Array.isArray(result) ? result : result.data;
         setNotifications(data);
-      } catch (error) {
+      } catch {
         notification.error({
           message: 'Lỗi',
           description: 'Không thể tải thông báo',

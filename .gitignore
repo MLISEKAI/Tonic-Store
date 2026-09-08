@@ -29,6 +29,12 @@ docker/nginx/html/
 # Prisma
 backend/prisma/dev.db
 
+# Installed agent skills (Matt Pocock + Strix) - local only, not tracked
+.kilo/command/
+AGENTS.md
+CONTEXT.md
+docs/agents/
+
 # Editor / OS files
 .vscode/
 !.vscode/extensions.json

@@ -12,7 +12,7 @@ export const createRefreshToken = async (token: string, userId: number, expiresA
       userId,
       expiresAt,
       deviceInfo,
-      revoked: false,
+      isRevoked: false,
     },
   });
 };
@@ -23,7 +23,7 @@ export const findRefreshToken = async (token: string, userId?: number) => {
     where: {
       token: hashed,
       ...(userId !== undefined && { userId }),
-      revoked: false,
+      isRevoked: false,
       expiresAt: { gt: new Date() },
     },
   });
@@ -33,7 +33,7 @@ export const revokeRefreshToken = async (token: string) => {
   const hashed = hashToken(token);
   return prisma.refreshToken.updateMany({
     where: { token: hashed },
-    data: { revoked: true },
+    data: { isRevoked: true },
   });
 };
 

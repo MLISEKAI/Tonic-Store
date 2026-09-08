@@ -1,6 +1,7 @@
 import { DiscountCodeRepository } from '../repositories';
 import { prisma } from '../prisma';
 import { CacheService, CacheKeys } from './cache.service';
+import logger from '../config/logger';
 
 const discountCodeRepository = new DiscountCodeRepository();
 
@@ -104,13 +105,41 @@ export const processDiscountCodeUsage = async (
 };
 
 export const discountCodeService = {
-  getAll: async () => {
-    const cached = await CacheService.get(CacheKeys.DISCOUNT_CODE_ALL());
-    if (cached) return cached;
+  getAll: async (pageOptions?: { page: number; limit: number }) => {
+    if (!pageOptions) {
+      const cached = await CacheService.get(CacheKeys.DISCOUNT_CODE_ALL());
+      if (cached) return cached;
 
-    const codes = await discountCodeRepository.findAll();
-    await CacheService.set(CacheKeys.DISCOUNT_CODE_ALL(), codes, 300);
-    return codes;
+      const codes = await discountCodeRepository.findAll();
+      await CacheService.set(CacheKeys.DISCOUNT_CODE_ALL(), codes, 300);
+      return codes;
+    }
+
+    const cacheKey = `discount-codes:all:page:${pageOptions.page}:limit:${pageOptions.limit}`;
+    const cached = await CacheService.get(cacheKey);
+    if (cached && typeof cached === 'object' && 'items' in cached) {
+      logger.debug('Discount codes admin cache HIT', { page: pageOptions.page });
+      return cached;
+    }
+
+    const skip = (pageOptions.page - 1) * pageOptions.limit;
+    const [codes, total] = await Promise.all([
+      discountCodeRepository.findAll(skip, pageOptions.limit),
+      discountCodeRepository.findAllCount(),
+    ]);
+
+    const result = {
+      items: codes,
+      pagination: {
+        item_count: pageOptions.limit,
+        total_items: total,
+        items_per_page: pageOptions.limit,
+        total_pages: Math.ceil(total / pageOptions.limit),
+        current_page: pageOptions.page,
+      }
+    };
+    await CacheService.set(cacheKey, result, 300);
+    return result;
   },
   getById: async (id: number) => {
     const cacheKey = CacheKeys.DISCOUNT_CODE_DETAIL(id);
@@ -137,29 +166,34 @@ export const discountCodeService = {
   create: async (data: any) => {
     const code = await discountCodeRepository.create(data);
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.deletePattern('discount-codes:all:*');
     return code;
   },
   update: async (id: number, data: any) => {
     const code = await discountCodeRepository.update(id, data);
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.deletePattern('discount-codes:all:*');
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_DETAIL(id));
     return code;
   },
   delete: async (id: number) => {
     const code = await discountCodeRepository.delete(id);
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.deletePattern('discount-codes:all:*');
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_DETAIL(id));
     return code;
   },
   claimDiscountCode: async (code: string, userId: number) => {
     const result = await discountCodeRepository.claimDiscountCode(code, userId);
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.deletePattern('discount-codes:all:*');
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_CLAIMED(userId));
     return result;
   },
   saveDiscountCodeUsage: async (userId: number, discountCodeId: number, orderId: number) => {
     const result = await discountCodeRepository.saveDiscountCodeUsage(userId, discountCodeId, orderId);
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.deletePattern('discount-codes:all:*');
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_CLAIMED(userId));
     return result;
   },
@@ -169,12 +203,14 @@ export const discountCodeService = {
   updateDiscountCodeUsage: async (userId: number, discountCodeId: number, orderId: number) => {
     const result = await discountCodeRepository.updateDiscountCodeUsage(userId, discountCodeId, orderId);
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.deletePattern('discount-codes:all:*');
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_CLAIMED(userId));
     return result;
   },
   resetUsage: async (id: number) => {
     const result = await discountCodeRepository.resetUsage(id);
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_ALL());
+    await CacheService.deletePattern('discount-codes:all:*');
     await CacheService.delete(CacheKeys.DISCOUNT_CODE_DETAIL(id));
     return result;
   },

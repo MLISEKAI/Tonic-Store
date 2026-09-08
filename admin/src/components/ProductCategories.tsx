@@ -18,7 +18,7 @@ const ProductCategories: React.FC = () => {
       setLoading(true);
       const data = await categoryService.getAll();
       setCategories(data);
-    } catch (error) {
+    } catch {
       message.error('Failed to load categories');
     } finally {
       setLoading(false);
@@ -46,7 +46,7 @@ const ProductCategories: React.FC = () => {
       await categoryService.delete(id);
       message.success('Danh mục đã được xóa thành công');
       fetchCategories();
-    } catch (error) {
+    } catch {
       message.error('Không thể xóa danh mục. Vui lòng thử lại sau.');
     }
   };
@@ -62,7 +62,7 @@ const ProductCategories: React.FC = () => {
       }
       setModalVisible(false);
       fetchCategories();
-    } catch (error) {
+    } catch {
       message.error(`Failed to ${editingCategory ? 'update' : 'create'} category`);
     }
   };

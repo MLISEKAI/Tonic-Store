@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { prisma } from '../prisma';
 import {
   getAllCategories,
   getCategoryById,
@@ -6,13 +7,26 @@ import {
   updateCategory,
   deleteCategory
 } from '../services/categoryService';
-import logger from '../config/logger';
+import { handleControllerError, ErrorCodes } from '../common/types/api-response';
+import { parsePageOptions, calculatePagination } from '../common/types/pagination';
 
-export const getAllCategoriesController = async (_req: Request, res: Response) => {
+export const getAllCategoriesController = async (req: Request, res: Response) => {
   try {
-    const categories = await getAllCategories();
-    res.json(categories);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to get categories' });
+    const pagination = parsePageOptions(req.query);
+
+    const [categories, total] = await Promise.all([
+      prisma.category.findMany({
+        skip: (pagination.page - 1) * pagination.limit,
+        take: pagination.limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.category.count(),
+    ]);
+
+    const paginationMeta = calculatePagination(total, pagination.limit, pagination.page);
+    res.apiSuccess(categories, "Lấy danh sách danh mục thành công", 200, paginationMeta);
+  } catch (error) {
+    handleControllerError(res, error, "getAllCategoriesController");
   }
 };
 
@@ -21,11 +35,12 @@ export const getCategoryByIdController = async (req: Request, res: Response) => 
     const id = parseInt(req.params.id);
     const category = await getCategoryById(id);
     if (!category) {
-      res.status(404).json({ error: 'Category not found' });
+      res.apiError('Category not found', ErrorCodes.NOT_FOUND);
       return;
     }
-    res.json(category);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to get category' });
+    res.apiSuccess(category, "Lấy danh mục thành công");
+  } catch (error) {
+    handleControllerError(res, error, "getCategoryByIdController");
   }
 };
 
@@ -33,12 +48,13 @@ export const createCategoryController = async (req: Request, res: Response) => {
   try {
     const { name } = req.body;
     if (!name) {
-      res.status(400).json({ error: 'Name is required' });
+      res.apiError('Name is required', ErrorCodes.BAD_REQUEST);
       return;
     }
     const category = await createCategory(name);
-    res.status(201).json(category);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to create category' });
+    res.apiSuccess(category, "Tạo danh mục thành công", 201);
+  } catch (error) {
+    handleControllerError(res, error, "createCategoryController");
   }
 };
 
@@ -47,12 +63,13 @@ export const updateCategoryController = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const { name } = req.body;
     if (!name) {
-      res.status(400).json({ error: 'Name is required' });
+      res.apiError('Name is required', ErrorCodes.BAD_REQUEST);
       return;
     }
     const category = await updateCategory(id, name);
-    res.json(category);
-  } catch (error) { logger.error('Error', { err: (error as Error).message }); res.status(500).json({ error: 'Failed to update category' });
+    res.apiSuccess(category, "Cập nhật danh mục thành công");
+  } catch (error) {
+    handleControllerError(res, error, "updateCategoryController");
   }
 };
 
@@ -60,12 +77,12 @@ export const deleteCategoryController = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     await deleteCategory(id);
-    res.json({ message: 'Category deleted successfully' });
+    res.apiSuccess(null, "Xóa danh mục thành công");
   } catch (error) {
     if (error instanceof Error && error.message === 'Cannot delete category with products') {
-      res.status(400).json({ error: error.message });
+      res.apiError(error.message, ErrorCodes.BAD_REQUEST);
       return;
     }
-    res.status(500).json({ error: 'Failed to delete category' });
+    handleControllerError(res, error, "deleteCategoryController");
   }
 };

@@ -1,13 +1,13 @@
 import type { Request, Response } from 'express';
 import * as statsService from '../services/statsService';
+import { handleControllerError, ErrorCodes } from '../common/types/api-response';
 
 export const getStats = async (req: Request, res: Response) => {
   try {
     const stats = await statsService.getStats();
-    res.json(stats);
+    res.apiSuccess(stats, "Lấy thống kê thành công");
   } catch (error) {
-    console.error('Error fetching stats:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleControllerError(res, error, "getStats");
   }
 };
 
@@ -15,14 +15,13 @@ export const getSalesByDateHandler = async (req: Request, res: Response) => {
   try {
     const { startDate, endDate } = req.query;
     if (!startDate || !endDate) {
-      res.status(400).json({ error: 'startDate and endDate are required' });
+      res.apiError('startDate and endDate are required', ErrorCodes.BAD_REQUEST);
       return;
     }
     const result = await statsService.getSalesByDate(new Date(startDate as string), new Date(endDate as string));
-    res.json(result);
+    res.apiSuccess(result, "Lấy doanh số theo ngày thành công");
   } catch (error) {
-    console.error('Error fetching sales by date:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleControllerError(res, error, "getSalesByDateHandler");
   }
 };
 
@@ -30,9 +29,8 @@ export const getTopCustomersHandler = async (req: Request, res: Response) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
     const customers = await statsService.getTopCustomers(limit);
-    res.json(customers);
+    res.apiSuccess(customers, "Lấy top khách hàng thành công");
   } catch (error) {
-    console.error('Error fetching top customers:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    handleControllerError(res, error, "getTopCustomersHandler");
   }
 };

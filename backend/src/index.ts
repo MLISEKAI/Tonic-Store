@@ -10,11 +10,13 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import logger from './config/logger';
 import { requestLogger } from './middleware/request-logger';
+import { attachApiResponseHelpers } from './common/types/api-response';
 
 import authRoutes from "./routes/authRoutes";
 import logRoutes from "./routes/logRoutes";
 import { connectRedis, disconnectRedis } from './services/cache.service';
 import { setupQueues, closeQueues } from './services/queue.service';
+import { startScheduler } from './services/scheduler.service';
 import userRoutes from "./routes/userRoutes";
 import productRoutes from "./routes/productRoutes";
 import orderRoutes from "./routes/orderRoutes";
@@ -29,6 +31,10 @@ import wishlistRoutes from './routes/wishlistRoutes';
 import notificationRoutes from "./routes/notificationRoutes";
 import discountCodeRoutes from './routes/discountCodeRoutes';
 import helpCenterRoutes from './routes/helpCenterRoutes';
+import walletRoutes from './routes/walletRoutes';
+import withdrawalRoutes from './routes/withdrawalRoutes';
+import topUpPackageRoutes from './routes/topUpPackageRoutes';
+import paymentGatewayRoutes from './routes/paymentGatewayRoutes';
 
 dotenv.config();
 const app = express();
@@ -94,6 +100,8 @@ app.get('/health', (req: Request, res: Response) => {
 // Request Logger Middleware
 app.use(requestLogger);
 
+app.use(attachApiResponseHelpers);
+
 // Test endpoint
 app.get('/test', (req: Request, res: Response) => {
     console.log('Test endpoint hit');
@@ -118,7 +126,11 @@ app.use('/api/shippers', shipperRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/discount-codes', discountCodeRoutes);
-app.use('/api/help-center', helpCenterRoutes);
+app.use("/api/help-center", helpCenterRoutes);
+app.use("/api/wallet", walletRoutes);
+app.use("/api/withdrawals", withdrawalRoutes);
+app.use("/api/top-up-packages", topUpPackageRoutes);
+app.use("/api/payment-gateway", paymentGatewayRoutes);
 app.use('/api/logs', logRoutes);
 
 
@@ -157,7 +169,10 @@ const server = app.listen(PORT, HOST, () => {
     console.log(`API documentation available at http://localhost:${PORT}/api/docs`);
 
      // Redis cache (tùy chọn - server vẫn chạy nếu Redis không khả dụng)
-    void connectRedis().then(() => setupQueues());
+    void connectRedis().then(() => {
+      setupQueues();
+      startScheduler();
+    });
 });
 
 // Graceful shutdown

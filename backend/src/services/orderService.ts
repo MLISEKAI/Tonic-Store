@@ -9,7 +9,14 @@ const orderRepository = new OrderRepository();
 const productRepository = new ProductRepository();
 
 const orderIncludeRelations = {
-  user: true,
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+    }
+  },
   items: { include: { product: true } },
   payment: true,
   shipper: true
@@ -20,6 +27,19 @@ const orderWithItemsInclude = {
   payment: true
 };
 
+const orderListSelect = {
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+    }
+  },
+  items: true,
+  payment: true,
+};
+
 export const getAllOrders = async () => {
   const cached = await CacheService.get(CacheKeys.ORDER_LIST());
   if (cached) {
@@ -27,11 +47,7 @@ export const getAllOrders = async () => {
     return cached;
   }
 
-  const orders = await orderRepository.findOrdersWithRelations({
-    user: true,
-    items: true,
-    payment: true
-  });
+  const orders = await orderRepository.findOrdersWithRelations(orderListSelect);
   await CacheService.set(CacheKeys.ORDER_LIST(), orders, 120);
   return orders;
 };
@@ -205,29 +221,41 @@ export const updateOrderStatus = async (id: number, status: string) => {
 
 export const cancelOrder = async (orderId: number, userId: number) => {
   try {
-    // Tìm đơn hàng
     const order = await orderRepository.findOrderWithPayment(orderId);
 
     if (!order) {
       return { success: false, status: 404, message: 'Đơn hàng không tồn tại' };
     }
 
-    // Kiểm tra quyền hủy đơn hàng
     if (order.userId !== userId) {
       return { success: false, status: 403, message: 'Bạn không có quyền hủy đơn hàng này' };
     }
 
-    // Kiểm tra trạng thái đơn hàng
     if (order.status !== OrderStatus.PENDING) {
       return { success: false, status: 400, message: 'Chỉ có thể hủy đơn hàng ở trạng thái PENDING' };
     }
 
-    // Cập nhật trạng thái đơn hàng và thanh toán trong một transaction
     const [canceledOrder] = await orderRepository.cancelOrderWithPayment(
       orderId,
       OrderStatus.CANCELLED,
       PaymentStatus.FAILED
     );
+
+    if (order.payment?.method === 'WALLET' && order.payment.status === 'COMPLETED') {
+      try {
+        const { refund } = await import('../services/walletService');
+        await refund(
+          userId,
+          order.totalPrice,
+          'ORDER',
+          orderId,
+          `Hoàn tiền hủy đơn hàng #${orderId}`,
+          `cancel_refund_${orderId}`
+        );
+      } catch (refundError) {
+        logger.error('Failed to refund wallet on order cancel:', refundError);
+      }
+    }
 
     await CacheService.delete(CacheKeys.ORDER_DETAIL(orderId));
     await CacheService.delete(CacheKeys.ORDER_LIST());

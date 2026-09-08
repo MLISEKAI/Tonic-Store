@@ -180,6 +180,14 @@ const CheckoutPage: React.FC = () => {
         setCurrentOrder(data.order);
         setBankTransferModalVisible(true);
         clearCart();
+      } else if (values.paymentMethod === PaymentMethod.WALLET) {
+        clearCart();
+        navigate(`/user/orders/${data.order.id}`);
+        message.success('Thanh toán bằng ví thành công!');
+      } else if (values.paymentMethod === PaymentMethod.ZALO_PAY || values.paymentMethod === PaymentMethod.MOMO) {
+        setCurrentOrder(data.order);
+        setPaymentUrl(`/user/wallet/topup?orderId=${data.order.id}&gateway=${values.paymentMethod}`);
+        clearCart();
       }
     } catch (err) {
       console.error('Checkout error:', err);
@@ -424,6 +432,9 @@ const CheckoutPage: React.FC = () => {
                 <Radio value={PaymentMethod.COD}>Thanh toán khi nhận hàng</Radio>
                 <Radio value={PaymentMethod.VN_PAY}>VNPay</Radio>
                 <Radio value={PaymentMethod.BANK_TRANSFER}>Chuyển khoản ngân hàng</Radio>
+                <Radio value={PaymentMethod.WALLET}>Ví Tonic Store</Radio>
+                <Radio value={PaymentMethod.ZALO_PAY}>Zalo Pay</Radio>
+                <Radio value={PaymentMethod.MOMO}>MoMo</Radio>
               </Radio.Group>
             </Form.Item>
 

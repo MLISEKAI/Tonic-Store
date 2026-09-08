@@ -42,7 +42,7 @@ const CategoriesPage: FC = () => {
 
         setCategories(categoriesWithCount);
         setProducts(productsData);
-      } catch (error) {
+      } catch {
         notification.error({
           message: 'Lỗi',
           description: 'Không thể tải danh sách danh mục',
@@ -67,7 +67,7 @@ const CategoriesPage: FC = () => {
         placement: 'topRight',
         duration: 2,
       });
-    } catch (error) {
+    } catch {
       notification.error({
         message: 'Lỗi',
         description: 'Không thể thêm sản phẩm vào giỏ hàng',

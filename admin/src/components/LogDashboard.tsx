@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Tag, Button, Space, Statistic, Row, Col, Tabs, Alert, Badge, Tooltip } from 'antd';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Card, Table, Tag, Button, Space, Statistic, Row, Col, Tabs, Alert, Badge, Tooltip, message as antMessage } from 'antd';
 import {
   ReloadOutlined,
   ClearOutlined,
   ThunderboltOutlined,
   ClockCircleOutlined,
-  CheckCircleOutlined,
   WarningOutlined,
   DatabaseOutlined,
   ApiOutlined,
   LineChartOutlined,
+  CopyOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons';
 import { logService, LogEntry, EndpointStats, CacheStats, PerformanceSuggestion } from '../services/logService';
 
@@ -20,6 +21,9 @@ const LogDashboard: React.FC = () => {
   const [suggestions, setSuggestions] = useState<PerformanceSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [filterMethod, setFilterMethod] = useState<string | undefined>(undefined);
+  const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -56,6 +60,48 @@ const LogDashboard: React.FC = () => {
     fetchAll();
   };
 
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      antMessage.success(`Đã copy ${label} vào clipboard`);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        antMessage.success(`Đã copy ${label} vào clipboard`);
+      } catch {
+        antMessage.error('Copy thất bại');
+      }
+      document.body.removeChild(ta);
+    }
+  };
+
+  const formatLogEntry = (l: LogEntry) => {
+    return `[${new Date(l.timestamp).toISOString()}] ${l.method} ${l.url} | Status: ${l.statusCode} | Duration: ${l.duration.toFixed(2)}ms | Cache: ${l.cacheStatus || 'N/A'} | Trace: ${l.traceId}`;
+  };
+
+  const downloadLogs = () => {
+    const text = filteredLogs.map(formatLogEntry).join('\n');
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `api-logs-${new Date().toISOString()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    antMessage.success(`Đã download ${filteredLogs.length} log entries`);
+  };
+
+  const copyAllLogs = () => {
+    const text = filteredLogs.map(formatLogEntry).join('\n');
+    copyToClipboard(text, `${filteredLogs.length} log entries`);
+  };
+
   const getMethodColor = (method: string) => {
     const colors: Record<string, string> = { GET: 'green', POST: 'blue', PUT: 'orange', DELETE: 'red', PATCH: 'purple' };
     return colors[method] || 'default';
@@ -68,19 +114,45 @@ const LogDashboard: React.FC = () => {
     return 'success';
   };
 
+  const filteredLogs = useMemo(() => {
+    return logs.filter(l => {
+      if (searchText) {
+        const t = searchText.toLowerCase();
+        if (
+          !l.url.toLowerCase().includes(t) &&
+          !l.method.toLowerCase().includes(t) &&
+          !l.traceId.toLowerCase().includes(t) &&
+          !(l.statusCode?.toString().includes(t))
+        ) return false;
+      }
+      if (filterMethod && l.method !== filterMethod) return false;
+      if (filterStatus) {
+        if (filterStatus === '2xx' && l.statusCode < 200) return false;
+        if (filterStatus === '3xx' && (l.statusCode < 300 || l.statusCode >= 400)) return false;
+        if (filterStatus === '4xx' && (l.statusCode < 400 || l.statusCode >= 500)) return false;
+        if (filterStatus === '5xx' && l.statusCode < 500) return false;
+      }
+      return true;
+    });
+  }, [logs, searchText, filterMethod, filterStatus]);
+
   const logColumns = [
     {
       title: 'Time',
       dataIndex: 'timestamp',
       key: 'timestamp',
-      width: 180,
-      render: (v: string) => new Date(v).toLocaleTimeString('vi-VN'),
+      width: 110,
+      render: (v: string) => (
+        <Tooltip title={new Date(v).toISOString()}>
+          <span style={{ fontSize: 12 }}>{new Date(v).toLocaleTimeString('vi-VN')}</span>
+        </Tooltip>
+      ),
     },
     {
       title: 'Method',
       dataIndex: 'method',
       key: 'method',
-      width: 80,
+      width: 75,
       render: (m: string) => <Tag color={getMethodColor(m)}>{m}</Tag>,
     },
     {
@@ -88,19 +160,24 @@ const LogDashboard: React.FC = () => {
       dataIndex: 'url',
       key: 'url',
       ellipsis: true,
+      render: (url: string) => (
+        <Tooltip title={url}>
+          <span style={{ fontSize: 12, fontFamily: 'monospace' }}>{url}</span>
+        </Tooltip>
+      ),
     },
     {
       title: 'Status',
       dataIndex: 'statusCode',
       key: 'statusCode',
-      width: 80,
+      width: 70,
       render: (s: number) => <Tag color={getStatusColor(s)}>{s}</Tag>,
     },
     {
       title: 'Duration',
       dataIndex: 'duration',
       key: 'duration',
-      width: 120,
+      width: 100,
       sorter: (a: LogEntry, b: LogEntry) => a.duration - b.duration,
       render: (d: number) => (
         <Tooltip title={`${(d / 1000).toFixed(3)}s`}>
@@ -114,7 +191,7 @@ const LogDashboard: React.FC = () => {
       title: 'Cache',
       dataIndex: 'cacheStatus',
       key: 'cache',
-      width: 80,
+      width: 70,
       render: (c: string) => {
         if (!c || c === 'N/A') return <Tag>-</Tag>;
         return <Tag color={c === 'HIT' ? 'success' : 'warning'}>{c}</Tag>;
@@ -124,8 +201,32 @@ const LogDashboard: React.FC = () => {
       title: 'Trace ID',
       dataIndex: 'traceId',
       key: 'traceId',
-      width: 120,
-      render: (id: string) => <Tooltip title={id}><span style={{fontSize:11}}>{id.slice(0,8)}...</span></Tooltip>,
+      width: 110,
+      render: (id: string) => (
+        <Tooltip title={`Click để copy: ${id}`}>
+          <span
+            onClick={() => copyToClipboard(id, 'trace ID')}
+            style={{ fontSize: 11, cursor: 'pointer', fontFamily: 'monospace' }}
+          >
+            {id.slice(0, 8)}...
+          </span>
+        </Tooltip>
+      ),
+    },
+    {
+      title: 'Copy',
+      key: 'copy',
+      width: 60,
+      render: (_: any, log: LogEntry) => (
+        <Tooltip title="Copy log entry">
+          <Button
+            size="small"
+            type="text"
+            icon={<CopyOutlined />}
+            onClick={() => copyToClipboard(formatLogEntry(log), 'log entry')}
+          />
+        </Tooltip>
+      ),
     },
   ];
 
@@ -135,6 +236,11 @@ const LogDashboard: React.FC = () => {
       dataIndex: 'endpoint',
       key: 'endpoint',
       ellipsis: true,
+      render: (ep: string) => (
+        <Tooltip title={ep}>
+          <span style={{ fontSize: 12, fontFamily: 'monospace' }}>{ep}</span>
+        </Tooltip>
+      ),
     },
     {
       title: 'Requests',
@@ -176,6 +282,24 @@ const LogDashboard: React.FC = () => {
       width: 80,
       render: (s: string) => <Tag color={s === 'SLOW' ? 'error' : 'success'}>{s}</Tag>,
     },
+    {
+      title: 'Copy',
+      key: 'copy',
+      width: 60,
+      render: (_: any, ep: EndpointStats) => (
+        <Tooltip title="Copy endpoint stats">
+          <Button
+            size="small"
+            type="text"
+            icon={<CopyOutlined />}
+            onClick={() => copyToClipboard(
+              `${ep.endpoint} | Requests: ${ep.count} | Avg: ${ep.avgDuration.toFixed(2)}ms | Max: ${ep.maxDuration.toFixed(2)}ms | Errors: ${ep.errors} | Status: ${ep.status}`,
+              'endpoint stats'
+            )}
+          />
+        </Tooltip>
+      ),
+    },
   ];
 
   const slowCount = endpoints.filter(e => e.status === 'SLOW').length;
@@ -189,7 +313,7 @@ const LogDashboard: React.FC = () => {
         <h2 style={{ margin: 0 }}>
           <LineChartOutlined /> API Performance Logs
         </h2>
-        <Space>
+        <Space wrap>
           <Button
             type={autoRefresh ? 'primary' : 'default'}
             icon={<ThunderboltOutlined />}
@@ -220,7 +344,7 @@ const LogDashboard: React.FC = () => {
               value={avgResponse.toFixed(0)}
               suffix="ms"
               prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: avgResponse > 200 ? '#ff4d4f' : '#52c41a' }}
+              styles={{ content: { color: avgResponse > 200 ? '#ff4d4f' : '#52c41a' } }}
             />
           </Card>
         </Col>
@@ -230,7 +354,7 @@ const LogDashboard: React.FC = () => {
               title="Slow Endpoints (>200ms)"
               value={slowCount}
               prefix={<WarningOutlined />}
-              valueStyle={{ color: slowCount > 0 ? '#ff4d4f' : '#52c41a' }}
+              styles={{ content: { color: slowCount > 0 ? '#ff4d4f' : '#52c41a' } }}
             />
           </Card>
         </Col>
@@ -247,7 +371,7 @@ const LogDashboard: React.FC = () => {
 
       {slowCount > 0 && (
         <Alert
-          message={`${slowCount} endpoint có response time > 200ms cần tối ưu`}
+          title={`${slowCount} endpoint có response time > 200ms cần tối ưu`}
           type="warning"
           showIcon
           style={{ marginBottom: 16 }}
@@ -257,16 +381,60 @@ const LogDashboard: React.FC = () => {
       <Tabs defaultActiveKey="logs" items={[
         {
           key: 'logs',
-          label: <span><ApiOutlined /> Request Logs</span>,
+          label: <span><ApiOutlined /> Request Logs ({filteredLogs.length})</span>,
           children: (
             <Card size="small">
+              <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  placeholder="Tìm theo URL, method, trace ID..."
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  style={{
+                    padding: '6px 12px',
+                    border: '1px solid #d9d9d9',
+                    borderRadius: 4,
+                    fontSize: 13,
+                    minWidth: 240,
+                  }}
+                />
+                <select
+                  value={filterMethod || ''}
+                  onChange={(e) => setFilterMethod(e.target.value || undefined)}
+                  style={{ padding: '6px 12px', border: '1px solid #d9d9d9', borderRadius: 4 }}
+                >
+                  <option value="">Tất cả method</option>
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="DELETE">DELETE</option>
+                  <option value="PATCH">PATCH</option>
+                </select>
+                <select
+                  value={filterStatus || ''}
+                  onChange={(e) => setFilterStatus(e.target.value || undefined)}
+                  style={{ padding: '6px 12px', border: '1px solid #d9d9d9', borderRadius: 4 }}
+                >
+                  <option value="">Tất cả status</option>
+                  <option value="2xx">2xx (Success)</option>
+                  <option value="3xx">3xx (Redirect)</option>
+                  <option value="4xx">4xx (Client Error)</option>
+                  <option value="5xx">5xx (Server Error)</option>
+                </select>
+                <Button icon={<CopyOutlined />} onClick={copyAllLogs}>
+                  Copy tất cả ({filteredLogs.length})
+                </Button>
+                <Button icon={<DownloadOutlined />} onClick={downloadLogs}>
+                  Download
+                </Button>
+              </div>
               <Table
                 columns={logColumns}
-                dataSource={[...logs].reverse()}
+                dataSource={[...filteredLogs].reverse()}
                 rowKey="traceId"
                 size="small"
                 pagination={{ pageSize: 20, showSizeChanger: true }}
-                scroll={{ x: 900 }}
+                scroll={{ x: 1000 }}
               />
             </Card>
           ),
@@ -282,7 +450,7 @@ const LogDashboard: React.FC = () => {
                 rowKey="endpoint"
                 size="small"
                 pagination={false}
-                scroll={{ x: 700 }}
+                scroll={{ x: 800 }}
               />
             </Card>
           ),
@@ -293,7 +461,7 @@ const LogDashboard: React.FC = () => {
           children: (
             <Card size="small">
               {suggestions.length === 0 ? (
-                <Alert message="Không có gợi ý tối ưu nào. Tất cả endpoint đều < 200ms" type="success" showIcon />
+                <Alert title="Không có gợi ý tối ưu nào. Tất cả endpoint đều < 200ms" type="success" showIcon />
               ) : (
                 <Table
                   dataSource={suggestions}
@@ -330,9 +498,9 @@ const LogDashboard: React.FC = () => {
           children: (
             <Card size="small">
               <Row gutter={16}>
-                <Col span={6}><Statistic title="Hits" value={cacheStats?.hits || 0} valueStyle={{color:'#52c41a'}} /></Col>
-                <Col span={6}><Statistic title="Misses" value={cacheStats?.misses || 0} valueStyle={{color:'#faad14'}} /></Col>
-                <Col span={6}><Statistic title="Errors" value={cacheStats?.errors || 0} valueStyle={{color:'#ff4d4f'}} /></Col>
+                <Col span={6}><Statistic title="Hits" value={cacheStats?.hits || 0} styles={{content:{color:'#52c41a'}}} /></Col>
+                <Col span={6}><Statistic title="Misses" value={cacheStats?.misses || 0} styles={{content:{color:'#faad14'}}} /></Col>
+                <Col span={6}><Statistic title="Errors" value={cacheStats?.errors || 0} styles={{content:{color:'#ff4d4f'}}} /></Col>
                 <Col span={6}><Statistic title="Hit Rate" value={cacheStats?.hitRate || '0%'} /></Col>
               </Row>
             </Card>

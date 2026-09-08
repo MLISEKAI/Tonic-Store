@@ -41,7 +41,7 @@ const { Title } = Typography;
       await reviewService.delete(id);
       message.success('Review deleted successfully');
       fetchReviews();
-    } catch (error) {
+    } catch {
       message.error('Failed to delete review');
     }
   };
@@ -51,7 +51,7 @@ const { Title } = Typography;
       await reviewService.updateStatus(id, status);
       message.success('Review status updated successfully');
       fetchReviews();
-    } catch (error) {
+    } catch {
       message.error('Failed to update review status');
     }
   };

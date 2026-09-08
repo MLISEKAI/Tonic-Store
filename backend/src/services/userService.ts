@@ -4,6 +4,7 @@ import { UserRepository } from '../repositories';
 import { CacheService, CacheKeys } from './cache.service';
 import { QueueService } from './queue.service';
 import logger from '../config/logger';
+import { calculatePagination, PaginationMeta } from '../common/types/pagination';
 
 const userRepository = new UserRepository();
 
@@ -82,13 +83,42 @@ const userSelectFields = {
   createdAt: true,
 };
 
-export const getAllUsers = async () => {
-  const cached = await CacheService.get(CacheKeys.USER_LIST());
-  if (cached) return cached;
+export const getAllUsers = async (pageOptions?: { page: number; limit: number; search?: string }) => {
+  if (!pageOptions) {
+    const cached = await CacheService.get(CacheKeys.USER_LIST());
+    if (cached) return cached;
 
-  const users = await userRepository.findUsersWithSelect(userSelectFields);
-  await CacheService.set(CacheKeys.USER_LIST(), users, 300);
-  return users;
+    const users = await userRepository.findUsersWithSelect(userSelectFields);
+    await CacheService.set(CacheKeys.USER_LIST(), users, 300);
+    return users;
+  }
+
+  const cacheKey = CacheKeys.USER_LIST_PAGED(pageOptions.page, pageOptions.limit, pageOptions.search);
+  const cached = await CacheService.get(cacheKey);
+  if (cached && typeof cached === 'object' && 'items' in cached) {
+    logger.debug('User list cache HIT', { page: pageOptions.page });
+    return cached;
+  }
+
+  const skip = (pageOptions.page - 1) * pageOptions.limit;
+  const where: any = {};
+  if (pageOptions.search) {
+    where.OR = [
+      { name: { contains: pageOptions.search, mode: 'insensitive' } },
+      { email: { contains: pageOptions.search, mode: 'insensitive' } },
+      { phone: { contains: pageOptions.search, mode: 'insensitive' } },
+    ];
+  }
+
+  const [users, total] = await Promise.all([
+    userRepository.findUsersPaginated(userSelectFields, where, skip, pageOptions.limit),
+    userRepository.countUsers(where),
+  ]);
+
+  const pagination = calculatePagination(total, pageOptions.limit, pageOptions.page);
+  const result = { items: users, pagination };
+  await CacheService.set(cacheKey, result, 300);
+  return result;
 };
 
 export const deleteUser = async (id: number, force: boolean = false, deletedBy?: number) => {
@@ -107,6 +137,7 @@ export const deleteUser = async (id: number, force: boolean = false, deletedBy?:
   }
 
   await CacheService.delete(CacheKeys.USER_LIST());
+  await CacheService.deletePattern('users:list:page:*');
   await CacheService.delete(CacheKeys.USER_PROFILE(id));
   return result;
 };
@@ -127,6 +158,7 @@ export const updateUserProfile = async (userId: number, data) => {
   const user = await userRepository.updateUserWithSelect(userId, data, userSelectFields);
   await CacheService.delete(CacheKeys.USER_PROFILE(userId));
   await CacheService.delete(CacheKeys.USER_LIST());
+  await CacheService.deletePattern('users:list:page:*');
   return user;
 };
 
@@ -177,6 +209,7 @@ export const changeOwnPassword = async (userId: number, currentPassword: string,
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   const result = await userRepository.updateUserWithSelect(userId, { password: hashedPassword }, userSelectFields);
   await CacheService.delete(CacheKeys.USER_PROFILE(userId));
+  await CacheService.deletePattern('users:list:page:*');
   return result;
 };
 
@@ -191,5 +224,6 @@ export const updateUser = async (id: number, data) => {
 
   await CacheService.delete(CacheKeys.USER_PROFILE(id));
   await CacheService.delete(CacheKeys.USER_LIST());
+  await CacheService.deletePattern('users:list:page:*');
   return user;
 };

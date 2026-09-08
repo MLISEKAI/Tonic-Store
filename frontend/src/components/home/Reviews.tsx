@@ -49,7 +49,7 @@ const Reviews = () => {
       try {
         await fetchReviews();
         retryCount = 0; // Reset retry count on success
-      } catch (error) {
+      } catch {
         if (retryCount < maxRetries) {
           retryCount++;
           // Exponential backoff: 5s, 10s, 20s

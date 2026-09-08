@@ -28,7 +28,73 @@ export enum PaymentMethod {
   PAYPAL = 'PAYPAL',
   VN_PAY = 'VN_PAY',
   COD = 'COD',
-  BANK_TRANSFER = 'BANK_TRANSFER'
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  WALLET = 'WALLET',
+  ZALO_PAY = 'ZALO_PAY',
+  MOMO = 'MOMO',
+}
+
+export enum PaymentGateway {
+  ZALO_PAY = 'ZALO_PAY',
+  MOMO = 'MOMO',
+  PAYPAL = 'PAYPAL',
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  VN_PAY = 'VN_PAY',
+}
+
+export interface TopUpPackage {
+  id: number;
+  name: string;
+  description?: string;
+  amount: number;
+  bonusAmount?: number;
+  currency: string;
+  isActive: boolean;
+  displayOrder: number;
+  icon?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaymentGatewayTransaction {
+  id: number;
+  walletId: number;
+  userId: number;
+  gateway: string;
+  status: string;
+  amount: number;
+  currency: string;
+  gatewayTransactionId?: string;
+  gatewayResponse?: any;
+  description?: string;
+  processedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WalletInfo {
+  id: number;
+  userId: number;
+  balance: number;
+  currency: string;
+  totalDeposited: number;
+  totalWithdrawn: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WalletTransaction {
+  id: number;
+  type: string;
+  status: string;
+  amount: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  referenceType?: string;
+  referenceId?: number;
+  description?: string;
+  createdAt: string;
 }
 
 export enum ProductStatus {

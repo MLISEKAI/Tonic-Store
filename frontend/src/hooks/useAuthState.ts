@@ -15,7 +15,7 @@ interface User {
 export function useAuthState() {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const checkAuth = useCallback(async () => {
@@ -26,16 +26,13 @@ export function useAuthState() {
       // Gọi API để lấy thông tin user từ cookies
       const userData = await UserService.getProfile();
       
-      // Chỉ set isAuthenticated = true khi có dữ liệu user hợp lệ
       if (userData && userData.id) {
         setUser(userData);
         setIsAuthenticated(true);
-        console.log('User authenticated:', userData);
       } else {
         throw new Error('Invalid user data');
       }
     } catch (error) {
-      console.error('Authentication check failed:', error);
       setUser(null);
       setIsAuthenticated(false);
       setError('Authentication failed');
