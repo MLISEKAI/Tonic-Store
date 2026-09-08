@@ -8,6 +8,8 @@ import OrderCard from '../../components/shipper/OrderCard';
 import PaymentProofModal from '../../components/shipper/PaymentProofModal';
 import FailedDeliveryModal from '../../components/shipper/FailedDeliveryModal';
 import DeliveryChecklistModal from '../../components/shipper/DeliveryChecklistModal';
+import { Typography, Spin, Button, Result } from 'antd';
+import { ReloadOutlined, ShoppingOutlined } from '@ant-design/icons';
 
 interface Order {
   id: number;
@@ -18,17 +20,10 @@ interface Order {
   shippingName: string;
   createdAt: string;
   items: Array<{
-    product: {
-      name: string;
-      price: number;
-      imageUrl: string;
-    };
+    product: { name: string; price: number; imageUrl: string };
     quantity: number;
   }>;
-  payment?: {
-    method: string;
-    status: string;
-  };
+  payment?: { method: string; status: string };
 }
 
 const ShipperOrders: React.FC = () => {
@@ -48,27 +43,22 @@ const ShipperOrders: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const { isAuthenticated, user } = useAuth();
 
-  useEffect(() => {
-    // Reset page về 1 khi filter thay đổi
-    setCurrentPage(1);
-    // eslint-disable-next-line
-  }, [selectedStatus, searchName, dateRange, paymentMethod]);
+  useEffect(() => { setCurrentPage(1); }, [selectedStatus, searchName, dateRange, paymentMethod]);
 
   useEffect(() => {
-      if (isAuthenticated && user?.role === 'DELIVERY') {
+    if (isAuthenticated && user?.role === 'DELIVERY') {
       loadOrders();
-      } else {
-        setError('Please login as a delivery staff to view orders');
-        setLoading(false);
-      }
-    // eslint-disable-next-line
+    } else {
+      setError('Vui lòng đăng nhập với vai trò nhân viên giao hàng');
+      setLoading(false);
+    }
   }, [selectedStatus, searchName, dateRange, paymentMethod, currentPage, pageSize, isAuthenticated, user]);
 
   const loadOrders = async () => {
     try {
       setLoading(true);
       setError(null);
-      if (!user?.id) throw new Error('User ID not found. Please login again.');
+      if (!user?.id) throw new Error('User ID not found');
       const response = await ShipperService.getDeliveryOrders(currentPage, pageSize, {
         status: selectedStatus,
         name: searchName,
@@ -92,7 +82,6 @@ const ShipperOrders: React.FC = () => {
       await loadOrders();
     } catch (err: any) {
       console.error('Error updating order status:', err);
-      alert(err.message || 'Không thể cập nhật trạng thái đơn hàng');
     }
   };
 
@@ -102,41 +91,36 @@ const ShipperOrders: React.FC = () => {
       await loadOrders();
     } catch (err: any) {
       console.error('Error confirming payment:', err);
-      alert(err.message || 'Xác nhận nhận tiền thất bại!');
     }
   };
 
   if (!isAuthenticated || user?.role !== 'DELIVERY') {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-red-500 text-center">
-          <h2 className="text-xl font-bold mb-2">Không có quyền truy cập</h2>
-          <p>Vui lòng đăng nhập với vai trò là nhân viên giao hàng để xem đơn hàng</p>
-        </div>
-      </div>
+      <Result
+        status="403"
+        title="Không có quyền truy cập"
+        subTitle="Vui lòng đăng nhập với vai trò nhân viên giao hàng"
+      />
     );
   }
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-red-500 text-center">
-          <h2 className="text-xl font-bold mb-2">Lỗi</h2>
-          <p>{error}</p>
-          <button onClick={loadOrders} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Thử lại</button>
-        </div>
-      </div>
-    );
-  }
+
   return (
-    <div className="container">
-      <h1 className="text-2xl font-bold mb-6">Quản lý đơn hàng</h1>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div>
+          <Typography.Title level={4} style={{ marginBottom: 4 }}>
+            <ShoppingOutlined style={{ marginRight: 8 }} />
+            Đơn hàng đang giao
+          </Typography.Title>
+          <Typography.Text style={{ color: '#6b7280' }}>
+            Quản lý các đơn hàng được giao cho bạn
+          </Typography.Text>
+        </div>
+        <Button icon={<ReloadOutlined />} onClick={loadOrders}>
+          Làm mới
+        </Button>
+      </div>
+
       <OrderFilter
         selectedStatus={selectedStatus}
         setSelectedStatus={setSelectedStatus}
@@ -152,39 +136,45 @@ const ShipperOrders: React.FC = () => {
         setPageSize={setPageSize}
         totalOrders={totalOrders}
       />
-      <div className="space-y-4 mt-4">
-        {orders.map((order) => (
-          <OrderCard
-            key={order.id}
-            order={order}
-            onStatusChange={handleStatusChange}
-            onConfirmPayment={handleConfirmReceivedPayment}
-            onShowProofModal={() => { setSelectedOrder(order); setShowProofModal(true); }}
-            onShowFailedModal={() => { setSelectedOrder(order); setShowFailedModal(true); }}
-            onShowChecklistModal={() => { setSelectedOrder(order); setShowChecklistModal(true); }}
-          />
-        ))}
-      </div>
-      <PaymentProofModal
-        visible={showProofModal}
-        order={selectedOrder}
-        onClose={() => setShowProofModal(false)}
-        onSuccess={loadOrders}
-      />
-      <FailedDeliveryModal
-        visible={showFailedModal}
-        order={selectedOrder}
-        onClose={() => setShowFailedModal(false)}
-        onSuccess={loadOrders}
-      />
-      <DeliveryChecklistModal
-        visible={showChecklistModal}
-        order={selectedOrder}
-        onClose={() => setShowChecklistModal(false)}
-        onSuccess={loadOrders}
-      />
+
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
+          <Spin size="large" tip="Đang tải đơn hàng..." />
+        </div>
+      ) : error ? (
+        <Result
+          status="error"
+          title="Lỗi tải dữ liệu"
+          subTitle={error}
+          extra={<Button type="primary" onClick={loadOrders}>Thử lại</Button>}
+        />
+      ) : orders.length === 0 ? (
+        <Result
+          icon={<ShoppingOutlined />}
+          title="Không có đơn hàng"
+          subTitle="Không tìm thấy đơn hàng nào phù hợp với bộ lọc"
+        />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {orders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              onStatusChange={handleStatusChange}
+              onConfirmPayment={handleConfirmReceivedPayment}
+              onShowProofModal={() => { setSelectedOrder(order); setShowProofModal(true); }}
+              onShowFailedModal={() => { setSelectedOrder(order); setShowFailedModal(true); }}
+              onShowChecklistModal={() => { setSelectedOrder(order); setShowChecklistModal(true); }}
+            />
+          ))}
+        </div>
+      )}
+
+      <PaymentProofModal visible={showProofModal} order={selectedOrder} onClose={() => setShowProofModal(false)} onSuccess={loadOrders} />
+      <FailedDeliveryModal visible={showFailedModal} order={selectedOrder} onClose={() => setShowFailedModal(false)} onSuccess={loadOrders} />
+      <DeliveryChecklistModal visible={showChecklistModal} order={selectedOrder} onClose={() => setShowChecklistModal(false)} onSuccess={loadOrders} />
     </div>
   );
 };
 
-export default ShipperOrders; 
+export default ShipperOrders;

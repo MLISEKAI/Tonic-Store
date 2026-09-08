@@ -47,6 +47,8 @@ app.use(helmet());
 const defaultOrigins = [
   'http://localhost:5173',
   'http://localhost:3001',
+  'https://tonic-store.vercel.app',
+  'https://tonic-store-vl3h.vercel.app',
 ];
 
 const envOrigins = [

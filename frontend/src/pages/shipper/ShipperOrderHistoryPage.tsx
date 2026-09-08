@@ -3,6 +3,8 @@ import { ShipperService } from '../../services/shipper/shipperService';
 import OrderFilter from '../../components/shipper/OrderFilter';
 import OrderCard from '../../components/shipper/OrderCard';
 import OrderHistoryStats from '../../components/shipper/OrderHistoryStats';
+import { Typography, Spin, Result, Button } from 'antd';
+import { HistoryOutlined, ReloadOutlined } from '@ant-design/icons';
 
 const ShipperOrderHistoryPage: React.FC = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -16,35 +18,20 @@ const ShipperOrderHistoryPage: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalOrders, setTotalOrders] = useState(0);
 
-  // Debounce searchName
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [internalSearch, setInternalSearch] = React.useState(searchName);
 
-  useEffect(() => {
-    setInternalSearch(searchName);
-  }, [searchName]);
+  useEffect(() => { setInternalSearch(searchName); }, [searchName]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setSearchName(internalSearch);
-    }, 500);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-    // eslint-disable-next-line
+    debounceRef.current = setTimeout(() => setSearchName(internalSearch), 500);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [internalSearch]);
 
-  // Reset page về 1 khi filter thay đổi
-  useEffect(() => {
-    setCurrentPage(1);
-    // eslint-disable-next-line
-  }, [selectedStatus, searchName, dateRange, paymentMethod]);
+  useEffect(() => { setCurrentPage(1); }, [selectedStatus, searchName, dateRange, paymentMethod]);
 
-  useEffect(() => {
-    loadHistory();
-    // eslint-disable-next-line
-  }, [selectedStatus, searchName, dateRange, paymentMethod, currentPage, pageSize]);
+  useEffect(() => { loadHistory(); }, [selectedStatus, searchName, dateRange, paymentMethod, currentPage, pageSize]);
 
   const loadHistory = async () => {
     try {
@@ -67,7 +54,6 @@ const ShipperOrderHistoryPage: React.FC = () => {
     }
   };
 
-  // Thống kê tổng số đơn và tổng tiền COD (Tổng số tiền mặt mà shipper đã thu từ khách hàng)
   const stats = React.useMemo(() => {
     let totalCOD = 0;
     let delivered = 0;
@@ -81,8 +67,20 @@ const ShipperOrderHistoryPage: React.FC = () => {
   }, [orders]);
 
   return (
-    <div className="container">
-      <h1 className="text-2xl font-bold mb-6">Lịch sử đơn hàng đã giao</h1>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div>
+          <Typography.Title level={4} style={{ marginBottom: 4 }}>
+            <HistoryOutlined style={{ marginRight: 8 }} />
+            Lịch sử giao hàng
+          </Typography.Title>
+          <Typography.Text style={{ color: '#6b7280' }}>
+            Các đơn hàng đã hoàn thành hoặc đã hủy
+          </Typography.Text>
+        </div>
+        <Button icon={<ReloadOutlined />} onClick={loadHistory}>Làm mới</Button>
+      </div>
+
       <OrderFilter
         selectedStatus={selectedStatus}
         setSelectedStatus={setSelectedStatus}
@@ -99,25 +97,37 @@ const ShipperOrderHistoryPage: React.FC = () => {
         totalOrders={totalOrders}
         statusOptions={[
           { value: 'DELIVERED', label: 'Đã giao hàng' },
-          { value: 'CANCELLED', label: 'Đã huỷ' }
+          { value: 'CANCELLED', label: 'Đã hủy' },
         ]}
       />
+
       <OrderHistoryStats totalOrders={stats.delivered} totalCOD={stats.totalCOD} />
-      <div className="space-y-4 mt-4">
-        {loading ? (
-          <div>Đang tải...</div>
-        ) : error ? (
-          <div className="text-red-500">{error}</div>
-        ) : orders.length === 0 ? (
-          <div>Không có đơn hàng nào.</div>
-        ) : (
-          orders.map(order => (
-            <OrderCard key={order.id} order={order} onStatusChange={() => {}} onConfirmPayment={() => {}} onShowProofModal={() => {}} onShowFailedModal={() => {}} onShowChecklistModal={() => {}} />
-          ))
-        )}
-      </div>
+
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
+          <Spin size="large" tip="Đang tải lịch sử..." />
+        </div>
+      ) : error ? (
+        <Result status="error" title="Lỗi" subTitle={error} extra={<Button onClick={loadHistory}>Thử lại</Button>} />
+      ) : orders.length === 0 ? (
+        <Result icon={<HistoryOutlined />} title="Không có đơn hàng" subTitle="Chưa có lịch sử giao hàng" />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
+          {orders.map(order => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              onStatusChange={() => {}}
+              onConfirmPayment={() => {}}
+              onShowProofModal={() => {}}
+              onShowFailedModal={() => {}}
+              onShowChecklistModal={() => {}}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
-export default ShipperOrderHistoryPage; 
+export default ShipperOrderHistoryPage;

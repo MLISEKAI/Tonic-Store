@@ -24,7 +24,7 @@ const MAX_LOGS = 1000;
 const logs: RequestLog[] = [];
 const cacheStats = { hits: 0, misses: 0, errors: 0 };
 
-const LOG_DIR = join(process.cwd(), 'logs');
+const LOG_DIR = process.env.LOG_DIR ? join(process.env.LOG_DIR) : join(process.cwd(), 'logs');
 const LOG_FILE = join(LOG_DIR, 'api-logs.json');
 
 function loadLogsFromFile() {
