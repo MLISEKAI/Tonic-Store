@@ -3,7 +3,7 @@ import { CacheService, CacheKeys } from './cache.service';
 import logger from '../config/logger';
 import { parsePageOptions, calculatePagination, PaginationMeta } from '../common/types/pagination';
 
-const NOTIFICATION_CACHE_TTL = 120;
+const NOTIFICATION_CACHE_TTL = 300;
 
 const notificationSelect = {
   id: true,

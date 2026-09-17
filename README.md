@@ -6,7 +6,8 @@ Dự án cung cấp đầy đủ các tính năng như quản lý sản phẩm, 
 ---
 
 ## Live Demo
-🔗 [https://loctt.duckdns.org/](https://loctt.duckdns.org/)
+🔗 **Frontend (FE):** [https://tonic-store.vercel.app/](https://tonic-store.vercel.app/)
+🔗 **Admin:** [https://tonic-store-vl3h.vercel.app/](https://tonic-store-vl3h.vercel.app/)
 
 ---
 

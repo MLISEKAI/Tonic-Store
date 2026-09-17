@@ -3,8 +3,6 @@ export function getBreadcrumbFromPath(pathname: string, search: string) {
 
   if (pathname.startsWith('/flash-sale')) {
     items.push({ path: '/flash-sale', label: 'Khuyến mãi' });
-  } else if (pathname.startsWith('/new-arrivals')) {
-    items.push({ path: '/new-arrivals', label: 'Hàng mới về' });
   } else if (pathname.startsWith('/featured-products')) {
     items.push({ path: '/featured-products', label: 'Sản phẩm nổi bật' });
   } else if (pathname.startsWith('/best-sellers')) {

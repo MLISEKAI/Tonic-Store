@@ -108,7 +108,6 @@ const Navbar = () => {
     { key: 'products', label: 'Sản phẩm', path: '/products' },
     { key: 'flash-sale', label: 'Khuyến mãi', path: '/flash-sale' },
     { key: 'promotion-codes', label: 'Mã giảm giá', path: '/promotion-codes' },
-    { key: 'new-arrivals', label: 'Hàng mới về', path: '/new-arrivals' },
     { key: 'brands', label: 'Thương hiệu', path: '/brands' },
     { key: 'blog', label: 'Tonic Store Blog', path: '/blog' },
     { key: 'contact', label: 'Liên hệ', path: '/contact' },

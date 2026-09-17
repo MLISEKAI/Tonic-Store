@@ -22,7 +22,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, breadcrumb }) => {
       if (lastPath === '/flash-sale') fromMenu = 'flash-sale';
       else if (lastPath === '/featured-products') fromMenu = 'featured-products';
       else if (lastPath === '/best-sellers') fromMenu = 'best-sellers';
-      else if (lastPath === '/new-arrivals') fromMenu = 'new-arrivals';
       else if (lastPath === '/products') fromMenu = 'products';
       else if (lastPath === '/categories') fromMenu = 'categories';
     }

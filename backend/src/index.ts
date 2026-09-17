@@ -164,17 +164,23 @@ process.on('uncaughtException', (error: Error) => {
 const PORT = Number(process.env.PORT) || 8085;
 const HOST = process.env.HOST || '0.0.0.0';
 
-const server = app.listen(PORT, HOST, () => {
+const server = app.listen(PORT, HOST, async () => {
     console.log(`🚀 Server chạy tại http://${HOST}:${PORT}`);
     console.log('Environment:', process.env.NODE_ENV);
-    console.log('Database URL:', process.env.DATABASE_URL);
-    console.log(`API documentation available at http://localhost:${PORT}/api/docs`);
 
-     // Redis cache (tùy chọn - server vẫn chạy nếu Redis không khả dụng)
-    void connectRedis().then(() => {
-      setupQueues();
-      startScheduler();
-    });
+     // Redis cache
+    await connectRedis();
+    setupQueues();
+    startScheduler();
+
+    // Warmup DB connection - ping Neon to avoid cold start on first request
+    try {
+      const { prisma } = await import('./prisma');
+      await prisma.$queryRaw`SELECT 1`;
+      console.log('✅ DB connection warmed up');
+    } catch (err: any) {
+      console.warn('⚠️ DB warmup failed:', err?.message);
+    }
 });
 
 // Graceful shutdown

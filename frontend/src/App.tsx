@@ -21,7 +21,7 @@ import ShipperLayout from './layouts/ShipperLayout';
 import ShipperProfilePage from './pages/shipper/ShipperProfilePage';
 import WishlistPage from './pages/WishlistPage';
 import FlashSalePage from './pages/FlashSalePage';
-import NewArrivalsPage from './pages/NewArrivalsPage';
+
 import BestSellersPage from './pages/BestSellersPage';
 import BrandsPage from './pages/BrandsPage';
 import BlogPage from "./pages/blog/BlogPage";
@@ -188,7 +188,6 @@ const AppContent = () => {
                         } />
                         <Route path="/flash-sale" element={<FlashSalePage />} />
                         <Route path="/promotion-codes" element={<PromotionCode />} />
-                        <Route path="/new-arrivals" element={<NewArrivalsPage />} />
                         <Route path="/best-sellers" element={<BestSellersPage />} />
                         <Route path="/brands" element={<BrandsPage />} />
                         <Route path="/featured-products" element={<FeaturedProductsPage />} />

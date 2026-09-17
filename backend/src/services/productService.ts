@@ -83,7 +83,7 @@ export const getAllProducts = async (categoryName?: string, filters?: {
   }
 
   const products = await productRepository.findProductsWithRelations(where, undefined, productListSelect);
-  await CacheService.set(cacheKey, products, 300);
+  await CacheService.set(cacheKey, products, 600);
   return products;
 };
 
@@ -98,7 +98,7 @@ export const getProductById = async (id: number) => {
 
   const product = await productRepository.findProductByIdWithRelations(id, productDetailInclude);
   if (product) {
-    await CacheService.set(cacheKey, product, 600);
+    await CacheService.set(cacheKey, product, 900);
   }
   return product;
 };
@@ -209,7 +209,7 @@ export const getFlashSaleProducts = async () => {
   }
 
   const products = await productRepository.getFlashSaleProducts();
-  await CacheService.set(cacheKey, products, 60);
+  await CacheService.set(cacheKey, products, 300);
 
   const now = Date.now();
   if (products.length > 0 && now - lastFlashSaleNotificationSent > NOTIFICATION_COOLDOWN) {

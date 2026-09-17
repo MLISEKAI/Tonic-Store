@@ -34,8 +34,6 @@ const ProductDetailPage = () => {
       breadcrumb.push({ path: '/best-sellers', label: 'Sản phẩm bán chạy' });
     } else if (state.fromMenu === 'flash-sale') {
       breadcrumb.push({ path: '/flash-sale', label: 'Khuyến mãi' });
-    } else if (state.fromMenu === 'new-arrivals') {
-      breadcrumb.push({ path: '/new-arrivals', label: 'Hàng mới về' });
     } else {
       breadcrumb.push({ path: '/products', label: 'Sản phẩm' });
     }

@@ -10,4 +10,7 @@ if (!databaseUrl) {
 
 const adapter = new PrismaPg(databaseUrl);
 
-export const prisma = new PrismaClient({ adapter });
+export const prisma = new PrismaClient({
+  adapter,
+  log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+});
