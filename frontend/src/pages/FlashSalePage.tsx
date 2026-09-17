@@ -117,7 +117,7 @@ const FlashSaleProductCard = ({
       cover={
         <div className="relative">
           <Image
-            src={product.imageUrl || '/placeholder-product.jpg'}
+            src={product.imageUrl || 'https://placehold.co/400x400/e2e8f0/94a3b8?text=No+Image'}
             alt={product.name}
             className="w-full h-48 object-cover"
             preview={false}
